@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-28T17:05:36Z",
+  "title": "Design System: Riot Relics",
+  "extensions": {
+    "colorMeta": {
+      "indigo-board": {
+        "role": "primary",
+        "displayName": "Indigo Board",
+        "canonical": "#111f46",
+        "tonalRamp": [
+          "oklch(15% 0.076 266.2)",
+          "oklch(26% 0.076 266.2)",
+          "oklch(38% 0.076 266.2)",
+          "oklch(50% 0.076 266.2)",
+          "oklch(62% 0.076 266.2)",
+          "oklch(74% 0.076 266.2)",
+          "oklch(86% 0.076 266.2)",
+          "oklch(95% 0.076 266.2)"
+        ]
+      },
+      "indigo-vault": {
+        "role": "neutral",
+        "displayName": "Indigo Vault",
+        "canonical": "#091128",
+        "tonalRamp": [
+          "oklch(15% 0.048 267.1)",
+          "oklch(26% 0.048 267.1)",
+          "oklch(38% 0.048 267.1)",
+          "oklch(50% 0.048 267.1)",
+          "oklch(62% 0.048 267.1)",
+          "oklch(74% 0.048 267.1)",
+          "oklch(86% 0.048 267.1)",
+          "oklch(95% 0.048 267.1)"
+        ]
+      },
+      "indigo-ink-soft": {
+        "role": "neutral",
+        "displayName": "Indigo Ink Soft",
+        "canonical": "#1a326a",
+        "tonalRamp": [
+          "oklch(15% 0.103 264.1)",
+          "oklch(26% 0.103 264.1)",
+          "oklch(38% 0.103 264.1)",
+          "oklch(50% 0.103 264.1)",
+          "oklch(62% 0.103 264.1)",
+          "oklch(74% 0.103 264.1)",
+          "oklch(86% 0.103 264.1)",
+          "oklch(95% 0.103 264.1)"
+        ]
+      },
+      "tomato-print": {
+        "role": "primary",
+        "displayName": "Tomato Print",
+        "canonical": "#ef4d39",
+        "tonalRamp": [
+          "oklch(15% 0.202 30.4)",
+          "oklch(26% 0.202 30.4)",
+          "oklch(38% 0.202 30.4)",
+          "oklch(50% 0.202 30.4)",
+          "oklch(62% 0.202 30.4)",
+          "oklch(74% 0.202 30.4)",
+          "oklch(86% 0.202 30.4)",
+          "oklch(95% 0.202 30.4)"
+        ]
+      },
+      "tomato-shadow": {
+        "role": "primary",
+        "displayName": "Tomato Shadow",
+        "canonical": "#b92f25",
+        "tonalRamp": [
+          "oklch(15% 0.176 28.9)",
+          "oklch(26% 0.176 28.9)",
+          "oklch(38% 0.176 28.9)",
+          "oklch(50% 0.176 28.9)",
+          "oklch(62% 0.176 28.9)",
+          "oklch(74% 0.176 28.9)",
+          "oklch(86% 0.176 28.9)",
+          "oklch(95% 0.176 28.9)"
+        ]
+      },
+      "acid-yellow": {
+        "role": "secondary",
+        "displayName": "Acid Yellow",
+        "canonical": "#f2d742",
+        "tonalRamp": [
+          "oklch(15% 0.162 98.6)",
+          "oklch(26% 0.162 98.6)",
+          "oklch(38% 0.162 98.6)",
+          "oklch(50% 0.162 98.6)",
+          "oklch(62% 0.162 98.6)",
+          "oklch(74% 0.162 98.6)",
+          "oklch(86% 0.162 98.6)",
+          "oklch(95% 0.162 98.6)"
+        ]
+      },
+      "chalk-paper": {
+        "role": "secondary",
+        "displayName": "Chalk Paper",
+        "canonical": "#f7f0dd",
+        "tonalRamp": [
+          "oklch(15% 0.026 90.1)",
+          "oklch(26% 0.026 90.1)",
+          "oklch(38% 0.026 90.1)",
+          "oklch(50% 0.026 90.1)",
+          "oklch(62% 0.026 90.1)",
+          "oklch(74% 0.026 90.1)",
+          "oklch(86% 0.026 90.1)",
+          "oklch(95% 0.026 90.1)"
+        ]
+      },
+      "registration-ink": {
+        "role": "neutral",
+        "displayName": "Registration Ink",
+        "canonical": "#14151a",
+        "tonalRamp": [
+          "oklch(15% 0.010 276.5)",
+          "oklch(26% 0.010 276.5)",
+          "oklch(38% 0.010 276.5)",
+          "oklch(50% 0.010 276.5)",
+          "oklch(62% 0.010 276.5)",
+          "oklch(74% 0.010 276.5)",
+          "oklch(86% 0.010 276.5)",
+          "oklch(95% 0.010 276.5)"
+        ]
+      },
+      "aged-paper": {
+        "role": "neutral",
+        "displayName": "Aged Paper",
+        "canonical": "#d8d1bf",
+        "tonalRamp": [
+          "oklch(15% 0.026 89.2)",
+          "oklch(26% 0.026 89.2)",
+          "oklch(38% 0.026 89.2)",
+          "oklch(50% 0.026 89.2)",
+          "oklch(62% 0.026 89.2)",
+          "oklch(74% 0.026 89.2)",
+          "oklch(86% 0.026 89.2)",
+          "oklch(95% 0.026 89.2)"
+        ]
+      },
+      "focus-cyan": {
+        "role": "tertiary",
+        "displayName": "Focus Cyan",
+        "canonical": "#8de1ff",
+        "tonalRamp": [
+          "oklch(15% 0.091 222.8)",
+          "oklch(26% 0.091 222.8)",
+          "oklch(38% 0.091 222.8)",
+          "oklch(50% 0.091 222.8)",
+          "oklch(62% 0.091 222.8)",
+          "oklch(74% 0.091 222.8)",
+          "oklch(86% 0.091 222.8)",
+          "oklch(95% 0.091 222.8)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Short, shouted hero titles on story, Lineup, store, and tournament surfaces."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Section and result headings with a tightly balanced measure."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Relic names, Move names, offer names, and prominent values."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Readable rules, descriptions, dialogue, and supporting instructions."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Uppercase class, provenance, meter, status, and control metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "ticket-lift",
+        "value": "0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%)",
+        "purpose": "Standard structural lift beneath removable paper tickets and rails."
+      },
+      {
+        "name": "rail-lift",
+        "value": "0 0.45rem 1.1rem rgb(4 8 22 / 26%)",
+        "purpose": "Shallow separation beneath the sticky application rail."
+      },
+      {
+        "name": "drawer-channel",
+        "value": "inset 0.8rem 0 0 rgb(9 17 40 / 45%), inset -0.8rem 0 0 rgb(9 17 40 / 45%)",
+        "purpose": "Paired inset edges that make the battle stage read as an open collector drawer."
+      },
+      {
+        "name": "result-lift",
+        "value": "0.8rem 1rem 2rem rgb(0 0 0 / 50%)",
+        "purpose": "Highest elevation, reserved for the blocking battle result stamp."
+      }
+    ],
+    "motion": [
+      {
+        "name": "meter-response",
+        "value": "80ms linear",
+        "purpose": "Keeps health and Charge Strip values responsive without decorative easing."
+      },
+      {
+        "name": "idle-swap",
+        "value": "620ms interval",
+        "purpose": "Alternates paired rectangular idle prints when reduced motion is not active."
+      },
+      {
+        "name": "hit-nudge",
+        "value": "70ms Quad.easeOut",
+        "purpose": "A short directional impact displacement with yoyo return."
+      },
+      {
+        "name": "kinetic-cut-in",
+        "value": "150ms Expo.easeOut, 160ms hold, yoyo",
+        "purpose": "Slams a selected Move print across the full arena and returns it to the drawer."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "0.001ms, one iteration",
+        "purpose": "Collapses CSS transition and animation duration for system or explicit reduced-motion preferences."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "compressed-desktop",
+        "value": "1180px"
+      },
+      {
+        "name": "stacked-shell",
+        "value": "860px"
+      },
+      {
+        "name": "compact-mobile",
+        "value": "620px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Print Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The decisive action label for continuing, fighting, buying, or retrying.",
+      "html": "<button class=\"ds-btn-primary\">START THE FIGHT <span aria-hidden=\"true\">→</span></button>",
+      "css": ".ds-btn-primary { min-height: 3.6rem; border: 3px solid var(--ink, #14151a); padding: 0.72rem 1.2rem; background: var(--yellow, #f2d742); color: var(--ink, #14151a); box-shadow: 0.4rem 0.5rem 0.95rem rgb(4 8 22 / 35%); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.8rem; font-weight: 700; text-transform: uppercase; cursor: pointer; } .ds-btn-primary:hover { background: var(--tomato, #ef4d39); color: var(--chalk, #f7f0dd); transform: translate(-1px, -1px); } .ds-btn-primary:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-btn-primary:active { transform: translate(0, 0); }"
+    },
+    {
+      "name": "Secondary Indigo Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "A quieter boxed action that remains legible against result and content sheets.",
+      "html": "<button class=\"ds-btn-secondary\">LEAVE DRAWER</button>",
+      "css": ".ds-btn-secondary { min-height: 3.4rem; border: 3px solid var(--chalk, #f7f0dd); padding: 0.65rem 1rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-btn-secondary:hover { background: var(--tomato, #ef4d39); } .ds-btn-secondary:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-btn-secondary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Archive Navigation Tab",
+      "kind": "nav",
+      "refersTo": "navigation-tab",
+      "description": "An equal-width destination tab with a perforated divider and printed active marker.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Game\"><button class=\"ds-nav-tab ds-is-active\">STORY</button><button class=\"ds-nav-tab\">COLLECTION</button><button class=\"ds-nav-tab\">STORE</button></nav>",
+      "css": ".ds-nav { display: flex; border: 4px solid var(--ink, #14151a); background: var(--chalk, #f7f0dd); } .ds-nav-tab { min-width: 6rem; flex: 1; border: 0; border-right: 2px dashed rgb(20 21 26 / 36%); padding: 0.8rem 0.65rem; background: transparent; color: var(--indigo, #111f46); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-nav-tab:last-child { border-right: 0; } .ds-nav-tab:hover, .ds-nav-tab.ds-is-active { background: var(--yellow, #f2d742); color: var(--ink, #14151a); } .ds-nav-tab.ds-is-active { box-shadow: inset 0 -0.45rem 0 var(--tomato, #ef4d39); } .ds-nav-tab:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
+    },
+    {
+      "name": "Registration Field",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "A plain paper field held by a hard registration border.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-collector\">COLLECTOR NAME</label><input class=\"ds-field\" id=\"ds-collector\" value=\"Collector\" />",
+      "css": ".ds-field-label { display: block; margin-bottom: 0.35rem; color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; } .ds-field { width: 100%; min-height: 2.8rem; border: 3px solid var(--ink, #14151a); border-radius: 0; padding: 0.45rem 0.65rem; background: #fff; color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-field:hover { border-color: var(--tomato, #ef4d39); } .ds-field:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
+    },
+    {
+      "name": "Lineup Specimen Ticket",
+      "kind": "card",
+      "refersTo": "print-ticket",
+      "description": "A roster ticket combining square character art, class, health, and explicit state.",
+      "html": "<button class=\"ds-lineup-ticket\"><span class=\"ds-lineup-art\" aria-hidden=\"true\">MV</span><span class=\"ds-lineup-copy\"><strong>MARA VEX</strong><small>IMPACT · 160 / 160</small></span><span class=\"ds-lineup-state\">ACTIVE</span></button>",
+      "css": ".ds-lineup-ticket { position: relative; display: grid; width: 18rem; min-height: 5.4rem; grid-template-columns: 4rem minmax(0, 1fr); gap: 0.6rem; align-items: center; border: 3px solid var(--ink, #14151a); padding: 0.35rem; overflow: hidden; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.55rem), calc(100% - 0.55rem) 100%, 0 100%); cursor: pointer; } .ds-lineup-ticket:hover { background: var(--yellow, #f2d742); transform: translateX(0.2rem); } .ds-lineup-ticket:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-lineup-art { display: grid; width: 4rem; height: 4rem; place-items: center; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.5rem; } .ds-lineup-copy { display: grid; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-lineup-copy strong { font-size: 1rem; } .ds-lineup-copy small { font-size: 0.72rem; } .ds-lineup-state { position: absolute; right: -1.6rem; bottom: 0.45rem; width: 6rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-size: 0.62rem; font-weight: 700; text-align: center; transform: rotate(-38deg); }"
+    },
+    {
+      "name": "Move Label",
+      "kind": "custom",
+      "refersTo": "print-ticket",
+      "description": "One of three equally prominent battle actions with position, prediction, cost, and timing.",
+      "html": "<button class=\"ds-move\"><span class=\"ds-move-position\">1L</span><span class=\"ds-move-copy\"><strong>QUICK PRINT</strong><small>Fast strike · instant</small></span><span class=\"ds-move-number\"><b>34</b><small>POWER</small></span></button>",
+      "css": ".ds-move { display: grid; width: 28rem; min-height: 7.5rem; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.7rem; align-items: center; border: 4px solid var(--ink, #14151a); padding: 0.7rem 0.9rem; background: var(--yellow, #f2d742); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.65rem), calc(100% - 0.65rem) 100%, 0 100%); cursor: pointer; } .ds-move:hover { transform: translateY(-0.22rem) rotate(-0.25deg); } .ds-move:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-move-position { display: grid; width: 2.6rem; height: 3.7rem; place-items: center; border: 3px solid currentColor; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2rem; } .ds-move-copy { display: grid; gap: 0.2rem; } .ds-move-copy strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.4rem; line-height: 0.95; } .ds-move-copy small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-move-number { display: grid; min-width: 3rem; justify-items: center; border: 3px solid currentColor; padding: 0.2rem; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.6rem; } .ds-move-number small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.55rem; font-weight: 700; }"
+    },
+    {
+      "name": "Health and Charge Strips",
+      "kind": "custom",
+      "refersTo": "meter-track",
+      "description": "Compact labelled bars that pair values with colour-coded transform fills.",
+      "html": "<div class=\"ds-strips\"><div class=\"ds-meter-label\"><span>HEALTH</span><strong>118 / 160</strong></div><div class=\"ds-meter\"><span style=\"--ds-fill: .7375\"></span></div><div class=\"ds-meter-label\"><span>CHARGE</span><strong>62 / 100</strong></div><div class=\"ds-meter ds-charge\"><span style=\"--ds-fill: .62\"></span></div></div>",
+      "css": ".ds-strips { width: 18rem; padding: 0.55rem; border: 3px solid var(--ink, #14151a); background: rgb(247 240 221 / 94%); color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-meter-label { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; } .ds-meter { height: 0.7rem; border: 2px solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-deep, #091128); } .ds-meter span { display: block; width: 100%; height: 100%; background: var(--tomato, #ef4d39); transform: scaleX(var(--ds-fill, 0)); transform-origin: left center; transition: transform 80ms linear; } .ds-meter.ds-charge span { background: var(--yellow, #f2d742); }"
+    },
+    {
+      "name": "Status Stamp",
+      "kind": "chip",
+      "refersTo": "status-stamp",
+      "description": "An outlined text label for battle status that never relies on colour alone.",
+      "html": "<span class=\"ds-status\">BURN · 2 TURNS</span>",
+      "css": ".ds-status { display: inline-block; border: 2px solid var(--ink, #14151a); padding: 0.06rem 0.35rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; } .ds-status:hover { background: var(--yellow, #f2d742); } .ds-status:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
+    },
+    {
+      "name": "Battle Result Stamp",
+      "kind": "card",
+      "refersTo": "result-stamp",
+      "description": "The blocking, highest-elevation verdict sheet shown after a fight.",
+      "html": "<section class=\"ds-result\"><span>FIRST CLEAR</span><h2>PRINT WON</h2><dl><div><dt>STAMPS</dt><dd>+45</dd></div><div><dt>XP</dt><dd>+60</dd></div><div><dt>NEXT</dt><dd>01</dd></div></dl></section>",
+      "css": ".ds-result { width: min(38rem, 100%); border: 6px solid var(--ink, #14151a); padding: 2rem; overflow: hidden; background: var(--yellow, #f2d742); color: var(--ink, #14151a); box-shadow: 0.8rem 1rem 2rem rgb(0 0 0 / 50%); transform: rotate(-0.6deg); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-result > span { font-weight: 700; letter-spacing: 0.08em; } .ds-result h2 { max-width: 10ch; margin: 0.8rem 0; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 4rem; line-height: 0.88; text-transform: uppercase; } .ds-result dl { display: grid; grid-template-columns: repeat(3, 1fr); margin: 0; border: 4px solid currentColor; } .ds-result dl div { display: grid; padding: 0.65rem; border-right: 3px dashed currentColor; } .ds-result dl div:last-child { border-right: 0; } .ds-result dt { font-size: 0.68rem; font-weight: 700; } .ds-result dd { margin: 0; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.4rem; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Collector Drawer",
+    "overview": "Riot Relics feels like a pulled-open collector drawer full of underground fight bills, specimen labels, scuffed toys, and hand-stamped results. It is tactile, dense, irreverent, and immediately playable: the interface behaves like a physical archive being sorted under pressure, never like a floating sci-fi HUD.\n\nThe visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. Static rectangular character art becomes kinetic through two-frame swaps, panel translation, cut-ins, hit-stop, shake, flashes, and stamped feedback. The durable interaction story is story node → Lineup → Charge Strip → Stamps → next print.",
+    "keyCharacteristics": [
+      "Pulled-open drawer composition with compact rails and strict trays.",
+      "Indigo board, tomato and acid-yellow spot inks, chalk stock, and near-black registration ink.",
+      "Rectangular Kinetic Print art with halftone wear and purposeful misregistration.",
+      "Square, bordered controls with torn or clipped paper edges; circles are reserved for holes and stamps.",
+      "Large condensed uppercase display type paired with highly legible body copy.",
+      "Short, forceful motion that always has a reduced-motion equivalent."
+    ],
+    "rules": [
+      {
+        "name": "The Spot-Ink Rule",
+        "body": "Tomato and acid yellow signal action or state; do not spend them as ambient decoration.",
+        "section": "colors"
+      },
+      {
+        "name": "The Registration Rule",
+        "body": "Light paper objects are held together by visible near-black borders, seams, or dividers.",
+        "section": "colors"
+      },
+      {
+        "name": "The Cyan Exception Rule",
+        "body": "Focus cyan belongs to keyboard focus only and must not become a general accent.",
+        "section": "colors"
+      },
+      {
+        "name": "The Shout-and-Explain Rule",
+        "body": "League Gothic names the thing; Atkinson Hyperlegible explains what it does.",
+        "section": "typography"
+      },
+      {
+        "name": "The Short Display Rule",
+        "body": "Display copy stays brief and balanced—headlines are labels, not paragraphs.",
+        "section": "typography"
+      },
+      {
+        "name": "The Arena-First Rule",
+        "body": "Compress labels and secondary metadata before reducing the central art stage below a usable decision surface.",
+        "section": "layout"
+      },
+      {
+        "name": "The Three-Move Rule",
+        "body": "All three Moves remain equally prominent; no action receives a privileged hero-card slot.",
+        "section": "layout"
+      },
+      {
+        "name": "The Printed-Object Rule",
+        "body": "A shadow represents a physical label or drawer layer, never a generic floating panel.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Glass Rule",
+        "body": "Tonal opacity may support legibility over art, but blur, glow, and glassmorphism do not belong in this world.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Square-First Rule",
+        "body": "Start every surface at zero radius; earn a circle only when it represents a physical punch, stamp, or control.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Controlled-Crooked Rule",
+        "body": "Rotation stays subtle on cards and forceful only on explicit stamps; content alignment remains readable.",
+        "section": "shapes"
+      }
+    ],
+    "dos": [
+      "Do stage play as labelled physical matter: drawers, tickets, specimen wells, pull-tabs, perforations, and stamps.",
+      "Do keep the first battle viewport readable as compact rail, Lineups, central arena, paired meters, and three Moves.",
+      "Do use rectangular and square art as an intentional Kinetic Print language.",
+      "Do pair colour with text, shape, position, or value for every gameplay state.",
+      "Do preserve visible keyboard focus, touch-sized controls, and the reduced-motion override.",
+      "Do use stable logical asset IDs and the approved fallback chain when adding new art."
+    ],
+    "donts": [
+      "Don't introduce rounded dashboard cards, pills as default controls, glassmorphism, neon glow, or a sci-fi HUD.",
+      "Don't turn tomato or acid yellow into unbounded decoration; they communicate action and state.",
+      "Don't obscure the arena with floating panels or let opposing readouts collide with the matchup stamp.",
+      "Don't make one Move visually dominant over the other two.",
+      "Don't rely on colour alone for class, status, availability, health, or outcome.",
+      "Don't add decorative motion without a short purpose and a reduced-motion equivalent."
+    ]
+  }
+}

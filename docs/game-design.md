@@ -1,0 +1,346 @@
+# Riot Relics — game design document
+
+Status: authoritative for the current prototype  
+Working title: **Riot Relics** (proposed, replaceable)  
+Last design consolidation: 2026-07-29
+
+## 1. Product statement
+
+Riot Relics is a collectible squad battler about scrappy toy figures that come alive inside illicit printed fight cards. The player is a Collector building a Lineup, exploiting class matchups, upgrading three Moves per Relic, and returning to old opponents powerful enough to flatten them.
+
+The compact loop is:
+
+```text
+fight → earn → upgrade → collect → unlock → fight again
+```
+
+Story, dialogue, shops, missions, rewards, choices, and tournaments are authored nodes from `00` to `n`. There is no walkable overworld.
+
+## 2. Working language
+
+These names are strong working proposals. Stable IDs must outlive display-name changes.
+
+| Design concept                 | Working term  |
+| ------------------------------ | ------------- |
+| Collectible character          | Relic         |
+| Player                         | Collector     |
+| Deployed battle team           | Lineup        |
+| Tournament roster              | Case          |
+| Action                         | Move          |
+| Battle resource                | Charge Strip  |
+| Modification                   | Patch         |
+| Currency                       | Stamps        |
+| Random battle pickup           | Drop          |
+| Rectangular animation language | Kinetic Print |
+
+## 3. World and first cast
+
+Rare figures are supposedly misprints. The corporate tournament circuit calls them defects; underground Collectors know the “errors” are what wake a Relic up. The canonical first story follows a small print-shop crew entering a rigged qualifier after **The Ledger** begins confiscating unofficial figures.
+
+Initial factions:
+
+- **Free Shelf** — collectors, bootleg printers, and figures who refuse official ownership.
+- **The Ledger** — licensed enforcers who price, grade, and repossess everything.
+- **House Stock** — independent fighters who care more about the match than either side.
+
+Initial cast:
+
+| ID                      | Name        | Class   | Faction     | Role                                    |
+| ----------------------- | ----------- | ------- | ----------- | --------------------------------------- |
+| `character.mara-vex`    | Mara Vex    | Impact  | Free Shelf  | Starter; direct damage and interruption |
+| `character.knuckle-tax` | Knuckle Tax | Guard   | The Ledger  | First rival; defence and taunt          |
+| `character.zipwire`     | Zipwire     | Circuit | Free Shelf  | Fast bar control                        |
+| `character.velvet-hex`  | Velvet Hex  | Hex     | House Stock | Status and cleanse                      |
+| `character.gutter-grin` | Gutter Grin | Guile   | House Stock | Dodge and critical play                 |
+| `character.scrapjack`   | Scrapjack   | Feral   | The Ledger  | Team damage and pressure                |
+
+## 4. Modes
+
+### Story Mode
+
+- One canonical main story and any number of independent or unofficial stories.
+- Nodes can be dialogue, narration, choice, battle, store, mission unlock, reward, tournament, chapter transition, or ending.
+- Cleared nodes are directly replayable. Dialogue and cleared fights can be skipped.
+- Choices may alter reachable short-term nodes but never permanently lock content.
+- Story progress is shared across difficulty settings.
+- A story may lend characters or override a Lineup only by giving the player additional access, never by permanently taking owned content.
+
+### Quick Fight
+
+- All Relics, levels, Move orders, tiers, Patches, opponents, music, and supported rules are available.
+- It is a sandbox and does not require ownership.
+- During an active Story save, Quick Fight may award modest Stamps and XP, but it cannot grant first-clear rewards or story unlocks.
+
+### Tournament Mode
+
+- The player selects a Case of up to eight Relics before entry.
+- Up to three living Case members enter each fight.
+- Health, defeat state, and equipped Patches persist between rounds.
+- Patches cannot be changed during the tournament.
+- Interstitial nodes can heal, heal the Case, revive, grant starting Charge, stun the next enemy, open a store, or give a reward.
+- Losing a fight ends the run. A tournament can be restarted and replayed indefinitely.
+- Standalone tournaments can be customised; Story tournaments are authored.
+
+### Challenge Mode
+
+Uses the same combat engine with authored constraints such as forced Lineups, time limits, reduced healing, pre-applied statuses, or target objectives.
+
+## 5. Combat rules
+
+### 5.1 Format
+
+- Two sides only: player and opponent.
+- Each side deploys one to three Relics and has exactly one active Relic.
+- A battle ends when every Relic on a side is defeated or that side forfeits.
+- Standard time limit: 90 seconds, content-configurable.
+- At timeout, the side with the greater surviving-health percentage wins; exact ties favour the player on Easy/Normal and the opponent on Hard/Brutal.
+
+### 5.2 Charge Strips
+
+- Each team owns an independent Charge Strip from 0 to 100.
+- A Strip fills continuously and belongs to the team, not the active Relic.
+- Switching never resets it.
+- Tempo, statuses, Patches, scenario rules, and Moves may change fill speed, add Charge, drain Charge, or freeze the Strip.
+- Default Move costs are 25, 50, and 75. Reordering uses the nine positions `1L`, `1`, `1H`, `2L`, `2`, `2H`, `3L`, `3`, `3H`.
+- Moving a Move earlier reduces its output; moving it later increases output.
+
+Initial position model:
+
+| Position | Cost | Output multiplier |
+| -------- | ---: | ----------------: |
+| `1L`     |   18 |              0.72 |
+| `1`      |   25 |              0.82 |
+| `1H`     |   32 |              0.92 |
+| `2L`     |   43 |              0.94 |
+| `2`      |   50 |              1.00 |
+| `2H`     |   57 |              1.08 |
+| `3L`     |   68 |              1.12 |
+| `3`      |   75 |              1.22 |
+| `3H`     |   82 |              1.34 |
+
+### 5.3 Moves
+
+- Every combat-ready Relic has three Move definitions.
+- A Move is flavour, audiovisual references, a timing model, targeting, and an ordered list of reusable effects.
+- Minimum effects are damage, healing, stun, attack modification, defence modification, Charge gain/drain, cleanse, shield, multi-hit, and charge-up.
+- Targets are separate from effect types: self, active ally, all allies, active enemy, or all enemies.
+- A Move may contain multiple effects. The engine resolves them in declared order.
+- Predicted non-random base output is visible before selection. Critical hits, dodge, and variance can change the final result.
+
+Resolution order:
+
+```text
+validate → spend Charge → start/charge → lock target → resolve hits
+→ apply ordered effects → reactions/passives → defeats → semantic events
+```
+
+### 5.4 Charge-up and interruption
+
+- Some Moves fire instantly. Others require an uninterrupted charge duration after spending Charge.
+- Damage or stun interrupts a charging Relic by default.
+- Dodge avoids the hit and therefore does not interrupt.
+- A Patch or effect may grant interruption resistance.
+
+### 5.5 Switching
+
+- Switching is immediate and free unless a status or scenario prevents it.
+- A stunned or switch-locked active Relic cannot switch.
+- Switching cannot dodge an already targeted Move; the target is locked when resolution begins.
+- Individual health and statuses remain on benched Relics.
+- Status durations continue to tick while benched.
+- Benched Relics do not regenerate unless an explicit effect allows it.
+
+### 5.6 Core calculations
+
+Combat is seeded. The same initial state, seed, time steps, and decisions must produce the same report.
+
+Initial damage model:
+
+```text
+nominal = movePower × slotMultiplier
+growth = 1 + (level - 1) × 0.035
+power = 1 + allocatedPower × 0.035
+temporary = attackMultiplier × targetDefenceMultiplier
+class = 1.20 advantage | 0.82 disadvantage | 1 neutral
+tier = 1.00 stock | 1.16 gold | 1.34 platinum
+variance = seeded 0.94…1.06
+critical = 1.55 when triggered
+final = max(1, round(nominal × growth × power × temporary × class × tier × variance × critical))
+```
+
+Team-damage and team-healing Moves distribute their authored pool across living targets, preserving roughly the same total value as a stronger single-target Move.
+
+Dodge normally prevents an entire hit. Multi-hit Moves roll dodge and critical independently per hit.
+
+## 6. Classes and synergy
+
+The six-class wheel is:
+
+```text
+Impact → Feral → Guile → Circuit → Hex → Guard → Impact
+```
+
+An arrow means “strong against.” A class is weak to the class pointing at it. Neutral Relics ignore the wheel. Moves inherit the acting Relic’s class and never carry a separate class.
+
+Class effectiveness and Lineup synergy are different systems:
+
+- Class effectiveness comes from the wheel.
+- Faction synergy starts with two matching faction members.
+- Two matching members grant `+2` effective Vitality to the Lineup.
+- Three matching members grant `+2` effective Vitality and `+2` effective Power.
+- Exact duplicate Relics are allowed. A three-copy “Echo Lineup” gains 8% faster Charge fill as an authored synergy.
+
+All synergies are shown before battle and never rely on colour alone.
+
+## 7. Relic progression
+
+### 7.1 Stats
+
+Allocated stats:
+
+- **Power** — Move damage and offensive effects.
+- **Evasion** — dodge probability, subject to a safe cap.
+- **Fortune** — critical and positive battle probability.
+- **Tempo** — team Charge fill contribution while deployed.
+- **Vitality** — maximum health.
+
+Defence is a temporary combat modifier, not a sixth allocated stat. Defence Down increases incoming damage and prevents dodge for its duration.
+
+### 7.2 Levels
+
+- Level cap: 25.
+- Leveling grants automatic baseline growth and one freely reallocatable stat point.
+- Stat points can be moved freely outside active battles and tournaments.
+- Only Relics selected for the fight receive full XP; other members of a tournament Case may receive 20% support XP.
+- Defeated participants receive XP.
+- Smaller Lineups split the same fight XP across fewer Relics.
+
+### 7.3 Move tiers
+
+- Every owned Relic copy owns its own Move tiers.
+- Tiers are Stock, Gold, and Platinum.
+- Reordering and upgrading unlock at level 10.
+- Upgrades never make a Move worse, are previewed exactly, and are permanent for that owned copy.
+
+### 7.4 Patches
+
+- One Patch slot per Relic, unlocked at level 5.
+- Patches are reusable, freely removable outside tournaments, and can be equipped by only one owned Relic at a time.
+- Some Patches are class-restricted.
+- Patches do not level or expire.
+
+Initial Patches:
+
+- **Hot Start** — add 18 opening Charge to the shared Strip.
+- **No Flinch** — 50% seeded chance for a charge-up Move to resist interruption.
+- **Heavy Ink** — +3 effective Power.
+- **Lucky Misprint** — +4 effective Fortune.
+
+## 8. Economy, store, and rewards
+
+- Stamps have no cap.
+- Wins grant XP and Stamps; losses grant 30% of base XP and objective-appropriate mission progress.
+- First clear adds an authored bonus.
+- Easy and Normal grant identical rewards. Hard and Brutal do not multiply progression; their reward is challenge, optional commentary, and records.
+- Repeat clears normally keep full base rewards.
+- Store inventory rotates deterministically, supports specials, and is gated by story/tournament/mission progress.
+- Favourited revealed Relics remain findable even when the featured rotation changes.
+- Locked stock is hidden or shown as a silhouette until revealed.
+- Owned Relics and Patches can be sold for their current full listed value in the prototype.
+- Purchased Relics are usually level 2–10; specific offers declare the level.
+- Duplicates are allowed and keep independent levels, tiers, allocations, and Patches.
+
+## 9. Missions
+
+Requirements are generic content blocks evaluated from semantic game reports.
+
+Initial missions:
+
+- **Fresh Ink** — add a second distinct Relic to the collection.
+- **Invoice Denied** — defeat Knuckle Tax once.
+- **Print It Personal** — after losing to a named opponent, return and defeat that opponent.
+
+Mission progress can count on a loss when the objective describes an action actually completed, such as dealing damage. Win objectives never count on a loss.
+
+## 10. Initial story: “First Run”
+
+| Node | Type       | Title                 | Purpose                               |
+| ---- | ---------- | --------------------- | ------------------------------------- |
+| `00` | dialogue   | Wet Ink               | Introduce the print shop and Mara Vex |
+| `01` | reward     | Shelf Space           | Lend and then grant Mara              |
+| `02` | battle     | Tax Due               | Tutorial fight against Knuckle Tax    |
+| `03` | store      | Backroom Counter      | Reveal rotating stock and Patches     |
+| `04` | mission    | Read the Fine Print   | Unlock the three initial missions     |
+| `05` | battle     | Qualifier Stamp       | Two-Relic rules introduction          |
+| `06` | tournament | The Cheap Seats Cup   | Three-round tournament                |
+| `07` | reward     | Officially Unofficial | Currency, rival reveal, ending panel  |
+
+The first implementation may ship nodes `00`–`02` as the fully interactive vertical slice while representing later nodes in the path as locked previews.
+
+## 11. Initial tournament: “The Cheap Seats Cup”
+
+1. Fixed fight against a House Stock Relic.
+2. Interstitial: choose one of heal active, heal Case, or start next round with +18 Charge.
+3. Fixed fight against a two-Relic Lineup.
+4. Interstitial store or revive offer when applicable.
+5. Final against Knuckle Tax and Scrapjack.
+
+Rewards are a tournament badge, Stamps, XP, and a chance to reveal a rare store offer.
+The champion badge is unique. Replays remain a progression activity: a completed
+replay pays its authored Stamp purse and battle XP again.
+
+## 12. Presentation
+
+Kinetic Print uses static rectangular and square art as its animation grammar:
+
+- two-frame idle swaps;
+- panel slides, wipes, stack reveals, and hard cuts;
+- short cut-ins for powerful Moves;
+- recoil, tilt, scale, hit-stop, flashes, shake, and number pops;
+- halftone overlays and authored particles;
+- character art never needs to include the opponent;
+- status conditions usually use overlays instead of new character renders.
+
+The working visual world is an underground risograph fight bill crossed with a collectible archive drawer. It uses indigo, tomato red, acid yellow, and chalk white spot inks; halftone portraits; torn seams; sticker seals; and rectangular pull tabs. It is proposed until approved but is the implementation target for this stage.
+
+## 13. Audio
+
+- All seven supplied tracks form one manually curated pool.
+- Characters, stories, tournaments, battles, and menu surfaces may reference any track by stable ID.
+- The player can replace associations, choose music in sandbox modes, mute music, and set volume.
+- Music, SFX, and dialogue settings are independent.
+- Dialogue and SFX are silent logical placeholders in this stage.
+- Future dialogue is subtitled and normally overlaps presentation without pausing combat.
+
+## 14. Saves and accessibility
+
+- Three local save slots.
+- Autosave after battles, purchases, upgrades, and story progress.
+- Preferences are separate from progression and survive progression wipes.
+- Save export/import is deferred until the schema stabilises.
+- Reduced motion, keyboard navigation, touch targets, subtitles, volume categories, readable contrast, and redundant class/status labels are required.
+
+## 15. Current MVP
+
+The current build should prove:
+
+- story node to squad confirmation to playable battle to reward;
+- Mara Vex and Knuckle Tax with three Moves each;
+- one-to-three-character data structures and switching;
+- two Charge Strips, class effectiveness, seeded damage/crit/dodge, basic statuses, charge-up interruption, AI, timer, win/loss, retry, and four difficulties;
+- currency, XP, first-clear reward, a tiny store, collection, missions, and local saves;
+- hybrid Phaser art renderer plus semantic DOM controls;
+- real generated art, existing music, and silent SFX/dialogue fallbacks;
+- content validation and automated domain tests.
+
+It does not include the full campaign, final balance, backend, multiplayer, monetisation, mobile packaging, ElevenLabs output, or open-world systems.
+
+## 16. Explicitly open decisions
+
+- Final product name and permanent terminology.
+- Final class names, bonuses, and wheel balance.
+- Long-term mobile orientation.
+- Final story-path topology and whether hidden nodes exist.
+- Exact Quick Fight progression rewards.
+- Final visual approval and future character/story-specific visual variance.
+- Save export timing, PWA timing, analytics, observability provider, and cloud-save design.

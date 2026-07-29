@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.playwright-cli/
+output/
+.env
+.env.local
+.DS_Store
+*.log
+*.tsbuildinfo
+playwright-report/
+test-results/

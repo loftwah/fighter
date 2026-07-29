@@ -1,0 +1,39 @@
+[tools]
+node = "22"
+pnpm = "11.17.0"
+
+[tasks.install]
+description = "Install the pinned JavaScript dependencies"
+run = "pnpm install"
+
+[tasks.dev]
+description = "Start the Vite development server"
+run = "pnpm dev"
+
+[tasks.build]
+description = "Build the production web bundle"
+run = "pnpm build"
+
+[tasks.test]
+description = "Run domain and content tests"
+run = "pnpm test"
+
+[tasks.typecheck]
+description = "Type-check without emitting JavaScript"
+run = "pnpm typecheck"
+
+[tasks.lint]
+description = "Run ESLint"
+run = "pnpm lint"
+
+[tasks.format]
+description = "Check source formatting"
+run = "pnpm format"
+
+[tasks."content:validate"]
+description = "Validate authored game content"
+run = "pnpm content:validate"
+
+[tasks.check]
+description = "Run the complete local quality gate"
+depends = ["lint", "format", "typecheck", "test", "build", "content:validate"]

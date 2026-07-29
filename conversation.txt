@@ -1,0 +1,6704 @@
+ChatGPT Pro
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Pasted text(52).txt
+Document
+We should take the information from this chat too
+
+Also the source of truth for our game this time should be a proper design document rather than the conversations. That was fine at first but got messy as requirements changed and we progressed.
+
+
+Pasted text(53).txt
+Document
+We want this without their map and explore. We are doing that with levels and how we described it right?
+
+Here is the full breakdown of **Teeny Titans 2** (officially titled ***Teen Titans GO Figure!***).
+
+This game builds heavily on the original *Teeny Titans* formula: a lighthearted, figure-collecting RPG that blends 3v3 real-time battle bar mechanics with open-world DC exploration.
+
+---
+
+## Game Overview & Progression (Start to End)
+
+* **Avatar Selection:** At the start of the game, you choose one of five Teen Titans as your overworld avatar: **Robin, Raven, Cyborg, Starfire, or Beast Boy**. Your choice changes overworld dialogue, special character-driven interactions, and unique voice acting.
+* **The Plot:** Someone is attempting to put the Teeny Titans toy business out of operation with counterfeit figures and shady sales tactics. You travel through the DC universe to uncover who is behind the conspiracy, earn championship badges, and reign supreme in competitive battle leagues.
+* **The Core Loop:**
+
+$$\text{Explore Cities} \rightarrow \text{Buy/Find Figures} \rightarrow \text{Level/Upgrade Team} \rightarrow \text{Win Local Tournaments} \rightarrow \text{Unlock New Areas/Cities}$$
+
+
+* **End Game:** After defeating regional tournament champions across Jump City, Gotham City, and Metropolis, you battle through elite tournaments (like the Justice League or Legion of Doom events) to catch every collectible figure and claim the title of Mega Teeny Champion.
+
+---
+
+## Map & Exploration
+
+Unlike the original game (which took place entirely in Jump City), *Teeny Titans 2* expands across three major DC hub worlds:
+
+* **Jump City:** The Titans' home turf featuring iconic spots like Titans Tower, Zippy's Pizza, and Lil' Alfred's Toy Cave.
+* **Gotham City:** A darker, rainier urban map featuring locations like the Batcave, Arkham Asylum, and Gotham toy stores.
+* **Metropolis:** A bright, high-rise city featuring LexCorp, the Daily Planet, and the Hall of Justice.
+
+### Exploration Features
+
+* **Fast Travel:** Move quickly between neighborhoods and cities using sewer drains, space cabs, or transport stations.
+* **Dynamic Day/Night & Weather Systems:** Time continuously advances as you walk and battle. Certain stores close at night, while specific shady characters, nocturnal figures, or midnight tournaments only appear after dark.
+* **Scavenging:** You can tap trash cans, trees, water bodies, and street corners to collect dropped coins, free item boxes, tofu, or rare **Mod Chips**.
+* **NPC Interactions & Side Quests:** Dozens of classic DC characters (from Batman, Superman, and Wonder Woman down to niche villains like Condiment King) wander the streets. You can speak to them to receive quests or challenge them to duels.
+
+---
+
+## Battle Mechanics
+
+Combat is a **3v3 active-time battle (ATB)** system played out in real-time using a shared **Battle Bar**.
+
+[ Active Figure ]  <--->  [ Shared Battle Bar ]  <--->  [ Enemy Figure ]
+                         | Slot 1 | Slot 2 | Slot 3 |
+
+
+### The Battle Bar & Switching
+
+* **Shared Power:** Both you and your opponent have a single Battle Bar that constantly fills up from left to right in real-time.
+* **3 Active Slot Team:** You equip up to 6 figures in your total deck, but bring **3 figures into a match**. Only one figure fights on screen at a time.
+* **Instant Switching:** Tapping another figure on your bench swaps them into battle instantly. The Battle Bar **does not reset** when you swap, allowing you to charge up energy with a tanky figure and swap to a glass-cannon figure to spend it immediately.
+
+### Abilities & Attack Types
+
+Every figure has **3 distinct ability slots** mapped directly to specific segments on the Battle Bar:
+
+* **Slot 1 (Low Cost):** Quick, weak attacks or basic utility moves.
+* **Slot 2 (Medium Cost):** Balanced attacks, group damage, or status buffs.
+* **Slot 3 (High Cost):** High-damage ultimate attacks, multi-target hits, or heavy crowd-control effects.
+
+**Key Ability Variations:**
+
+* **Charge-Up (Purple Moves):** Require holding the bar at that spot for a few seconds before firing. They deal huge damage but risk being interrupted if you take damage.
+* **Status Effects:** Moves can inflict Stun, Freeze (stops the opponent's bar), Burn/Poison (damage over time), Bar Depletion (drains opponent's bar), or Dodge Boosts.
+* **Tofu Drops:** Some abilities drop edible Tofu, which grants random active buffs, health recovery, or bar speed boosts.
+
+### Battle Accessories
+
+Before a fight, you equip one team accessory (e.g., the **Bat-Signal**, **Superman's Underpants**, or **Green Lantern Ring**). Over the course of the match, an accessory meter slowly builds up. Once full, activating it triggers a match-altering effect, such as team healing or massive burst damage.
+
+---
+
+## Shops & Economy
+
+Shops are scattered everywhere, each specializing in different figure categories, chip types, or accessories:
+
+* **Inventory Rotation:** Shops restock their inventories as the in-game days cycle.
+* **Specialized Stores:**
+* *Bizarro Comics:* Focuses on villain and weird variant figures.
+* *Toyman / Lil' Alfred's:* High-tier hero stock.
+* *Rainbow Raider:* Sells figure **Repaints** to customize paint jobs and alter cosmetic variants.
+* *24-Hour Shop & Sticky Joe:* Sells budget items, mystery boxes, and random consumables.
+
+
+
+---
+
+## Upgrades, Mod Chips, and Customization
+
+Managing and upgrading your 100+ figure roster takes place inside **Titans Tower**:
+
+### 1. Stats & Leveling
+
+Figures have four core stats: **Health, Damage, Luck (Critical Hit Chance), and Dodge (Chance to avoid damage entirely)**. Figures level up from 1 to 20 by gaining EXP in combat or by consuming duplicate figures and Tofu.
+
+### 2. Gold Upgrades & Slot Customization
+
+* **Slot Reordering:** You can pay coins to change which slot an ability sits in. Moving a figure's best move from Slot 3 to Slot 1 allows you to spam it much faster (at the cost of base damage tweaks).
+* **Gold Upgrades:** Investing coins into an ability turns its icon gold, adding bonus effects like guaranteed critical hits, added stuns, or zero bar cost.
+
+### 3. Mod Chips
+
+Once a figure reaches **Level 5**, you can attach a **Mod Chip** to the bottom of its base. A figure can only hold one chip at a time, and equipping a new chip destroys the old one.
+
+* **Stat Boost Mods:** Directly raise one stat (e.g., +20% Dodge) or lower one stat to heavily boost another.
+* **Battle Effect Mods:** Grant automatic passive buffs at match start, such as starting with a full accessory meter or cursing the opponent's bar speed.
+* **Archetype Mods:** Exclusive perks based on figure type (e.g., health regeneration on *Cute* category figures).
+
+Are you planning to jump into a new playthrough, or are you trying to build a specific team strategy around a certain Titan?
+
+Well I want this without the exploration and map. I am thinking a candy crush style level system with the story and missions as part of that. I could have one or many stories, and the stories could contain everything I need to drive a story. I could have 00-n amount of levels (as many as I want) and there could be tournaments etc wound into them at certain stages. I'm doing this with static images, kinda anime style.
+
+Sorry about the mess. I want you to have this in context.
+
+End-to-end walkthrough of the game concept
+This is the complete design direction that has emerged from the conversation, including the original idea, the systems added later, the technical architecture, the asset pipeline, the intended MVP, and the areas still requiring decisions.
+
+The most important high-level conclusion is:
+
+This is a collectible squad battler with real-time battle-bar combat, character progression, a store, missions, tournaments, multiple story campaigns, and a distinctive static-image presentation built around animated rectangular and square panels.
+
+It deliberately borrows some of the appealing structural ideas from Teeny Titans, especially the battle bar, three-action characters, figure collection, upgrades, types, shops, tournaments and mod-style customisation. It deliberately removes open-world walking and exploration. The supplied Teeny Titans 2 breakdown is useful as system inspiration, but its cities, roaming NPCs, scavenging, day/night exploration and physical traversal are not part of this game. 
+
+
+The earlier imported discussion also established that the visual limitation should become the game’s intentional style: static rectangular artwork, image swaps, zooms, slides, shake, hit-stop, flashes, sound and two-frame character motion instead of conventional animation. 
+
+
+1. The original problem
+The original starting point was that conventional game animation felt like a major barrier.
+
+You had already worked out a battle concept, but you did not want to become an animator or depend on large traditional sprite sets. You were considering:
+
+static character images
+
+attack images
+
+hurt images
+
+stunned images
+
+victory and defeat images
+
+sliding and zooming
+
+screen movement
+
+sound effects
+
+programmed impact effects
+
+rectangular blocks rather than transparent cut-out sprites
+
+You also wanted a progression structure that did not require a fully explorable world.
+
+A Candy Crush-style level path was initially considered because it is easy to understand and easy to extend, but you correctly identified the risks:
+
+it can become mechanically linear
+
+it can imply endless progression
+
+difficulty can rise until the game stops being enjoyable
+
+the story can become secondary to level inflation
+
+it does not naturally create a sense of place or purpose unless designed carefully
+
+The design later evolved into something stronger:
+
+Use a level or chapter path as a delivery mechanism, but allow each node to contain any kind of authored content, not just another battle.
+
+That removes the need for a walkable map without reducing the game to a meaningless sequence of fights.
+
+2. The game’s current identity
+The game is not yet named.
+
+The agent working on the project should be allowed to invent:
+
+possible names
+
+a recommended working title
+
+terminology for the collectible characters
+
+terminology for squads
+
+terminology for character types
+
+terminology for mod chips
+
+terminology for actions
+
+terminology for upgrades
+
+terminology for the currency
+
+terminology for the rectangular animation style
+
+factions
+
+rivalries
+
+initial characters
+
+initial missions
+
+an initial tournament
+
+the tone of the world
+
+The creative work should be treated as proposed until approved, but it should be strong enough to use immediately.
+
+The world can be:
+
+funny
+
+stylish
+
+dramatic
+
+strange
+
+irreverent
+
+anime-inspired
+
+toy-like
+
+figurine-based
+
+self-aware
+
+serious in some moments and absurd in others
+
+The initial characters should not be called generic things such as:
+
+Hero
+
+Enemy
+
+Fighter 1
+
+Attack 1
+
+Currency
+
+The project needs a unique brand rather than looking like a generic implementation of another game’s mechanics.
+
+3. The core player fantasy
+The player owns and builds a collection of combat characters that behave somewhat like collectible figurines, units or pieces.
+
+The player:
+
+obtains characters
+
+chooses a squad
+
+improves characters
+
+allocates their stats
+
+upgrades their three actions
+
+equips modifications
+
+exploits type strengths
+
+creates squad synergies
+
+fights increasingly strong opponents
+
+completes missions
+
+enters tournaments
+
+progresses through stories
+
+revisits older fights while much stronger
+
+experiments in Quick Fight and other modes
+
+The emotional loop is important:
+
+Meet a difficult opponent
+→ lose or barely survive
+→ earn money and XP elsewhere
+→ improve characters
+→ adjust the squad and loadout
+→ return stronger
+→ dominate the old opponent
+The game should intentionally allow the player to become overpowered.
+
+Older fights should not scale endlessly to match the player.
+
+The feeling of returning and crushing something that was previously difficult is part of the reward.
+
+4. The full core loop
+The current overall loop is:
+
+Choose or continue a story, tournament, challenge or quick fight
+→ assemble a squad of 1 to 3 characters
+→ choose builds, action upgrades and modifications
+→ fight
+→ win or lose
+→ receive XP, currency and mission progress
+→ level characters
+→ upgrade actions
+→ modify stat allocations
+→ buy or unlock characters
+→ unlock more fights, missions, stories and tournaments
+→ repeat
+The most compact form is:
+
+Fight
+→ earn
+→ upgrade
+→ collect
+→ unlock
+→ fight again
+This loop is supported by several independent systems:
+
+combat
+
+character collection
+
+character progression
+
+action upgrades
+
+stat allocation
+
+modifications
+
+squad synergy
+
+character-type effectiveness
+
+economy
+
+store
+
+missions
+
+tournaments
+
+stories
+
+quick fight
+
+challenge content
+
+presentation
+
+asset generation
+
+5. No open-world exploration
+This is now a firm exclusion.
+
+The game does not need:
+
+walking around towns
+
+freely controlled map avatars
+
+physical navigation between shops
+
+environmental scavenging
+
+roaming NPCs
+
+tile maps
+
+collision
+
+pathfinding
+
+navigation meshes
+
+day/night walking
+
+weather-based exploration
+
+fast travel
+
+explorable hub cities
+
+manually finding quests in a physical environment
+
+Those systems were part of the Teeny Titans 2 inspiration, but they are not part of this project. 
+
+
+Anything normally delivered through exploration is converted into structured authored content.
+
+Exploration concept	Replacement in this game
+Walking to a shop	Store node or permanent store menu
+Meeting an NPC	Dialogue or character encounter
+Finding a quest	Mission unlock node
+Reaching another city	Chapter transition
+Discovering a tournament	Tournament unlock
+Finding a character	Story reward, shop unlock or mission reward
+Entering a landmark	Static illustrated scene
+Side quest	Separate story or mission chain
+Day/night encounter	Event condition or story condition
+Searching objects	Reward node, mission objective or store system
+The campaign should feel like moving through an interactive anime, illustrated serial or graphic novel rather than walking across a physical map.
+
+6. Story structure
+Story Mode is a sequence of numbered or identified nodes.
+
+A story can contain:
+
+00
+01
+02
+03
+...
+n
+There is no fixed upper limit.
+
+The numbering is organisational. It does not mean every node is a fight.
+
+A story node may be:
+
+battle
+
+dialogue
+
+narration
+
+static cut-scene
+
+multi-panel scene
+
+character encounter
+
+mission assignment
+
+mission resolution
+
+shop
+
+reward
+
+character unlock
+
+tournament
+
+tournament round
+
+tournament final
+
+tutorial
+
+choice
+
+branch
+
+media
+
+chapter transition
+
+ending
+
+optional side node
+
+challenge
+
+replay node
+
+Example:
+
+00 Opening image sequence
+01 Dialogue
+02 Tutorial battle
+03 Reward
+04 Store opens
+05 Character encounter
+06 Mission assigned
+07 Optional fight
+08 Story fight
+09 Choice
+10 Tournament round one
+11 Tournament round two
+12 Tournament final
+13 Character unlock
+14 Closing scene
+The visible interface could look like:
+
+a level path
+
+chapter cards
+
+a scrolling story board
+
+episode panels
+
+branching nodes
+
+a stylised timeline
+
+stacked rectangular scenes
+
+It may borrow the clarity of Candy Crush’s progression map while using its own branding and allowing different node types.
+
+The important rules are:
+
+not every node is combat
+
+stories may branch
+
+stories may contain optional content
+
+stories may have an ending
+
+stories can be replayed
+
+new stories can be added later
+
+additional content should come from authored stories and events rather than infinite stat escalation
+
+7. Multiple stories
+The game can support any number of story definitions.
+
+Examples:
+
+Main Story
+Character Story
+Revenge Story
+Tournament Arc
+Seasonal Event
+Side Story
+Tutorial Campaign
+Villain Campaign
+Alternate Timeline
+Comedy Episode
+Challenge Story
+Possible content structure:
+
+content/stories/
+├── main/
+├── first-rival/
+├── vengeance-arc/
+├── starter-tournament/
+├── event-halloween/
+└── character-origin/
+Each story should define:
+
+stable ID
+
+display name
+
+summary
+
+cover artwork
+
+initial node
+
+node graph
+
+unlock conditions
+
+completion conditions
+
+rewards
+
+replay rules
+
+default difficulty
+
+associated music
+
+status
+
+whether it is permanent or event-limited
+
+This allows the game to expand without changing the engine.
+
+8. Game modes
+The same combat engine and character data support several game modes.
+
+8.1 Story Mode
+The authored campaign experience.
+
+It can include:
+
+fights
+
+dialogue
+
+choices
+
+shops
+
+missions
+
+character unlocks
+
+tournaments
+
+cut-scenes
+
+static media
+
+side branches
+
+optional challenges
+
+endings
+
+8.2 Quick Fight
+A flexible battle setup mode.
+
+The player may choose:
+
+squad
+
+opponent
+
+difficulty
+
+arena
+
+music
+
+character levels
+
+action tiers
+
+modifications
+
+rule modifiers
+
+presentation mode
+
+There may be two forms:
+
+Collection Quick Fight
+Uses only characters the player owns.
+
+Sandbox Quick Fight
+Allows unrestricted access for experimentation, testing and fun.
+
+That distinction has not yet been confirmed, but it is a useful possibility.
+
+8.3 Tournament Mode
+A structured sequence of battles.
+
+A tournament may include:
+
+several rounds
+
+fixed opponents
+
+random opponents
+
+authored bracket
+
+restrictions
+
+themed arenas
+
+special rules
+
+cumulative rewards
+
+final reward
+
+optional story scenes
+
+character requirements
+
+faction requirements
+
+difficulty choice
+
+Tournaments use the normal battle and economy modules.
+
+8.4 Combat or Challenge Mode
+A replayable mode containing:
+
+curated fights
+
+generated matchups
+
+character-specific challenges
+
+squad restrictions
+
+unusual battle rules
+
+daily challenges later
+
+event fights
+
+boss fights
+
+high-difficulty content
+
+experimental modifiers
+
+8.5 Collection and management
+Outside combat, the player should have access to:
+
+character collection
+
+squad builder
+
+stat allocation
+
+saved loadouts
+
+action upgrades
+
+modification management
+
+store
+
+mission list
+
+story selection
+
+tournament selection
+
+9. Difficulty system
+The game should support:
+
+Easy
+Normal
+Hard
+Brutal
+Normal is the default.
+
+Difficulty is not meant to be a moral judgement or a punishment.
+
+The philosophy is:
+
+Easy
+strongly favours the player
+
+supports relaxed play
+
+supports power fantasy
+
+still creates the illusion that losing is possible
+
+gives full normal progression
+
+is the intended mode for players who enjoy winning and collecting more than struggling
+
+Normal
+intended default balance
+
+fair but not punishing
+
+losses are possible
+
+reasonable progression speed
+
+Hard
+more heavily weighted toward opponents
+
+stronger enemy configurations
+
+smarter AI or better action choices
+
+potentially slightly higher rewards
+
+Brutal
+intentionally hostile
+
+may require optimised builds
+
+may assume high-level characters
+
+may include substantial enemy advantages
+
+suitable for people who actively want difficulty
+
+Difficulty should be changeable between fights.
+
+A loss should not:
+
+remove currency
+
+remove experience
+
+destroy modifications
+
+damage characters permanently
+
+reduce levels
+
+regress story progress
+
+consume lives
+
+lock content
+
+create long-term consequences
+
+After losing, the player should be able to:
+
+retry
+
+lower difficulty
+
+raise difficulty
+
+change squad
+
+reallocate stats
+
+equip different modifications
+
+upgrade actions
+
+play another mode
+
+grind earlier content
+
+return overpowered
+
+Easy should not give reduced rewards merely because it is Easy.
+
+A better initial philosophy is:
+
+Easy: full normal rewards
+
+Normal: full normal rewards
+
+Hard: modest reward bonus
+
+Brutal: somewhat larger reward bonus
+
+The bonuses should not create exclusive progression.
+
+Harder difficulties should not be required to unlock:
+
+characters
+
+core story
+
+essential equipment
+
+necessary currency
+
+endings
+
+normal achievements required for progression
+
+The exact reward multipliers remain balancing decisions.
+
+10. Combat format
+Combat is inspired by a real-time battle bar.
+
+The current intended structure is:
+
+player squad of 1 to 3 characters
+
+enemy squad of 1 to 3 characters
+
+one active character at a time on each side
+
+three actions per character
+
+actions associated with battle-bar thresholds or costs
+
+real-time bar filling
+
+switching characters
+
+variable damage and effects
+
+status conditions
+
+team-based actions
+
+squad synergy
+
+type effectiveness
+
+The game may eventually resemble a 3v3 active-time system, but the MVP can begin with simpler battles while preserving the architecture for squads.
+
+The likely battle view contains:
+
+player active character
+
+enemy active character
+
+player squad cards
+
+enemy squad indicators
+
+health
+
+battle bar
+
+three actions
+
+statuses
+
+countdown or charging indicators
+
+current bonuses
+
+type matchup
+
+synergy indicator
+
+music and effects
+
+11. The battle bar
+The battle bar is a central real-time resource.
+
+It fills dynamically.
+
+Actions consume different amounts or become available at different thresholds.
+
+The exact implementation is not fully finalised, but the intended concept is:
+
+low-cost action
+
+medium-cost action
+
+high-cost action
+
+These may correspond to three slots.
+
+The bar can support:
+
+normal filling
+
+speed increases
+
+speed decreases
+
+bar gain
+
+bar drain
+
+freeze
+
+interruption
+
+charge-up moves
+
+persistent bar across character switching
+
+special event modifiers
+
+equipment or modification effects
+
+The bar should be visually dynamic.
+
+Phaser can support:
+
+smooth fill animation
+
+glow when thresholds are reached
+
+pulsing action availability
+
+countdown overlays
+
+freeze effects
+
+bar drain animation
+
+colour changes
+
+shaking
+
+segmented regions
+
+current marker
+
+charge timers
+
+The exact rules around whether player and enemy use:
+
+one shared global bar
+
+one bar per team
+
+one bar per side
+
+separate bars per fighter
+
+still require confirmation.
+
+The conversation leaned toward a Teeny Titans-style persistent team bar, but this should be explicitly confirmed before implementation.
+
+12. Character switching
+A squad may contain one, two or three characters.
+
+The likely combat model is:
+
+one active fighter
+
+remaining squad members are available to switch
+
+switching is immediate or nearly immediate
+
+battle resource may remain when switching
+
+statuses may remain on individual characters
+
+health is individual
+
+squad-wide effects remain with the squad
+
+defeat removes or disables a character
+
+battle ends when all required opposing fighters are defeated
+
+Questions remain about:
+
+whether switching has a cooldown
+
+whether switching can happen during an enemy action
+
+whether switching can avoid damage
+
+whether the bar persists across switching
+
+whether active statuses continue while benched
+
+whether benched characters regenerate
+
+whether actions can target benched characters
+
+whether team attacks affect all three regardless of active state
+
+13. Actions are Lego blocks
+This is one of the strongest architectural decisions.
+
+Every character can have unique:
+
+action names
+
+artwork
+
+sounds
+
+dialogue
+
+visual effects
+
+flavour
+
+presentation
+
+But mechanically, actions are assembled from a limited vocabulary.
+
+Two visually unrelated actions can be mechanically identical.
+
+Example:
+
+Bone Rattle
+Solar Break
+Dumpster Meteor
+Corporate Restructure
+All four might mechanically mean:
+
+Deal medium single-target damage
+Apply a temporary defence reduction
+This allows a large roster without requiring new programming for every action.
+
+14. Core effect primitives
+The initial effect vocabulary may include:
+
+damage
+
+healing
+
+stun
+
+attack increase
+
+attack reduction
+
+defence increase
+
+defence reduction
+
+battle-bar gain
+
+battle-bar drain
+
+battle-bar freeze
+
+battle-bar speed increase
+
+battle-bar speed reduction
+
+shield
+
+cleanse
+
+remove positive effect
+
+damage over time
+
+healing over time
+
+dodge increase
+
+dodge reduction
+
+critical increase
+
+critical reduction
+
+status resistance
+
+status vulnerability
+
+multi-hit
+
+charge
+
+interrupt
+
+conditional effect
+
+Not all need to be in the first build.
+
+The minimum MVP set could be:
+
+damage
+
+healing
+
+stun
+
+attack modification
+
+defence modification
+
+bar gain or drain
+
+shield or dodge
+
+The system should be extensible.
+
+15. Targeting
+Effect type and target type should be separate.
+
+Targeting options may include:
+
+self
+
+active ally
+
+single ally
+
+all allies
+
+active enemy
+
+single enemy
+
+all enemies
+
+random enemy
+
+lowest-health ally
+
+highest-health enemy
+
+benched ally
+
+defeated ally later
+
+entire squad
+
+The initial minimum can remain:
+
+self
+single ally
+all allies
+single enemy
+all enemies
+This allows combinations such as:
+
+type: damage
+target: allEnemies
+or:
+
+type: heal
+target: allAllies
+or:
+
+type: modifyDefence
+target: self
+16. Multi-effect actions
+An action can contain several effect blocks.
+
+Example:
+
+id: action.rattle-smash
+effects:
+  - type: damage
+    target: singleEnemy
+    power: 24
+
+  - type: modifyDefence
+    target: singleEnemy
+    magnitude: -2
+    duration: 2
+Another action could:
+
+damage
+
+heal the user
+
+lower enemy speed
+
+add bar points
+
+apply stun chance
+
+The engine executes effects in a defined order.
+
+The order matters and should be explicit.
+
+For example:
+
+spend resource
+→ play action start
+→ resolve hit
+→ resolve damage
+→ apply statuses
+→ trigger passive reactions
+→ check defeats
+→ produce battle events
+17. Actions do not use fixed final amounts
+This was corrected during the discussion.
+
+An action does not simply say:
+
+Deal 20 damage
+It says something closer to:
+
+Damage effect with power 20
+The final result is calculated.
+
+Potential factors include:
+
+action power
+
+action tier
+
+character level
+
+allocated Power stat
+
+target Health or Defence
+
+type advantage
+
+squad synergy
+
+temporary attack buff
+
+temporary defence debuff
+
+critical result
+
+random variance
+
+difficulty
+
+mission modifier
+
+tournament modifier
+
+event modifier
+
+modification chip
+
+passive effect
+
+low-health condition
+
+combo or charge state
+
+target resistance
+
+The result may be below, equal to or above the action’s nominal power.
+
+The same principle applies to:
+
+healing
+
+bar gain
+
+bar drain
+
+shields
+
+status probability
+
+stun duration
+
+damage over time
+
+18. Deterministic randomness
+Randomness should be seeded.
+
+The same:
+
+starting state
+
+seed
+
+action sequence
+
+should produce the same result.
+
+This helps with:
+
+automated tests
+
+battle replays
+
+debugging
+
+issue reproduction
+
+future online synchronisation
+
+comparing balance changes
+
+validating AI decisions
+
+preventing hidden inconsistent behaviour
+
+Randomness can affect:
+
+damage variance
+
+critical hits
+
+dodge
+
+status chance
+
+target choice
+
+AI choices
+
+reward variation
+
+special drops later
+
+19. Action upgrade tiers
+Each character has three actions.
+
+Each action has three upgrade states:
+
+Base
+Upgraded
+Max
+These were previously described as:
+
+none
+upgraded
+max
+The exact display terminology can be branded later.
+
+An upgrade can change:
+
+power
+
+scaling
+
+effect chance
+
+duration
+
+hit count
+
+target count
+
+bar cost
+
+charge duration
+
+secondary effect
+
+condition
+
+critical behaviour
+
+team coverage
+
+interruption resistance
+
+animation or presentation intensity
+
+Examples:
+
+Direct attack
+Base:
+Medium damage
+
+Upgraded:
+Higher damage
+
+Max:
+Higher damage plus defence reduction
+Heal
+Base:
+Heal one ally
+
+Upgraded:
+More healing
+
+Max:
+Heal all allies or cleanse a status
+Stun action
+Base:
+Low stun chance
+
+Upgraded:
+Higher chance
+
+Max:
+Higher chance plus bar drain
+This means upgrades are not merely numerical.
+
+20. Character progression layers
+Character progression should remain divided into distinct systems.
+
+20.1 Character level
+Characters earn XP through fights.
+
+Level influences general strength.
+
+Possible improvements:
+
+base health
+
+base power
+
+resistance
+
+stat-point allowance
+
+access to modification slots
+
+action scaling
+
+unlock thresholds
+
+The exact level cap is not decided.
+
+The Teeny Titans reference had a level 20 cap, but this project should not assume that exact number.
+
+20.2 Allocated stats
+Players can distribute build points.
+
+The discussed categories were approximately:
+
+Power
+
+Dodge or Evasion
+
+Luck or Fortune
+
+Speed or Tempo
+
+Health or Vitality
+
+Final names should fit the brand.
+
+Their likely functions:
+
+Power
+increases outgoing damage
+
+may strengthen offensive status effects
+
+may strengthen shields or some attacks depending on scaling
+
+Evasion
+increases dodge chance
+
+may improve avoidance actions
+
+may reduce incoming targeted-hit probability
+
+Fortune
+increases critical chance
+
+improves probability-based effects
+
+may influence favourable damage variance
+
+may influence special reward chances later
+
+Tempo
+increases battle-bar fill
+
+reduces recovery
+
+may improve charge-up time
+
+may affect initiative
+
+Vitality
+increases maximum HP
+
+may improve healing received
+
+may improve resistance or survivability
+
+Defence has not been fully resolved.
+
+Options include:
+
+separate sixth stat
+
+derived from Vitality
+
+provided only by actions and modifications
+
+hidden defence value in character base data
+
+20.3 Action upgrades
+Each of three actions progresses independently through three tiers.
+
+20.4 Modifications
+One or more equipped modifications alter statistics or rules.
+
+20.5 Squad synergy
+Matching character types create squad bonuses.
+
+20.6 Temporary battle effects
+Buffs, debuffs, shields and statuses apply only in battle.
+
+These layers should not collapse into one generic power score.
+
+21. Saved loadouts
+Players should be able to experiment with stat allocations and save configurations.
+
+Possible loadouts:
+
+Balanced
+
+Glass Cannon
+
+Fast Control
+
+Tank
+
+Dodge Build
+
+Lucky Build
+
+Support
+
+Boss Killer
+
+Respeccing should be:
+
+free
+
+very cheap
+
+or otherwise accessible
+
+The game should encourage experimentation.
+
+It should not permanently punish an early allocation mistake.
+
+A saved loadout may contain:
+
+allocated stats
+
+selected action tiers if configurable
+
+equipped modification
+
+action order if action order becomes customisable
+
+squad slot
+
+cosmetic selection
+
+preferred music or presentation later
+
+22. Modification system
+The game may use mod chips or an original equivalent.
+
+The final terminology should not copy Teeny Titans exactly.
+
+Possible concepts:
+
+modules
+
+cores
+
+patches
+
+augments
+
+inserts
+
+plates
+
+relics
+
+chips
+
+tags
+
+sigils
+
+For the MVP:
+
+one slot per character
+
+deterministic effects
+
+no random rolls
+
+no rarity bloat
+
+no destructive replacement
+
+easy comparison
+
+easy swapping
+
+small manageable inventory
+
+Potential modification effects:
+
+more maximum health
+
+more power
+
+more speed
+
+more dodge
+
+more critical chance
+
+more status chance
+
+start with battle-bar progress
+
+resistance to stun
+
+stronger healing
+
+trade Power for Speed
+
+trade Health for Luck
+
+shield on entry
+
+bonus when low health
+
+stronger type advantage
+
+reduced weakness penalty
+
+increased squad synergy later
+
+The original reference destroyed the old chip when replacing it. This project does not need that punishment.
+
+23. Character collection
+Characters are bought, earned or unlocked.
+
+The collection is a primary progression hook.
+
+The player should see:
+
+owned characters
+
+locked characters
+
+character silhouettes
+
+purchase conditions
+
+story unlocks
+
+mission unlocks
+
+tournament rewards
+
+variants
+
+groups or factions
+
+completion progress
+
+Characters may be obtained through:
+
+store purchase
+
+story completion
+
+mission reward
+
+tournament reward
+
+event reward
+
+challenge completion
+
+starter choice
+
+character-specific story
+
+achievement later
+
+The initial store should be deterministic.
+
+No:
+
+gacha
+
+loot boxes
+
+premium currency
+
+random character pulls
+
+real-money purchases
+
+The architecture may allow optional monetisation later, but the MVP should not be designed around it.
+
+24. Duplicates and variants
+The MVP may use repeated copies or variants of the same character to prove squad behaviour.
+
+This does not necessarily mean duplicates are a major final system.
+
+There are several possible models:
+
+Exact duplicates allowed
+The player can deploy multiple copies of the same character.
+
+Variants count as separate characters
+Different editions or forms can appear together.
+
+Duplicates owned but only one deployed
+Duplicates could be used for upgrades or collection.
+
+No permanent duplicate system
+The MVP only duplicates a character temporarily because the roster is small.
+
+This requires a final decision.
+
+The current discussion explicitly allows three of the same character during the MVP so squad synergy can be tested.
+
+25. Squad size
+A squad may contain:
+
+Minimum: 1
+Maximum: 3
+The UI and engine should support all three sizes.
+
+A one-character squad should be valid.
+
+A two-character squad should be valid.
+
+A three-character squad should be valid.
+
+Potential reasons to use fewer than three:
+
+challenge conditions
+
+story restrictions
+
+self-imposed challenge
+
+stronger individual bonuses later
+
+character availability
+
+tutorial
+
+tournament rules
+
+The game should not assume every battle always uses three characters.
+
+26. Character types
+Every character has one primary type.
+
+Types form a circular strength-and-weakness system.
+
+The inspiration used a wheel where each type is:
+
+strong against one type
+
+weak against one type
+
+neutral against the others
+
+The final names must be original.
+
+A hypothetical wheel might be:
+
+Might
+→ Wild
+→ Charm
+→ Occult
+→ Valor
+→ Machine
+→ Might
+These are only placeholder examples.
+
+The agent should invent approximately six types that fit the game’s actual world.
+
+The data shape could be:
+
+types:
+  might:
+    strongAgainst: wild
+    weakAgainst: machine
+
+  wild:
+    strongAgainst: charm
+    weakAgainst: might
+The engine should not contain bespoke if statements for each type.
+
+It should query the type system.
+
+27. Type effectiveness
+When one character acts against another, the relationship may be:
+
+strong
+
+neutral
+
+weak
+
+Example configurable values:
+
+Strong: 1.25×
+Neutral: 1.00×
+Weak: 0.80×
+These values are not final.
+
+Type effectiveness may influence:
+
+damage
+
+healing against certain types later
+
+status chance
+
+resistance
+
+bar manipulation
+
+passive effects
+
+The simplest MVP applies it to damage.
+
+The game should clearly show:
+
+attacker type
+
+defender type
+
+advantage
+
+disadvantage
+
+neutral matchup
+
+The player should not need to memorise the entire wheel without help.
+
+Possible presentation:
+
+type emblem
+
+arrow
+
+colour relationship
+
+strong/weak label
+
+pre-fight matchup summary
+
+attack preview
+
+subtle battle feedback
+
+28. Squad type synergy
+A squad receives a bonus based on the number of characters that share a type.
+
+The confirmed conceptual rule is:
+
+1 matching type member = synergy level 1
+2 matching type members = synergy level 2
+3 matching type members = synergy level 3
+The original +1, +2, +3 damage or health idea was explicitly a placeholder.
+
+The balancing system should decide what those levels actually mean.
+
+Possible implementation:
+
+synergy:
+  level1:
+    healthPercent: 2
+
+  level2:
+    healthPercent: 4
+    damagePercent: 2
+
+  level3:
+    healthPercent: 6
+    damagePercent: 5
+Or:
+
+synergy:
+  perMatchingCharacter:
+    flatPower: 1
+Or type-specific bonuses:
+
+Machine synergy:
+Bar fills faster
+
+Occult synergy:
+Status effects last longer
+
+Wild synergy:
+More health
+
+Charm synergy:
+More dodge
+
+Might synergy:
+More damage
+
+Valor synergy:
+More resistance
+The initial design should probably begin with a universal simple rule and leave type-specific rewards for later.
+
+The UI should show active synergy before battle.
+
+29. Distinct modifier layers
+These systems must remain separate:
+
+Base character statistics
+
+Player-allocated stats
+
+Action power and scaling
+
+Action upgrade tier
+
+Equipped modification
+
+Squad synergy
+
+Character-type effectiveness
+
+Temporary buffs and debuffs
+
+Difficulty modifier
+
+Mission or tournament modifier
+
+Random variance
+
+Critical and dodge results
+
+The calculation should remain inspectable.
+
+The player may not need to see every number, but developers and tests should be able to trace it.
+
+A possible pipeline:
+
+Action power
+→ character scaling
+→ target mitigation
+→ action tier
+→ equipment/modification effects
+→ temporary buffs/debuffs
+→ type effectiveness
+→ critical or dodge
+→ variance
+→ squad synergy
+→ difficulty/context
+→ caps and floors
+→ final result
+The exact order must be documented because order changes balance.
+
+30. Economy module
+The economy is a separate module from combat.
+
+Combat does not award currency directly.
+
+Combat produces a report.
+
+Example:
+
+{
+  winner: "player",
+  difficulty: "normal",
+  duration: 82,
+  playerTeamPower: 94,
+  enemyTeamPower: 112,
+  charactersDefeated: ["enemy-a", "enemy-b"],
+  damageTaken: 40,
+  perfectVictory: false,
+  retries: 0,
+  missionContext: "story.main.014"
+}
+The economy consumes that report and calculates:
+
+currency
+
+XP
+
+bonuses
+
+mission progress
+
+first-clear reward
+
+tournament reward
+
+event reward
+
+unlock progress
+
+This separation allows reward rules to change without touching battle code.
+
+31. Reward calculation
+Rewards should account for challenge.
+
+A fight against stronger competition should pay more.
+
+Possible factors:
+
+enemy level
+
+enemy team strength
+
+player team strength
+
+difficulty
+
+fight performance
+
+victory margin
+
+characters remaining
+
+damage taken
+
+time
+
+first clear
+
+tournament round
+
+mission bonus
+
+event multiplier
+
+special condition
+
+underdog bonus
+
+repeat-clear reduction if desired
+
+However, the design should avoid encouraging tedious optimisation such as deliberately prolonging fights or taking artificial damage.
+
+A healthy reward model might emphasise:
+
+opponent strength
+
+difficulty
+
+first clear
+
+mission or tournament context
+
+and use performance only as a modest bonus.
+
+32. Currency
+Initially use one normal in-game currency.
+
+It is:
+
+earned in game
+
+spent in game
+
+not premium
+
+not bought with real money
+
+used for character purchases
+
+used for action upgrades
+
+potentially used for modifications
+
+potentially used for respecs if respec is not free
+
+potentially used for store unlocks or cosmetics later
+
+The currency needs an original in-world name.
+
+The exact economy values remain balancing data.
+
+33. XP
+XP is separate from currency.
+
+XP should:
+
+come primarily from fighting
+
+level the characters who participated
+
+possibly grant smaller XP to benched squad members
+
+possibly scale with opponent difficulty
+
+possibly include mission bonuses
+
+Questions remain around:
+
+whether XP is individual or squad-wide
+
+whether defeated characters receive XP
+
+whether unused characters receive passive XP
+
+whether duplicates can be consumed for XP
+
+whether there is a level cap
+
+whether level difference reduces rewards
+
+The current direction favours XP-driven character level rather than buying levels directly.
+
+34. Store
+The store is part of the initial game.
+
+It should support:
+
+buying characters
+
+buying action upgrades
+
+buying modifications
+
+possibly buying cosmetics later
+
+viewing locked content
+
+showing unlock conditions
+
+story-linked stock
+
+event stock later
+
+character-associated presentation and music
+
+The initial store should be predictable.
+
+No random stock is required.
+
+Possible store models:
+
+Permanent store
+Characters become available and remain available.
+
+Story store nodes
+Some story points temporarily open a particular store interface.
+
+Themed stores
+Different stores specialise in different character groups or modifications.
+
+Event stores
+Temporary story or event content adds its own stock.
+
+The store is data-driven.
+
+35. Missions
+Missions are generic data definitions.
+
+They can require:
+
+own a specific character
+
+own a number of characters
+
+own characters of a specific type
+
+collect a faction
+
+defeat a specific character
+
+defeat a number of a type
+
+win with a specific character
+
+win with a specific squad
+
+avenge someone
+
+defeat an opponent after losing to them
+
+complete a tournament
+
+win without a character being defeated
+
+win on a specified difficulty
+
+use a particular action
+
+apply a status
+
+complete a story node
+
+purchase a character
+
+upgrade an action
+
+equip a modification
+
+reach a level
+
+complete a branch
+
+make a story choice
+
+Mission rewards may include:
+
+currency
+
+XP
+
+character
+
+modification
+
+action upgrade
+
+store unlock
+
+tournament unlock
+
+story unlock
+
+artwork
+
+cosmetic
+
+title or badge later
+
+The mission engine should evaluate generic requirement blocks.
+
+No mission-specific hard-coded logic.
+
+36. Vengeance missions
+You specifically mentioned vengeance.
+
+A vengeance mission might be:
+
+Character A was defeated or humiliated by Character B.
+Own or deploy Character A.
+Defeat Character B.
+Receive a special reward or story scene.
+Possible variations:
+
+win with the avenged character active
+
+land the final hit with that character
+
+defeat the rival without using another type
+
+complete a rematch on Hard
+
+unlock the rival after the fight
+
+unlock a character story branch
+
+This is a strong narrative use of the mission system.
+
+37. Tournaments
+Tournaments are chains of fights.
+
+They can be embedded in Story Mode or selected independently.
+
+A tournament may define:
+
+number of rounds
+
+participants
+
+fixed bracket
+
+random bracket
+
+squad restrictions
+
+type restrictions
+
+level limits
+
+difficulty
+
+rewards
+
+special presentation
+
+music
+
+story scenes
+
+final boss
+
+retries
+
+health reset rules
+
+modification rules
+
+The initial tournament can be short:
+
+Round 1
+Semi-final
+Final
+A tournament does not need a separate combat engine.
+
+It orchestrates normal battles.
+
+38. Failure and retry
+Losing is low consequence.
+
+The intended feeling is:
+
+It looks like you might lose, and sometimes you do, but the game does not punish you for wanting another attempt.
+
+A defeat can show:
+
+defeat artwork
+
+battle summary
+
+why the enemy was strong
+
+possible upgrades
+
+type mismatch
+
+available missions
+
+retry button
+
+squad edit button
+
+lower difficulty
+
+go to store
+
+replay earlier fights
+
+It should not show:
+
+lost lives
+
+paid retry
+
+currency loss
+
+broken equipment
+
+permanent injury
+
+story reset
+
+39. Visual identity
+The game’s visual system is built around blocks.
+
+This is not a compromise.
+
+It is the brand.
+
+The interface can use:
+
+squares
+
+wide rectangles
+
+tall cards
+
+stacked panels
+
+split frames
+
+borders
+
+diagonal crops
+
+inset windows
+
+overlapping image blocks
+
+animated card movement
+
+framed character tiles
+
+tiled story scenes
+
+The agent should invent a name for the presentation language.
+
+Possible generic working terms:
+
+living panels
+
+motion blocks
+
+battle frames
+
+kinetic cards
+
+animated panels
+
+The final term should match the game.
+
+40. What Phaser can animate
+Even with static art, Phaser can create substantial motion.
+
+Character movement
+two-frame bounce
+
+bobbing
+
+small scale changes
+
+tilt
+
+recoil
+
+anticipation
+
+slide-in
+
+slide-out
+
+squash and stretch
+
+selected lift
+
+defeated fall
+
+victory bounce
+
+Camera
+zoom
+
+pan
+
+shake
+
+flash
+
+fade
+
+focus shift
+
+UI
+health bars
+
+battle bars
+
+countdown timers
+
+action availability
+
+pulsing buttons
+
+glowing selected state
+
+reward counters
+
+animated currency
+
+mission progress
+
+tournament bracket reveals
+
+Combat impact
+hit-stop
+
+screen shake
+
+white flash
+
+colour tint
+
+image recoil
+
+number pop
+
+particle burst
+
+speed-line overlay
+
+motion smear
+
+background swap
+
+short cut-in
+
+glow
+
+vignette
+
+status icons
+
+haptic hook for later mobile
+
+Scene transitions
+panel wipe
+
+slide
+
+fold
+
+fade
+
+stack
+
+zoom into image
+
+image replacement
+
+comic-page transition
+
+animated border
+
+This is enough to make the game feel active.
+
+41. Presentation primitives
+Motion should also be data-driven.
+
+Possible primitives:
+
+bob
+pulse
+glow
+slide
+zoom
+shake
+flash
+hit-stop
+recoil
+tilt
+fade
+tint
+particle burst
+number pop
+panel reveal
+wipe
+scale
+hold
+loop
+An action can reference a presentation definition.
+
+Example:
+
+presentation:
+  enter: slide-left
+  anticipation: pulse-medium
+  cutIn: action-panel-wide
+  impact:
+    - flash-short
+    - shake-heavy
+    - hit-stop-120ms
+  targetReaction: recoil-right
+  exit: fade-fast
+Different actions can reuse the same motion primitives with different artwork.
+
+42. Two-frame character art
+Each state can use two frames.
+
+The likely character states are:
+
+Required or high priority
+battle idle
+
+action 1
+
+action 2
+
+action 3
+
+hurt
+
+dodge
+
+stunned
+
+defeat
+
+victory
+
+Potentially useful
+map or story token idle
+
+selected
+
+switch-in
+
+charge
+
+walk
+
+low-health
+
+special entrance
+
+Because there is no explorable map, map idle may instead be used for:
+
+story-path token
+
+collection display
+
+squad selection
+
+tournament bracket
+
+loading or transition
+
+Statuses such as poison, burn and shield should normally use overlays rather than separate character art.
+
+43. Large rectangular character artwork
+In addition to small two-frame states, characters may have larger illustrations.
+
+Potential assets:
+
+canonical portrait
+
+store card
+
+collection tile
+
+action 1 cut-in
+
+action 2 cut-in
+
+action 3 cut-in
+
+victory panel
+
+defeat panel
+
+character introduction
+
+story reaction
+
+rivalry image
+
+event variant
+
+tournament entrance
+
+These images should generally avoid including the exact opponent.
+
+That avoids needing unique art for every possible matchup.
+
+44. Image-template catalogue
+The project needs formal templates for every image type.
+
+Each template should define:
+
+stable template ID
+
+purpose
+
+aspect ratio
+
+source dimensions
+
+runtime dimensions
+
+safe regions
+
+cropping rules
+
+character placement
+
+visual hierarchy
+
+border style
+
+background style
+
+text rules
+
+reference-image requirements
+
+prompt structure
+
+output folder
+
+output format
+
+placeholder equivalent
+
+approval criteria
+
+Character templates
+canonical reference
+
+expression sheet
+
+portrait
+
+collection tile
+
+store card
+
+idle pair
+
+action pair
+
+hurt pair
+
+dodge pair
+
+stunned pair
+
+defeat pair
+
+victory pair
+
+action cut-in
+
+victory panel
+
+Battle templates
+normal fight background
+
+boss background
+
+tournament background
+
+action panel
+
+team action panel
+
+opponent introduction
+
+victory
+
+defeat
+
+reward
+
+Story templates
+dialogue background
+
+narration panel
+
+choice panel
+
+chapter cover
+
+story card
+
+character encounter
+
+branch
+
+ending
+
+event splash
+
+Store templates
+store background
+
+stock card
+
+locked item
+
+featured character
+
+modification tile
+
+currency icon
+
+Mission templates
+mission card
+
+mission complete
+
+mission failed
+
+revenge mission
+
+collection mission
+
+tournament mission
+
+Event templates
+event cover
+
+event story card
+
+event fight background
+
+event character variant
+
+event store treatment
+
+event reward
+
+Shared UI templates
+type emblem
+
+squad card
+
+status icon
+
+action icon
+
+currency icon
+
+tournament badge
+
+locked silhouette
+
+placeholder image
+
+generic impact image
+
+45. Codex CLI image generation
+You have tested image generation through Codex CLI and confirmed it works well.
+
+The repository should treat that as an available production capability.
+
+The image pipeline should support:
+
+character descriptions
+
+reference images
+
+supported aspect ratios
+
+square images
+
+rectangular images
+
+paired states
+
+consistent prompts
+
+repeated generation
+
+predictable paths
+
+metadata
+
+contact sheets
+
+human approval
+
+replacing failed images
+
+The project should not assume unsupported capabilities.
+
+It should use what has been verified:
+
+single image generation
+
+reference-guided generation
+
+multiple ratios
+
+square and rectangle output
+
+prompt-driven style
+
+repository-controlled workflows
+
+46. Image-generation workflow
+The ideal flow is:
+
+Character definition
+→ structured asset request
+→ image template selected
+→ prompt compiled
+→ Codex CLI generates candidate
+→ file stored in raw output
+→ validation
+→ contact sheet
+→ human review
+→ approved asset copied or marked
+→ asset registry updated
+The pipeline should track:
+
+asset ID
+
+character ID
+
+template ID
+
+prompt version
+
+reference assets
+
+generation time
+
+candidate number
+
+output path
+
+status
+
+approval
+
+rejection reason
+
+replacement history
+
+Approved art should never be overwritten silently.
+
+47. Placeholder art
+Placeholder art is explicitly acceptable.
+
+The game should be able to run with:
+
+coloured rectangles
+
+text labels
+
+generated silhouettes
+
+generic icons
+
+temporary gradients
+
+simple shape compositions
+
+one character image reused across states
+
+generic action panels
+
+Placeholder support should be built into the asset registry.
+
+It should not be a temporary hack.
+
+A missing approved asset can resolve to:
+
+specific approved asset
+→ character placeholder
+→ template placeholder
+→ generic placeholder
+This allows gameplay development before art completion.
+
+48. ElevenLabs audio
+Sound is deferred for now.
+
+The repository should still be designed for future generation using ElevenLabs.
+
+The expected future capabilities are:
+
+dialogue generation
+
+text-to-speech
+
+character voices
+
+sound effects
+
+multiple candidates
+
+direction
+
+pronunciation
+
+subtitles
+
+output conversion
+
+trimming
+
+normalisation
+
+metadata
+
+approval
+
+custom replacement
+
+You will create an API key and upgrade the plan when required.
+
+The design phase should not:
+
+call ElevenLabs
+
+require a key
+
+generate audio
+
+incur usage
+
+It should create:
+
+integration specification
+
+example dialogue definitions
+
+example SFX definitions
+
+.env.example
+
+future commands
+
+asset paths
+
+API safety rules
+
+cost safeguards
+
+49. Dialogue
+Each character may have:
+
+battle start
+
+action line
+
+hurt
+
+dodge
+
+stun
+
+victory
+
+defeat
+
+switch-in
+
+story dialogue
+
+rivalry line
+
+tournament line
+
+store line
+
+mission line
+
+Dialogue definitions should include:
+
+stable ID
+
+text
+
+character
+
+voice ID
+
+emotion
+
+energy
+
+pace
+
+pronunciation notes
+
+subtitle
+
+planned/approved status
+
+output file
+
+Dialogue is optional in early MVP combat.
+
+50. Sound effects
+Sound effects may include:
+
+action whoosh
+
+impact
+
+heal
+
+stun
+
+bar fill
+
+bar drain
+
+shield
+
+dodge
+
+selection
+
+purchase
+
+reward
+
+character unlock
+
+tournament transition
+
+victory
+
+defeat
+
+UI panel movement
+
+Custom sounds should be importable without changing code.
+
+A stable logical ID should remain the same even if the file is replaced.
+
+51. Music
+Music now exists as placeholder content.
+
+The repository contains:
+
+music/Can't Tell.mp3
+music/Mirrors.mp3
+music/No Control.mp3
+music/Obsessed.mp3
+music/Red Thread.mp3
+music/Soft Static Halo.mp3
+music/Weather Outside.mp3
+These should be registered with stable IDs.
+
+For example:
+
+music.cant-tell
+music.mirrors
+music.no-control
+music.obsessed
+music.red-thread
+music.soft-static-halo
+music.weather-outside
+The system should support:
+
+menu music
+
+battle music
+
+story music
+
+character-associated music
+
+tournament music
+
+location or scene music
+
+victory music
+
+defeat music
+
+fallback music
+
+looping
+
+fades
+
+volume categories
+
+track replacement
+
+No new Suno work is needed during the design phase.
+
+Suno will later be used manually.
+
+The agent may provide:
+
+music ideas
+
+style prompts
+
+lyrics
+
+track briefs
+
+but should not attempt to automate the final Suno selection process.
+
+Music is the one asset category expected to remain manually curated.
+
+52. Character asset references
+A character definition should reference:
+
+images
+
+dialogue
+
+sound effects
+
+music
+
+actions
+
+type
+
+progression
+
+modifications
+
+stats
+
+variants
+
+All references use stable logical IDs.
+
+The character should not directly depend on fragile filenames.
+
+Example concept:
+
+id: character.bones
+
+type: type.occult
+
+actions:
+  - action.bones.quick
+  - action.bones.control
+  - action.bones.finisher
+
+visuals:
+  portrait: image.bones.portrait
+  battleIdle:
+    - image.bones.idle.1
+    - image.bones.idle.2
+
+audio:
+  battleMusic: music.red-thread
+  dialogueSet: dialogue.bones
+  actionSounds:
+    action1: sound.bones.action1
+53. Content-driven design
+Most of the game should be data.
+
+Data-driven content includes:
+
+characters
+
+types
+
+actions
+
+action tiers
+
+effects
+
+targets
+
+modifications
+
+stores
+
+store items
+
+missions
+
+mission requirements
+
+rewards
+
+tournaments
+
+encounters
+
+stories
+
+story nodes
+
+difficulty settings
+
+music
+
+sounds
+
+dialogue
+
+image templates
+
+presentation definitions
+
+events
+
+The engine interprets these definitions.
+
+Adding a character should not require bespoke TypeScript.
+
+Adding a story should not require a new Phaser scene.
+
+Adding a tournament should not require a new combat engine.
+
+54. Technical stack
+The current preferred stack is:
+
+Node.js 22
+
+pnpm 11
+
+mise
+
+TypeScript
+
+Vite
+
+Phaser
+
+Vitest
+
+ESLint
+
+Prettier
+
+optional Capacitor later
+
+Phaser replaced the earlier Godot suggestion.
+
+The earlier Godot recommendation is now superseded.
+
+The game begins as a desktop web game.
+
+55. Primary development target
+The current target is:
+
+16-inch M4 MacBook Pro
+
+desktop browser
+
+windowed mode
+
+full-screen mode
+
+responsive layout
+
+Mobile comes later.
+
+The first published version may also be desktop web before mobile.
+
+The UI should not be a phone layout stretched across a large display.
+
+It should use:
+
+responsive framing
+
+central safe gameplay region
+
+desktop-friendly information density
+
+scalable canvas
+
+controlled cropping
+
+optional side panels on wide screens
+
+full-screen presentation
+
+future mobile adaptation
+
+56. Future mobile target
+The later target is:
+
+mobile browser
+
+iPhone
+
+possible Capacitor packaging
+
+touch controls
+
+haptics
+
+safe areas
+
+portrait or landscape to be decided
+
+There is an unresolved orientation conflict.
+
+Earlier discussion mentioned portrait mobile.
+
+Later Phaser examples used 16:9 landscape.
+
+The desktop target now comes first.
+
+The GDD should explicitly mark orientation as unresolved rather than accidentally deciding through implementation.
+
+A responsive system might eventually support:
+
+16:9 desktop
+
+wider desktop
+
+tablet landscape
+
+mobile landscape
+
+portrait-specific alternative layout
+
+But that should not be assumed without a decision.
+
+57. Phaser architecture
+The code should be separated into modules.
+
+Likely structure:
+
+src/
+├── combat/
+├── economy/
+├── progression/
+├── missions/
+├── tournaments/
+├── store/
+├── stories/
+├── content/
+├── presentation/
+├── audio/
+├── game/
+└── generated/
+Core rule:
+
+Gameplay modules must not import Phaser.
+
+Phaser may use the combat engine.
+
+The combat engine must not know Phaser exists.
+
+This allows:
+
+headless tests
+
+deterministic simulation
+
+alternate renderer
+
+future platform changes
+
+AI-generated testing
+
+clean module boundaries
+
+58. Combat output events
+The combat engine should emit semantic events.
+
+Examples:
+
+battleStarted
+characterSwitched
+barChanged
+actionStarted
+actionCharged
+actionInterrupted
+damageApplied
+healingApplied
+statusApplied
+statusRemoved
+characterDodged
+characterStunned
+characterDefeated
+battleWon
+battleLost
+The presentation layer listens and animates.
+
+The audio system listens and plays sound.
+
+The economy only receives the final battle report.
+
+59. Presentation modes
+The game may support multiple renderers.
+
+Possible modes:
+
+placeholder
+block-art
+two-frame
+hybrid
+Placeholder
+coloured rectangles
+
+labels
+
+simple bars
+
+no final art dependency
+
+Block art
+rectangular images
+
+slides
+
+cut-ins
+
+camera motion
+
+Two-frame
+small character pairs
+
+bobbing
+
+frame swaps
+
+generic effects
+
+Hybrid
+two-frame battle characters
+
+large rectangular action cut-ins
+
+static story panels
+
+programmed effects
+
+The hybrid model currently appears strongest.
+
+60. Mise
+The project should use mise.toml.
+
+Mise manages:
+
+Node version
+
+pnpm version
+
+environment files
+
+common tasks
+
+setup
+
+validation
+
+tests
+
+generation commands
+
+development server
+
+build
+
+Potential tasks:
+
+mise run install
+mise run dev
+mise run build
+mise run test
+mise run typecheck
+mise run validate
+mise run content:compile
+mise run character:new
+mise run assets:images
+mise run assets:sfx
+mise run assets:dialogue
+mise run assets:all
+mise run check
+61. Asset CLI
+The repository should have one consistent asset CLI.
+
+Examples:
+
+pnpm assets character create
+pnpm assets generate images
+pnpm assets generate dialogue
+pnpm assets generate sfx
+pnpm assets import image
+pnpm assets import sound
+pnpm assets import music
+pnpm assets validate
+pnpm assets contact-sheet
+The CLI should handle:
+
+IDs
+
+paths
+
+validation
+
+metadata
+
+format conversion
+
+approval states
+
+placeholders
+
+indexing
+
+safe overwrite behaviour
+
+62. Source of truth
+This is a critical process change.
+
+The conversation should not remain the project specification.
+
+The hierarchy should be:
+
+Game Design Document
+
+Supporting technical and content documents
+
+Structured schemas and content data
+
+Tests
+
+Implementation
+
+Conversation as historical background only
+
+The GDD is authoritative.
+
+If implementation conflicts with the GDD, the GDD wins until deliberately updated.
+
+A material design change should follow:
+
+Discuss
+→ decide
+→ update GDD
+→ update technical specification
+→ update content schemas
+→ implement
+→ test
+No permanent game rule should silently originate in code.
+
+63. Required documentation package
+The design phase should produce at least:
+
+docs/
+├── game-design-document.md
+├── creative-concept.md
+├── brand-and-art-direction.md
+├── presentation-system.md
+├── game-modes.md
+├── difficulty-and-failure.md
+├── character-builds-and-modifications.md
+├── squad-and-affinity-system.md
+├── technical-design.md
+├── content-authoring.md
+├── asset-production.md
+├── image-template-catalogue.md
+├── mvp-artwork-plan.md
+├── balancing.md
+├── elevenlabs-integration.md
+├── music-integration.md
+└── decisions/
+Potential ADRs:
+
+Phaser and mobile-web architecture
+
+pure TypeScript gameplay modules
+
+content-driven actions
+
+rectangular visual language
+
+separate economy module
+
+repository-managed asset production
+
+finite authored stories
+
+no open-world exploration
+
+seeded randomness
+
+stable asset IDs
+
+64. Repository instructions
+AGENTS.md should tell all agents:
+
+GDD is authoritative
+
+chats are background only
+
+update docs when design changes
+
+do not silently invent permanent rules
+
+do not edit generated files
+
+do not overwrite approved assets
+
+keep gameplay independent of Phaser
+
+add tests for gameplay rule changes
+
+use stable IDs
+
+preserve module boundaries
+
+mark assumptions
+
+document unresolved decisions
+
+use Australian English
+
+do not add unnecessary architecture
+
+65. MVP scope
+The MVP should prove the central systems rather than build a large campaign.
+
+A reasonable current MVP is:
+
+Characters
+one original primary character
+
+one opponent or rival
+
+one variant
+
+ability to form a squad of one to three
+
+repeated copies or variants allowed for testing
+
+Actions
+three actions per combat-ready character
+
+base, upgraded and max tier definitions
+
+at least damage
+
+at least healing or stun
+
+at least one team or resource effect
+
+variable effect calculation
+
+Combat
+one-versus-one first if needed
+
+architecture supports squads
+
+action bar
+
+switching
+
+health
+
+type effectiveness
+
+synergy
+
+basic AI
+
+victory
+
+defeat
+
+retry
+
+four difficulties
+
+Economy
+currency
+
+XP
+
+reward calculation
+
+opponent difficulty weighting
+
+first-clear bonus
+
+store purchase
+
+one action upgrade purchase
+
+Collection
+starter character
+
+one purchasable character
+
+locked character display
+
+collection screen
+
+Builds
+stat allocation
+
+one modification slot
+
+several example modifications
+
+saved loadout if practical
+
+Missions
+one collection mission
+
+one vengeance mission
+
+one specific-opponent mission
+
+Tournament
+one short tournament
+
+Story
+one small story
+
+mixed node types
+
+static story scene
+
+dialogue
+
+shop
+
+fight
+
+tournament
+
+reward
+
+ending
+
+Presentation
+placeholder renderer
+
+first rectangular art renderer
+
+two-frame character test
+
+battle bar
+
+timers
+
+glow
+
+bob
+
+shake
+
+cut-in
+
+reward panel
+
+Audio
+existing music catalogue
+
+no generated dialogue yet
+
+no generated SFX yet
+
+future ElevenLabs specification
+
+Art
+placeholder art
+
+one canonical character
+
+one portrait
+
+one idle pair
+
+three action pairs
+
+hurt
+
+dodge
+
+stun
+
+defeat
+
+victory
+
+one or more rectangular cut-ins
+
+one battle background
+
+one story background
+
+one store card
+
+one tournament background if practical
+
+66. Deliverables for the current design and pre-production phase
+Before full gameplay implementation, the agent should deliver:
+
+Authoritative GDD
+
+Creative concept
+
+Three game-name options
+
+Recommended working title
+
+Brand system
+
+Initial cast
+
+Character types
+
+Type wheel
+
+Initial actions
+
+Initial missions
+
+Initial tournament
+
+Initial story example
+
+Technical design
+
+Content-authoring guide
+
+Schemas
+
+Balancing model
+
+Difficulty model
+
+Economy design
+
+Squad-synergy design
+
+Character build design
+
+Modification design
+
+Presentation primitive design
+
+Image-template catalogue
+
+MVP art manifest
+
+Codex image-generation workflow
+
+Placeholder strategy
+
+Existing music catalogue
+
+Future ElevenLabs plan
+
+AGENTS.md
+
+ADRs
+
+mise.toml
+
+TypeScript/Vite/Phaser/Vitest skeleton
+
+Basic responsive boot scene
+
+Content validation foundation
+
+Prioritised implementation plan
+
+It should not yet build:
+
+the full campaign
+
+dozens of characters
+
+final balance
+
+mobile packaging
+
+full final art
+
+ElevenLabs output
+
+Suno output
+
+monetisation
+
+a backend
+
+multiplayer
+
+open-world exploration
+
+67. What appears firmly decided
+These points are now strong decisions:
+
+Phaser
+
+TypeScript
+
+Vite
+
+Node 22
+
+pnpm 11
+
+mise
+
+desktop-first web target
+
+mobile later
+
+no open-world exploration
+
+story nodes from 00 to n
+
+multiple stories
+
+fights, story, choices, shops and tournaments within story sequences
+
+Quick Fight
+
+Tournament Mode
+
+challenge/combat mode
+
+1 to 3 characters per squad
+
+three actions per character
+
+actions composed from reusable effects
+
+variable results
+
+three action upgrade tiers
+
+currency
+
+XP
+
+store
+
+character collection
+
+character stat allocation
+
+modifications
+
+character types
+
+circular strengths and weaknesses
+
+squad-type synergy
+
+Easy, Normal, Hard, Brutal
+
+low-consequence failure
+
+ability to overlevel
+
+rectangle/square art language
+
+two-frame character states
+
+Codex CLI image pipeline
+
+ElevenLabs later
+
+music already exists as placeholders
+
+Suno manual later
+
+GDD as source of truth
+
+68. What remains proposed rather than confirmed
+These areas still contain proposals:
+
+the game name
+
+the world premise
+
+the exact terminology
+
+the type names
+
+the exact number of types
+
+the exact synergy bonuses
+
+the exact combat formulas
+
+the level cap
+
+whether Defence is a stat
+
+whether duplicate characters are permanently allowed
+
+exact action-bar ownership
+
+exact switching rules
+
+exact squad XP rules
+
+exact reward multipliers
+
+exact store structure
+
+whether Quick Fight has unrestricted sandbox access
+
+exact story-path visual
+
+final desktop aspect ratio
+
+future mobile orientation
+
+whether action slots can be reordered
+
+whether charge-up actions are in MVP
+
+whether team accessories exist
+
+whether passive equipment gets one slot or more later
+
+whether characters have one type only
+
+whether characters can have secondary types later
+
+whether healing and defence use the same core stat system
+
+whether choices meaningfully branch story or mostly change dialogue
+
+whether losses can trigger alternative scenes
+
+whether events can expire
+
+whether user-created stories or content are future goals
+
+Blindspot questions
+These are the questions I would want answered before the agent finalises the GDD and begins implementing the combat engine.
+
+They are grouped by importance.
+
+A. Combat fundamentals
+Does each team have its own battle bar, or is there literally one shared bar used by both sides?
+
+Does switching preserve the current bar value?
+
+Can the player switch at any time, or only when no action is resolving?
+
+Does switching have a cooldown or cost?
+
+Can switching avoid an incoming attack?
+
+Are all three squad members present in the fight but only one active, or are team-wide actions allowed to affect benched characters?
+
+Does a battle end when all opposing characters are defeated?
+
+Can a defeated character be revived during battle?
+
+Do benched characters keep buffs, debuffs and damage-over-time effects ticking?
+
+Do benched characters regenerate health or battle resources?
+
+Can actions target a specific benched enemy, or only the active enemy and whole enemy team?
+
+Do actions always occupy fixed slots 1, 2 and 3, or can the player reorder them?
+
+Does moving an action to a cheaper slot reduce its strength, or are the actions permanently tied to their slot?
+
+Do you want charge-up actions in the MVP?
+
+Can charge-up actions be interrupted by damage or stun?
+
+Do you want multi-hit actions to make multiple independent critical and dodge rolls?
+
+Is dodge complete avoidance, partial reduction, or either depending on the action?
+
+Should team attacks hit benched characters at full power or reduced power?
+
+Should healing be able to target benched characters?
+
+Do you want a battle time limit?
+
+B. Squad and duplicate rules
+Can the final game permanently allow three exact copies of the same character?
+
+Should character variants count as the same character, or as separate collection entries?
+
+Can different variants of one character appear in the same squad?
+
+Does squad synergy count exact matching types only, or can characters possess multiple tags that create several synergies?
+
+Should a mixed squad receive multiple level-1 synergies at once?
+
+Example:
+
+One Might
+One Machine
+One Occult
+Would that produce three separate level-1 bonuses?
+
+Should synergy bonuses be universal, or unique to each type?
+
+Should a one-character squad receive a type synergy bonus at all, or should synergy only begin at two?
+
+You previously described one matching character as level 1, so the likely answer is yes.
+
+Should smaller squads receive compensation for bringing fewer characters?
+
+Can story missions force a squad size?
+
+Can missions temporarily lend a character the player does not own?
+
+C. Type system
+Do you want exactly six character types?
+
+Should every character have exactly one type?
+
+Can variants change a character’s type?
+
+Should attacks have their own type, or should type effectiveness use only the attacker’s character type?
+
+Can an action override its character’s type?
+
+Example:
+
+A Machine character uses an Occult action.
+Should type advantage affect only damage, or also stun chance, healing, bar drain and status resistance?
+
+Should weak attacks be visibly labelled before use?
+
+Should players be able to inspect the full type wheel at any time?
+
+Do bosses obey the same type system?
+
+Can a character ever be neutral to all types?
+
+D. Character stats
+Do you want five stats or six?
+
+Current five:
+
+Power
+
+Evasion
+
+Fortune
+
+Speed
+
+Health
+
+Potential sixth:
+
+Defence
+
+Should Defence exist separately from Health?
+
+Does Speed control battle-bar filling for the entire team or only while that character is active?
+
+Does Fortune affect rewards, or only battle probability?
+
+Does Evasion have a hard cap?
+
+Can a player allocate all points into one stat?
+
+Should each character have different allocation limits?
+
+Does levelling grant automatic stat growth, allocation points, or both?
+
+Can stat points be freely moved at any time?
+
+Should loadouts include modifications and action order, or stats only?
+
+E. Character levels and progression
+What should the initial level cap be?
+
+Should the cap be easy to raise later?
+
+Should level differences strongly affect combat?
+
+Should low-level characters gain catch-up XP?
+
+Do defeated characters receive XP?
+
+Do benched characters receive full, partial or no XP?
+
+Does the entire collection receive passive XP?
+
+Can currency purchase XP items?
+
+Should duplicate characters be consumed for XP or upgrades?
+
+Should action upgrades require character level thresholds?
+
+F. Action upgrades
+Can an action be upgraded immediately if the player has currency, or does it require level or story progress?
+
+Does every action always have exactly three tiers?
+
+Can a max-tier upgrade alter the action dramatically?
+
+Can an upgraded action ever become worse in one respect to gain another?
+
+Can action upgrades be reverted or changed?
+
+Are tiers purchased individually per owned character copy, or globally for that character definition?
+
+Do variants share action upgrades?
+
+Should the player preview the exact tier changes before purchasing?
+
+G. Modifications
+Should the final name remain “mod chips”, or should the agent invent something original?
+
+Is one modification slot per character the long-term design, or only the MVP?
+
+Are modifications reusable across characters?
+
+Can one modification be equipped by several characters simultaneously?
+
+Do modifications have character-type restrictions?
+
+Should modifications have levels or upgrades?
+
+Should modifications ever be consumable?
+
+Should changing a modification be free?
+
+Can modifications alter action behaviour, or only statistics?
+
+Can story-specific modifications exist?
+
+H. Economy
+What should the currency primarily represent in the fiction?
+
+Should repeat fights always provide full rewards?
+
+Should replay rewards diminish to prevent one optimal grind stage?
+
+Should Easy and Normal have exactly identical rewards?
+
+Should Hard and Brutal provide only currency bonuses, or XP too?
+
+Should a loss provide partial XP or no rewards?
+
+Should mission progress count on a lost fight?
+
+Example: deal 1,000 total damage.
+
+Should character prices be fixed or change based on story progress?
+
+Should stores ever rotate inventory?
+
+Should event stores be allowed later?
+
+Should players be able to sell characters or modifications?
+
+Should currency have a maximum cap?
+
+I. Store and collection
+Are all characters eventually purchasable, or are some only earned?
+
+Should the store show every locked character from the beginning?
+
+Should some characters remain secret silhouettes?
+
+Can the player buy duplicate copies?
+
+Do purchased characters begin at level 1?
+
+Can store stock be gated by story, mission or tournament completion?
+
+Should each character have a dedicated store card and preview battle?
+
+Should the player be able to try a character before buying?
+
+J. Story design
+Is there one canonical main story, or can all stories be equally independent?
+
+Do story choices create meaningful branches or mostly dialogue differences?
+
+Can choices lock the player out of content?
+
+Can story nodes be replayed immediately?
+
+Does replaying a choice allow a different branch?
+
+Can story fights be skipped after being cleared?
+
+Can story dialogue be skipped?
+
+Should stories support auto-advance?
+
+Should losses have unique defeat scenes?
+
+Can story characters fight using levels different from the player’s owned version?
+
+Can stories temporarily override the player’s squad?
+
+Should story progress be shared across difficulties?
+
+Should each story have its own currency or only the global currency?
+
+Can an event story disappear, or should completed events remain accessible?
+
+K. Level-path presentation
+Should the level path scroll vertically, horizontally or use chapters/pages?
+
+Should it branch visibly?
+
+Should cleared levels receive stars or ratings?
+
+Should story nodes show their content type before entry?
+
+Should hidden nodes exist?
+
+Should players be able to jump directly to any completed node?
+
+Should shops appear only as nodes, or also as permanent menu access?
+
+Should missions appear attached to levels or in a separate mission screen?
+
+L. Tournaments
+Does health reset between tournament rounds?
+
+Can the squad be changed between rounds?
+
+Can modifications be changed between rounds?
+
+Can difficulty be changed mid-tournament?
+
+What happens after losing a tournament round?
+
+Can tournaments be replayed indefinitely?
+
+Should repeat completions provide full rewards?
+
+Should brackets be visible before entry?
+
+Should opponents be fixed, random or both?
+
+M. Quick Fight and sandbox
+Should Quick Fight reward currency and XP?
+
+Can Quick Fight be used for grinding?
+
+Should unrestricted sandbox fights give no rewards?
+
+Can the player customise enemy levels and builds?
+
+Can the player use characters they do not own in sandbox mode?
+
+Can Quick Fight select music manually?
+
+Can Quick Fight apply event or tournament rules?
+
+Should Quick Fight results count toward missions?
+
+N. AI opponents
+Should Easy AI make intentionally poor choices?
+
+Should harder difficulty improve AI behaviour, statistics, or both?
+
+Can AI switch characters strategically?
+
+Can AI inspect the player’s available actions?
+
+Should bosses use bespoke AI rules?
+
+Should AI follow the same rules as the player?
+
+Can Brutal AI receive hidden advantages?
+
+Should enemy builds be authored or generated?
+
+O. Presentation and art
+Should the game’s main desktop layout be landscape?
+
+Should mobile later be portrait, landscape or both?
+
+Do you prefer anime, comic, toy-commercial, surreal, graffiti, hip-hop, cyber, fantasy or another initial visual direction?
+
+Should the characters look like literal physical figurines, stylised people, spirits, toys or digital constructs?
+
+Should rectangular frames remain visible at all times, or can some artwork fill the screen?
+
+Should large action cut-ins appear for every action or only stronger actions?
+
+Should two-frame motion be used in story scenes as well as battle?
+
+Should backgrounds also subtly animate through parallax, glow and particles?
+
+Should generated images contain text, or should all text be rendered by the game?
+
+My strong recommendation is that text should be rendered by the game wherever possible.
+
+Should event art alter the whole visual theme or only selected panels?
+
+Do you want character designs to share a strict silhouette style?
+
+Should variants be recolours, costume changes, new forms or all three?
+
+P. Audio and music
+Should every character eventually have a unique voice?
+
+Should characters speak during every action or only occasionally?
+
+Should dialogue interrupt combat or overlap it?
+
+Should action SFX be character-specific or partly shared?
+
+Should characters have associated battle themes?
+
+Should the player be allowed to choose music in all modes?
+
+Should story nodes define their own track?
+
+Should music continue seamlessly across adjacent story nodes?
+
+Should vocal songs be allowed during battle?
+
+Should sound and dialogue be optional independently?
+
+Q. Save system
+Should save data remain local only initially?
+
+Do you want multiple save slots?
+
+Should Story Mode support separate profiles?
+
+Should the game autosave after every purchase and battle?
+
+Should settings and progression be stored separately?
+
+Should users be able to export and import saves?
+
+Should the desktop web build support cloud save later?
+
+R. Player identity
+Is the player an explicit character in the story?
+
+Does the player have a visible avatar?
+
+Does the player have a name entered at the start?
+
+Does the player speak through choices?
+
+Is the player a collector, coach, summoner, owner or something else?
+
+Can the player customise their profile?
+
+S. Scope and publishing
+Is the first public release intended to be free?
+
+Should it run completely offline after loading?
+
+Will it initially publish under one of your existing domains?
+
+Do you expect keyboard and mouse only at first, or controller support too?
+
+Should touch input remain supported in desktop browsers from the beginning?
+
+Should accessibility include reduced motion?
+
+Should colour-blind indicators be designed into the type system?
+
+Should the MVP include sound settings even before SFX exist?
+
+Should the MVP be installable as a PWA?
+
+Do you want analytics or no tracking initially?
+
+Highest-priority questions to answer first
+The full list can be handled by the agent as unresolved design questions, but these are the ones that affect architecture immediately:
+
+Is there one battle bar per team, or one truly shared by both teams?
+
+Does the bar persist when switching characters?
+
+Can exact duplicate characters be used permanently?
+
+Do characters have one type or can actions have separate types?
+
+Is Defence a sixth stat?
+
+Does Speed affect the active character or the entire squad?
+
+Does one matching type member genuinely provide synergy level 1?
+
+Is synergy universal or type-specific?
+
+Does Quick Fight award progression?
+
+Are unrestricted sandbox characters allowed?
+
+Does health reset between tournament rounds?
+
+Should Story Mode use a horizontal, vertical or chapter-card path?
+
+Is the first desktop layout landscape?
+
+What does the player represent in the fiction?
+
+Are modifications permanently reusable?
+
+Are character duplicates part of the economy or merely an MVP shortcut?
+
+Can action slots be reordered?
+
+Does Easy provide exactly the same rewards as Normal?
+
+Do losses grant XP or partial rewards?
+
+What visual tone should the first creative concept explore?
+
+Confidence: 99%
+
+
+What screens would we have and what would be in them?
+
+Index? I would start a game? Enter my name and variables. What would we record? Where do we record it? Does this affect anything? How? What? Why? When? Main menu I guess?
+
+Settings
+
+Story mode
+
+Quick play (just a quick fight with sane defaults that allows them to choose a character and play against bots
+
+Tournament mode (this can just be a simple tournament mode and it should be the same as the one we see in story mode, don't duplicate shit)
+
+Profile
+
+Actual game
+
+Choose your characters/powerup/
+
+Victory screen
+
+Defeat screen
+
+Shop
+
+Characters
+
+Mod chips (or whatever we are using)
+
+Upgrades (how do we upgrade)
+
+Skill points
+
+What I want is what we can get done with what we have now. No ElevenLabs yet. Codex for images is there. You can loop through doing that as long as you like. I wouldn't do too many until we know our system works though.
+
+I am just answering the questions now. That's a lot but give me a min.
+
+Yes. The next useful thing is to define the screen map and navigation flow, then separate what belongs in the MVP from what can wait.
+
+You do not need ElevenLabs for any of this. Codex-generated images, placeholder rectangles, existing music and programmed motion are enough to build and validate the full loop.
+
+Top-level flow
+Launch
+→ Title Screen
+→ New Game / Continue
+→ Player Setup
+→ Main Menu
+→ Choose Mode
+→ Configure Squad
+→ Fight
+→ Results
+→ Rewards and Progression
+→ Main Menu or Next Story Node
+The game should autosave frequently, so the player should rarely need to think about saving.
+
+1. Launch and loading screen
+Purpose
+Initialises:
+
+game configuration
+
+save data
+
+content definitions
+
+image registry
+
+music catalogue
+
+settings
+
+schemas
+
+generated content indexes
+
+Visible content
+Initially this can be extremely simple:
+
+[ Game logo or working title ]
+
+Loading…
+Later it may include:
+
+animated logo
+
+rotating character art
+
+loading tips
+
+version number
+
+current content pack
+
+loading progress
+
+MVP implementation
+coloured background
+
+placeholder logo
+
+loading bar
+
+existing music begins after user interaction if browser audio restrictions require it
+
+2. Title screen
+This is effectively your index or landing screen.
+
+Contents
+[ Game title ]
+[ Main artwork ]
+
+Continue
+New Game
+Settings
+Credits
+When no save exists:
+
+New Game
+Quick Fight
+Settings
+Credits
+You could allow Quick Fight without creating a profile, but I would still create a lightweight temporary profile in the background.
+
+Why have a title screen?
+It establishes:
+
+brand
+
+tone
+
+artwork
+
+music
+
+entry point
+
+continue/new-game distinction
+
+It should not be overloaded.
+
+3. New game setup
+This is where the player establishes their identity and initial preferences.
+
+Keep this short.
+
+Screen 1: Player name
+What should we call you?
+
+[ Name field ]
+
+Continue
+Store:
+
+playerName: string
+Use it in:
+
+story dialogue
+
+profile
+
+tournament announcements
+
+mission text
+
+save selection
+
+victory summaries
+
+character dialogue later
+
+It should not affect statistics or game balance.
+
+Allow renaming later from Profile.
+
+Screen 2: Initial preferences
+Difficulty
+
+Easy
+Normal
+Hard
+Brutal
+Also potentially:
+
+Text speed
+Reduced motion
+Music volume
+These can also remain in Settings.
+
+The selected difficulty becomes the default, not a permanent choice.
+
+Screen 3: Starter choice
+Once there is more than one character:
+
+Choose your first figure/unit/character
+For the earliest MVP, there may only be one starter, so this screen can be skipped.
+
+When the roster expands, starter choice may affect:
+
+initial owned character
+
+opening dialogue
+
+first tutorial opponent
+
+initial story flavour
+
+It should not lock players out of collecting the others.
+
+Screen 4: Short introduction
+A static-image story sequence explaining:
+
+who the player is
+
+what the collectible fighters are
+
+why they battle
+
+what currency represents
+
+why there are stores and tournaments
+
+This can initially be one or two image panels and text.
+
+4. What the player profile records
+The profile is both the player identity and the root of progression.
+
+Identity
+interface PlayerIdentity {
+  id: string;
+  displayName: string;
+  createdAt: string;
+}
+Potential later fields:
+
+avatar
+
+profile frame
+
+title
+
+favourite character
+
+Progression
+interface PlayerProgression {
+  currency: number;
+  totalXpEarned: number;
+  storyProgress: Record<string, StoryProgress>;
+  unlockedStories: string[];
+  unlockedTournaments: string[];
+  completedMissions: string[];
+  activeMissions: string[];
+}
+Collection
+interface PlayerCollection {
+  ownedCharacters: OwnedCharacter[];
+  ownedModifications: OwnedModification[];
+  unlockedCharacters: string[];
+}
+Squads and loadouts
+interface PlayerSquads {
+  activeSquadId: string;
+  savedSquads: SavedSquad[];
+}
+Statistics
+interface PlayerStatistics {
+  battlesPlayed: number;
+  battlesWon: number;
+  battlesLost: number;
+  tournamentsWon: number;
+  totalDamageDealt: number;
+  totalCharactersCollected: number;
+}
+Statistics should be informational.
+
+They should not initially affect gameplay.
+
+Preferences
+interface PlayerSettings {
+  difficulty: "easy" | "normal" | "hard" | "brutal";
+  musicVolume: number;
+  sfxVolume: number;
+  dialogueVolume: number;
+  reducedMotion: boolean;
+  textSpeed: number;
+}
+Even without SFX or dialogue yet, storing those volume settings now is harmless and prevents later save-format churn.
+
+5. Where save data lives
+For the initial desktop web version:
+
+Browser local storage or IndexedDB
+I would use IndexedDB behind a small save repository abstraction.
+
+Conceptually:
+
+interface SaveRepository {
+  load(slotId: string): Promise<GameSave | null>;
+  save(slotId: string, data: GameSave): Promise<void>;
+  delete(slotId: string): Promise<void>;
+  export(slotId: string): Promise<string>;
+  import(data: string): Promise<void>;
+}
+This keeps storage separate from game logic and lets you later add:
+
+file export/import
+
+cloud save
+
+Capacitor storage
+
+account sync
+
+Save timing
+Autosave after:
+
+profile creation
+
+battle results
+
+character purchase
+
+upgrade purchase
+
+stat allocation
+
+modification change
+
+squad change
+
+mission completion
+
+story node completion
+
+tournament completion
+
+settings change
+
+The player should not need a manual save button.
+
+6. Main menu or home screen
+This is the central hub.
+
+It replaces the physical overworld.
+
+Main navigation
+Story
+Quick Fight
+Tournaments
+Collection
+Store
+Missions
+Profile
+Settings
+You could display these as large rectangular cards.
+
+Persistent information
+The screen should also show:
+
+player name
+
+current currency
+
+selected squad
+
+current story progress
+
+active missions
+
+recent unlock
+
+currently playing music
+
+notifications for upgrades or purchases
+
+Suggested desktop composition
+┌─────────────────────────────────────────────────────────┐
+│ Logo          Player Name            Currency   Settings│
+├─────────────────────┬───────────────────────────────────┤
+│                     │                                   │
+│ Selected Squad      │ Featured Story / Main artwork     │
+│ [A] [B] [C]         │                                   │
+│                     │ [Continue Story]                  │
+├─────────────────────┼───────────────────────────────────┤
+│ Story               │ Quick Fight                       │
+├─────────────────────┼───────────────────────────────────┤
+│ Tournaments         │ Collection                        │
+├─────────────────────┼───────────────────────────────────┤
+│ Missions            │ Store                             │
+└─────────────────────┴───────────────────────────────────┘
+On narrower screens, these cards can stack.
+
+7. Settings screen
+MVP settings
+Difficulty
+Music volume
+Mute music
+Reduced motion
+Fullscreen
+Reset tutorial prompts
+Prepare but potentially disable:
+
+Sound effects volume
+Dialogue volume
+Later settings
+text speed
+
+subtitles
+
+colour-blind indicators
+
+screen shake intensity
+
+flashes
+
+haptics
+
+controller settings
+
+language
+
+accessibility scaling
+
+Difficulty should also be selectable before battles, not only here.
+
+8. Story selection screen
+This lists all available stories.
+
+Each story card shows
+title
+
+cover image
+
+short description
+
+completion percentage
+
+current chapter
+
+locked/unlocked state
+
+recommended squad strength
+
+available rewards
+
+difficulty
+
+new-content indicator
+
+Example:
+
+MAIN STORY
+Chapter 2, Node 08
+42% complete
+
+[ Continue ]
+Other cards:
+
+Rival’s Revenge
+Locked: Own Character X
+
+Starter Tournament
+Complete
+
+Seasonal Event
+Coming later
+9. Story path or chapter screen
+This replaces the exploration map.
+
+It presents authored nodes from 00 to n.
+
+Node display
+Each node can show:
+
+number
+
+title
+
+content type
+
+artwork
+
+completion state
+
+rewards
+
+missions
+
+difficulty
+
+optional/main status
+
+Example:
+
+00 Opening
+01 First Fight
+02 New Challenger
+03 Shop Visit
+04 Collect Two Characters
+05 Tournament Qualifier
+Visual structure
+Possible layout:
+
+[00]──[01]──[02]
+              │
+             [03 optional]
+              │
+[06]──[05]──[04]
+Or chapter cards:
+
+Chapter 1
+[00] [01] [02] [03] [04]
+
+Chapter 2
+[05] [06] [07] [08]
+This is still a level map, but it is not geographic exploration.
+
+Node types should be visually distinct
+crossed blades: fight
+
+speech panel: dialogue
+
+shopping bag: store
+
+trophy: tournament
+
+question mark: choice
+
+reward box: reward
+
+portrait: character encounter
+
+flag: mission
+
+10. Story scene screen
+Used for:
+
+dialogue
+
+narration
+
+choices
+
+static cut-scenes
+
+story media
+
+Contents
+rectangular background image
+
+character portrait panels
+
+speaker name
+
+text
+
+continue
+
+skip
+
+dialogue history
+
+optional choice buttons
+
+music
+
+Programmed effects:
+
+portrait bob
+
+active speaker glow
+
+panel slide
+
+slow background zoom
+
+screen fade
+
+expression image swap
+
+text reveal
+
+No voice acting is required yet.
+
+11. Mission screen
+There should be a global mission screen and missions can also appear within Story Mode.
+
+Sections
+Active
+Available
+Completed
+Mission card contents
+title
+
+description
+
+objective
+
+progress
+
+reward
+
+source story
+
+expiry if events later
+
+track/untrack button
+
+Examples:
+
+Vengeance
+Defeat Knuckle Static using Glassjaw.
+0 / 1
+
+Collector
+Own three different character types.
+2 / 3
+
+Tournament Trial
+Complete the Starter Circuit.
+0 / 1
+Mission progress should update from generic game events.
+
+12. Quick Fight screen
+Quick Fight should get the player into combat quickly.
+
+Step 1: Choose squad
+Defaults to the current active squad.
+
+Your Squad
+[A] [B] [C]
+
+Change
+Step 2: Choose opponent
+Sane defaults:
+
+similarly levelled bot squad
+
+neutral type matchup
+
+Normal difficulty
+
+default arena
+
+automatic music
+
+The player can press:
+
+Fight Now
+without changing anything.
+
+Advanced options
+Expandable panel:
+
+opponent squad
+
+opponent strength
+
+difficulty
+
+arena
+
+music
+
+battle modifiers
+
+owned-only or sandbox rules
+
+Rewards
+There are two possible Quick Fight forms:
+
+Progression Quick Fight
+uses owned characters
+
+awards XP and currency
+
+counts toward missions
+
+Sandbox Quick Fight
+unrestricted settings
+
+no progression rewards
+
+does not affect missions
+
+This distinction avoids letting custom level-100 test battles break the economy.
+
+13. Tournament selection screen
+Tournament Mode lists available tournaments.
+
+Each card shows:
+
+title
+
+artwork
+
+number of rounds
+
+restrictions
+
+entry requirements
+
+difficulty
+
+rewards
+
+completion status
+
+best result
+
+Example:
+
+Starter Circuit
+3 rounds
+Any squad
+Reward: Character unlock + currency
+
+[ Enter ]
+The tournament system used here must be exactly the same system used inside Story Mode.
+
+Story Mode only references the tournament:
+
+type: tournament
+tournamentId: tournament.starter-circuit
+No duplicate tournament implementation.
+
+14. Tournament bracket screen
+Contents
+bracket
+
+current round
+
+player squad
+
+known opponents
+
+hidden opponents if desired
+
+tournament rules
+
+rewards
+
+continue or begin fight
+
+Example:
+
+Quarter-final
+You vs Static Kid
+
+Semi-final
+Winner vs ???
+
+Final
+???
+Between rounds, depending on final rules, the player may:
+
+continue immediately
+
+edit squad
+
+view results
+
+see story panel
+
+The same screen works whether entered from:
+
+Main Menu
+
+Story Mode
+
+Event Mode later
+
+15. Squad selection screen
+This is used before:
+
+story fight
+
+quick fight
+
+tournament
+
+challenge
+
+Contents
+Selected Squad
+Slot 1
+Slot 2
+Slot 3
+For each character:
+
+portrait
+
+level
+
+type
+
+HP
+
+Power
+
+Speed
+
+current modification
+
+action upgrade summary
+
+synergy contribution
+
+Synergy summary
+Active Synergy
+
+3 × Machine
+Synergy Level 3
+
+Current bonus:
++X Power
++Y Health
+The actual values come from balancing data.
+
+Matchup preview
+Your squad:
+Strong against 1 enemy
+Weak against 1 enemy
+Neutral against 1 enemy
+Actions
+add character
+
+remove character
+
+reorder squad
+
+edit character
+
+load saved squad
+
+save squad
+
+begin fight
+
+16. Character selection overlay
+When filling a squad slot, show the collection.
+
+Filters:
+
+type
+
+level
+
+owned
+
+favourite
+
+variant
+
+available
+
+strong against opponent
+
+Each card shows:
+
+portrait
+
+name
+
+type
+
+level
+
+health
+
+power
+
+modification
+
+selected indicator
+
+17. Pre-fight screen
+This is the final confirmation.
+
+Contents
+Your Squad vs Enemy Squad
+
+Difficulty: Normal
+Arena: Starter Stage
+Music: Automatic
+
+Type matchup
+Squad synergy
+Mission conditions
+Potential rewards
+Buttons:
+
+Fight
+Edit Squad
+Difficulty
+Cancel
+Potential rewards should be estimates, because actual rewards depend on performance and result.
+
+18. Actual battle screen
+This is the central gameplay screen.
+
+Core layout
+┌──────────────────────────────────────────────────────────┐
+│ Enemy squad cards                 Difficulty / Timer     │
+│                                                          │
+│                Enemy active character                    │
+│                HP / status / type                        │
+│                                                          │
+│                 Battle artwork area                      │
+│                                                          │
+│                Player active character                   │
+│                HP / status / type                        │
+│                                                          │
+│ Player squad cards                                       │
+│                                                          │
+│ [Action 1]        [Action 2]        [Action 3]            │
+│                                                          │
+│                 Battle bar                               │
+└──────────────────────────────────────────────────────────┘
+Battle elements
+active player character
+
+active enemy
+
+squad cards
+
+health bars
+
+type emblems
+
+status indicators
+
+battle bar
+
+action thresholds
+
+action availability
+
+charge countdown
+
+pause
+
+music
+
+battle timer if used
+
+mission objective indicator
+
+tournament round indicator
+
+synergy indicator
+
+Programmed movement
+characters bob
+
+selected squad card glows
+
+ready actions pulse
+
+bar fills
+
+timer counts
+
+attack panels slide
+
+action cut-ins zoom
+
+target recoils
+
+camera shakes
+
+hit-stop
+
+damage numbers pop
+
+healing numbers rise
+
+defeat card darkens and falls
+
+victory card bounces
+
+19. Pause screen
+Contents
+Resume
+Restart Fight
+Settings
+Leave Fight
+Leaving should warn:
+
+Leave this fight?
+Current battle progress will be lost.
+No currency or character progress will be lost.
+20. Victory screen
+Contents
+victory artwork
+
+winning squad
+
+currency earned
+
+XP earned
+
+level-ups
+
+mission progress
+
+story progression
+
+tournament progression
+
+first-clear bonus
+
+difficulty bonus
+
+newly unlocked content
+
+character unlocks
+
+action-upgrade availability
+
+continue
+
+Example:
+
+VICTORY
+
+Base reward        100
+Opponent bonus      35
+Hard bonus          10
+First-clear bonus   50
+
+Total currency     195
+
+Character A: +80 XP
+Level 4 → Level 5
+
+Mission progress:
+Vengeance 1 / 1 COMPLETE
+Buttons:
+
+Continue Story
+
+Next Tournament Round
+
+Upgrade
+
+Replay
+
+Main Menu
+
+The available primary button depends on context.
+
+21. Defeat screen
+Contents
+defeat artwork
+
+result summary
+
+opponent remaining health
+
+useful hints
+
+current type disadvantage
+
+possible upgrade reminder
+
+no permanent loss statement
+
+Buttons:
+
+Retry
+Edit Squad
+Change Difficulty
+Upgrade Characters
+Return
+Possible hint:
+
+Your squad is weak against two enemy types.
+or:
+
+Character A has an unspent skill point.
+The player should never feel trapped.
+
+22. Shop screen
+The shop can have tabs.
+
+Characters
+Modifications
+Action Upgrades
+Featured
+You might keep action upgrades inside each character instead, which may be cleaner.
+
+Character shop card
+character artwork
+
+name
+
+type
+
+base stats
+
+three action summaries
+
+price
+
+owned state
+
+unlock requirement
+
+preview
+
+purchase
+
+Modification card
+icon
+
+name
+
+effect
+
+trade-off
+
+price
+
+owned quantity
+
+compatible types
+
+purchase
+
+Store rules
+deterministic stock
+
+stable logical IDs
+
+purchases autosave
+
+no premium currency
+
+no randomness required
+
+23. Collection or Characters screen
+This is the full roster.
+
+Card grid
+Each character card shows:
+
+portrait
+
+name
+
+type
+
+level
+
+owned or locked
+
+upgrade indicator
+
+modification
+
+favourite
+
+variant
+
+Filters
+all
+
+owned
+
+locked
+
+type
+
+level
+
+upgrade available
+
+squad
+
+variant
+
+Selecting a character opens the Character Detail screen.
+
+24. Character detail screen
+This is where most character management happens.
+
+Header
+large portrait
+
+name
+
+type
+
+level
+
+XP bar
+
+current squad status
+
+character music association if relevant
+
+Statistics
+Health
+
+Power
+
+Evasion
+
+Fortune
+
+Speed
+
+Defence if retained
+
+Show:
+
+base value
+
+allocated value
+
+modification bonus
+
+squad bonus preview
+
+final value
+
+Actions
+Three action cards:
+
+Action 1
+Tier: Base
+Upgrade available
+
+Action 2
+Tier: Upgraded
+
+Action 3
+Tier: Max
+Modification
+equipped modification
+
+change button
+
+Other actions
+edit stats
+
+upgrade action
+
+add to squad
+
+view artwork
+
+set favourite
+
+choose variant
+
+25. Skill-point allocation screen
+This should be a focused screen or panel inside Character Detail.
+
+Contents
+Available points: 4
+
+Power      [-] 5 [+]
+Evasion    [-] 2 [+]
+Fortune    [-] 3 [+]
+Speed      [-] 4 [+]
+Health     [-] 6 [+]
+Show derived results live:
+
+Estimated HP: 120 → 128
+Estimated damage: +4%
+Bar speed: +2%
+Buttons:
+
+Apply
+Reset
+Load Preset
+Save Loadout
+Cancel
+Respec should be free or cheap.
+
+For the MVP, free is simplest.
+
+26. Action upgrade screen
+Either a dedicated screen or inside Character Detail.
+
+Contents
+For each action:
+
+current tier
+
+current effect
+
+next tier
+
+exact changes
+
+price
+
+prerequisites
+
+artwork
+
+preview animation later
+
+Example:
+
+Rattle Strike
+
+Base
+Power: 18
+Target: Single enemy
+
+Upgraded
+Power: 22
+15% defence reduction chance
+
+Cost: 250 currency
+Buttons:
+
+Upgrade
+Cancel
+Action upgrades should be purchased per owned character instance unless you deliberately choose global upgrades later.
+
+That remains a design question.
+
+27. Modification screen
+This is the equivalent of Mod Chips.
+
+The agent should invent an original term.
+
+Contents
+equipped modification
+
+compatible modifications
+
+filters
+
+effect comparison
+
+stat change preview
+
+equip
+
+unequip
+
+Example:
+
+Overclock Patch
+
++8% Speed
+-4% Health
+Comparison:
+
+Speed: 12 → 14
+Health: 110 → 105
+Changing modifications should not destroy the old one.
+
+28. Profile screen
+The Profile screen is for the player, not a character.
+
+Contents
+player name
+
+rename
+
+creation date
+
+favourite character
+
+current squad
+
+story progress
+
+collection percentage
+
+battles won
+
+battles lost
+
+tournaments won
+
+missions completed
+
+total currency earned
+
+total characters owned
+
+selected title or badge later
+
+What should affect gameplay?
+Initially, profile identity should not affect gameplay.
+
+The name exists for:
+
+story personalisation
+
+save identity
+
+tournament announcements
+
+UI
+
+future dialogue
+
+player ownership fantasy
+
+Avoid choosing a permanent class or bonus during player creation unless the story strongly requires it.
+
+29. Music screen or jukebox
+Not necessary for the first playable build, but straightforward later.
+
+Could exist under Profile or Settings.
+
+It might list:
+
+unlocked tracks
+
+current track
+
+character associations
+
+menu selection
+
+battle selection
+
+shuffle
+
+repeat
+
+For now, existing tracks are simply used through the music catalogue.
+
+30. Credits screen
+Initial contents:
+
+game creator
+
+tools
+
+music credits
+
+asset-generation notes
+
+libraries
+
+licences
+
+This matters before public release, but can be minimal initially.
+
+Shared screens and reusable flows
+A major architectural rule is that modes should reference shared systems.
+
+Shared battle flow
+Story, Quick Fight and Tournament all use:
+
+Squad Selection
+→ Pre-Fight
+→ Battle
+→ Victory/Defeat
+→ Rewards
+Shared tournament flow
+Story does not implement a different tournament.
+
+Story node:
+
+type: tournament
+tournamentId: tournament.starter
+Main Menu Tournament Mode opens the same tournament definition.
+
+Shared shop flow
+Story shop nodes open the same store screen as the Main Menu.
+
+They may provide a specific store ID or filtered stock.
+
+Shared character flow
+Squad selection, shop and collection all open the same Character Detail screen.
+
+Shared mission flow
+Story nodes may assign missions, but all missions appear in the same mission tracker.
+
+Recommended MVP screen set
+You do not need every screen fully implemented immediately.
+
+Phase 1: Prove the game
+Build:
+
+Launch
+
+Title
+
+Basic player setup
+
+Main Menu
+
+Quick Fight setup
+
+Squad selection
+
+Battle
+
+Victory
+
+Defeat
+
+Character detail
+
+Skill allocation
+
+Action upgrade
+
+Store
+
+Settings
+
+Use:
+
+one main character
+
+one rival
+
+one variant
+
+placeholder art
+
+existing music
+
+Phase 2: Prove progression
+Add:
+
+Collection
+
+Missions
+
+Story selection
+
+Story path
+
+Story scene
+
+Pre-fight
+
+Profile
+
+Phase 3: Prove structured content
+Add:
+
+Tournament selection
+
+Tournament bracket
+
+Modification management
+
+Multiple stories
+
+More artwork templates
+
+What Codex can generate now
+Before ElevenLabs, Codex can support the visual MVP with:
+
+Branding
+title image
+
+logo concepts
+
+main menu artwork
+
+loading screen
+
+profile background
+
+Characters
+For perhaps two characters initially:
+
+reference image
+
+portrait
+
+collection card
+
+store card
+
+battle idle pair
+
+three action pairs
+
+hurt pair
+
+dodge pair
+
+stunned pair
+
+defeat pair
+
+victory pair
+
+Battle
+one standard background
+
+one tournament background
+
+three action cut-ins per main character
+
+generic impact images
+
+type emblems
+
+placeholder action icons
+
+Story
+story cover
+
+opening scene
+
+dialogue background
+
+character encounter panel
+
+ending panel
+
+Store and UI
+store background
+
+currency icon
+
+modification icons
+
+locked-character silhouette
+
+reward panel
+
+However, I agree with your restraint:
+
+Generate only enough to prove the templates, consistency workflow and renderer.
+
+Do not generate the full art list before testing:
+
+image loading
+
+cropping
+
+desktop composition
+
+two-frame loops
+
+action cut-ins
+
+store cards
+
+story panels
+
+Immediate recommended art batch
+The first batch should be:
+
+One game title treatment
+
+One battle background
+
+One character reference
+
+One character portrait
+
+One idle pair
+
+One action pair
+
+One hurt pair
+
+One victory pair
+
+One defeat pair
+
+One action cut-in
+
+One store card
+
+One story background
+
+One rival portrait
+
+One rival idle pair
+
+That is enough to validate nearly the entire visual pipeline.
+
+Everything else can use placeholders.
+
+Screen dependency map
+Title
+├── New Game
+│   └── Player Setup
+│       └── Main Menu
+├── Continue
+│   └── Main Menu
+├── Quick Fight
+└── Settings
+
+Main Menu
+├── Story
+│   └── Story Select
+│       └── Story Path
+│           ├── Story Scene
+│           ├── Shop
+│           ├── Mission
+│           └── Tournament
+├── Quick Fight
+│   └── Squad Select
+│       └── Pre-Fight
+│           └── Battle
+├── Tournaments
+│   └── Tournament Select
+│       └── Bracket
+│           └── Battle
+├── Collection
+│   └── Character Detail
+│       ├── Skill Points
+│       ├── Action Upgrades
+│       └── Modifications
+├── Store
+│   ├── Character Detail
+│   └── Modifications
+├── Missions
+├── Profile
+└── Settings
+
+Battle
+├── Victory
+│   ├── Next Story Node
+│   ├── Next Tournament Round
+│   ├── Upgrade
+│   ├── Replay
+│   └── Main Menu
+└── Defeat
+    ├── Retry
+    ├── Edit Squad
+    ├── Change Difficulty
+    ├── Upgrade
+    └── Leave
+You can answer the previous blindspot questions gradually. None of that prevents documenting this screen system now.
+
+Confidence: 99%
+
+
+Today 1:01 AM
+
+Pasted markdown(29).md
+File
+
+Pasted markdown (2)(2).md
+File
+I answered all of the questions.
+
+You did. The answers resolve most of the combat, progression, economy, tournament, collection, save and presentation decisions that were still open. 
+
+
+The most important confirmed decisions are now:
+
+Two battle bars, one per side/team.
+
+1v1 controller structure, supporting human vs bot, human vs human and bot vs bot.
+
+Squads contain 1 to 3 active battle choices, with one character on-screen at a time.
+
+Switching is free, preserves the team bar and cannot dodge an already committed attack.
+
+Actions may prevent switching temporarily.
+
+Team-wide damage, healing and stun affect the whole squad, including benched characters.
+
+Benched statuses continue ticking.
+
+Battles end through full team defeat or forfeit.
+
+Charge attacks exist and can be interrupted.
+
+Multi-hit actions roll dodge and critical results per hit.
+
+Each action can be assigned to nine bar positions: 1L, 1, 1H, 2L, 2, 2H, 3L, 3, 3H.
+
+Moving an action earlier makes it faster and weaker; moving it later makes it slower and stronger.
+
+Every character has three action upgrade tiers: stock, gold and platinum.
+
+Action configuration and upgrades unlock at level 10.
+
+Modifications unlock at level 5.
+
+Character level cap is 25.
+
+Stat points are freely reallocatable outside battle.
+
+Exact duplicate characters are allowed and purchasable.
+
+Variants are primarily recolours/reskins of the same character.
+
+There are six classes, plus optional untyped characters.
+
+Class effectiveness uses the character class, not the action.
+
+A second grouping dimension exists, such as hero/villain or another original equivalent, and that grouping creates squad bonuses.
+
+Smaller battle squads concentrate XP across fewer participating characters.
+
+Story missions may force squads or loan characters.
+
+Tournaments carry health and defeated state between rounds.
+
+Tournament rosters are larger than battle squads, probably around seven or eight characters, with up to three selected per fight.
+
+Tournament modifications are locked once the tournament begins.
+
+Tournament intermissions can contain healing, revival and temporary next-round bonuses.
+
+Quick Fight and standalone Tournament Mode allow unrestricted characters, levels, upgrades and configurations.
+
+Story versions of tournaments use the same tournament engine and fixed authored configurations.
+
+AI can switch strategically and sees the same visible information as the player.
+
+Easy is highly forgiving; Normal allows inattentive losses; Hard is meaningfully challenging; Brutal expects very strong execution.
+
+Local saves, multiple profiles, separate settings and progression, and frequent autosaving are confirmed.
+
+The player is a named collector competing to become the ultimate collector.
+
+Desktop web through Phaser remains the first target.
+
+Existing music is a shared pool and can be assigned to characters, entrances, stories, tournaments or fights.
+
+ElevenLabs remains deferred.
+
+Codex image generation is available now.
+
+The GDD and supporting documents become authoritative instead of these conversations. 
+
+
+Decisions I would make from your delegated answers
+You explicitly left several things to design judgement. These are the defaults I would document unless playtesting disproves them.
+
+Defence
+Do not make Defence a sixth allocatable stat.
+
+Use five allocatable stats:
+
+Power
+
+Health
+
+Speed
+
+Dodge
+
+Luck
+
+Defence is a temporary battle state or derived modifier affected by:
+
+actions
+
+power-ups
+
+modifications
+
+game modes
+
+tournament rewards
+
+When Defence is broken or reduced, incoming damage rises and dodge may be disabled. This matches how you described it without adding another permanent stat to optimise.
+
+Evasion cap
+Dodge should use diminishing returns and a hard cap, probably around 40–50% before temporary battle effects.
+
+Power and Health should remain the safest and most consistently rewarding allocations, as requested.
+
+XP distribution
+For a normal fight:
+
+only the selected battle squad receives XP
+
+all selected characters receive XP, including defeated characters
+
+XP is split across the selected squad
+
+using fewer characters therefore levels them faster
+
+the rest of the collection receives no passive XP
+
+This is understandable and creates a deliberate reason to use smaller squads.
+
+Loss rewards
+A loss should provide:
+
+partial XP
+
+no standard currency reward
+
+mission progress only for objectives that logically occurred, such as total damage or using an action
+
+no progress for objectives requiring victory
+
+This avoids making a loss pointless while keeping victory meaningful.
+
+Duplicate character use
+Duplicates are a permanent collection mechanic.
+
+Each owned copy has its own:
+
+level
+
+XP
+
+stat allocation
+
+action upgrades
+
+equipped modification
+
+cosmetic variant
+
+A recolour remains attached to that owned copy but does not alter its class or mechanics.
+
+Upgrade materials
+Do not require consuming duplicates for action upgrades initially.
+
+Use currency for upgrades. Duplicate consumption creates pressure to buy duplicate figures and introduces unnecessary economy complexity. It can be evaluated later as an optional sink if the store produces too many duplicates.
+
+Squad synergy
+Keep these two systems separate:
+
+Class effectiveness
+The six-class wheel determines strong and weak matchups.
+
+Affiliation synergy
+Characters also have an affiliation or alignment tag, such as heroic, villainous, rogue or another branded vocabulary.
+
+Only matching affiliation counts create a squad bonus. One character alone does not need a meaningful “synergy” reward. The useful thresholds should be:
+
+2 matching affiliation characters → tier 1 bonus
+3 matching affiliation characters → tier 2 bonus
+Exact duplicate characters may receive an additional optional set bonus later, but not in the MVP.
+
+Battle time limit
+Use 90 seconds as the default, configurable per encounter.
+
+At timeout:
+
+compare surviving total HP percentage
+
+higher percentage wins
+
+if tied, compare total remaining HP
+
+if still tied, declare a draw or use a short sudden-death period
+
+The timer should rarely decide normal matches.
+
+Quick Fight rewards
+Split it explicitly:
+
+Quick Fight
+
+unrestricted roster and configurations
+
+modest currency reward
+
+no character XP
+
+no story mission progress
+
+Practice
+
+unrestricted
+
+no rewards
+
+intended for testing builds and characters
+
+That avoids unrestricted max-level configurations becoming the best story grinding method.
+
+Tournament Mode
+Standalone Tournament Mode uses unrestricted characters and upgrades, but has its own tournament score and rewards rather than changing Story Mode character progression.
+
+Story tournaments use the player’s actual owned collection and persistent progression.
+
+Both use the same underlying tournament engine.
+
+Difficulty rewards
+Keep Easy and Normal rewards identical.
+
+Hard and Brutal do not need larger rewards. The sarcastic commentary, completion records, badges and statistics can provide the recognition. This avoids making players feel financially compelled to choose difficulty.
+
+AI fairness
+AI should follow the same combat rules.
+
+Difficulty changes:
+
+reaction delay
+
+strategic planning depth
+
+willingness to switch
+
+action selection quality
+
+ability to plan around visible bar values
+
+tolerance for mistakes
+
+possibly modest authored stat modifiers
+
+Avoid hidden cheating on Brutal unless a fight explicitly announces a special rule.
+
+Story character overrides
+A story may loan temporary characters or create a temporary squad.
+
+It never removes or modifies the player’s owned characters. Temporary story versions exist only for that node or sequence.
+
+Loadouts
+A saved character loadout should contain:
+
+stat allocation
+
+action slot arrangement
+
+equipped modification ID
+
+A saved squad should contain:
+
+owned character instance IDs
+
+character order
+
+selected character loadouts
+
+optional accessory or future team item
+
+Remaining design areas
+You answered everything you reasonably could. The remaining gaps are creative or UI decisions rather than missing requirements:
+
+final game name
+
+world premise
+
+names of the six classes
+
+name of the affiliation system
+
+modification terminology
+
+currency name
+
+final art direction
+
+story path layout
+
+exact formula values
+
+default tournament roster size, probably seven or eight
+
+exact market rotation rules
+
+exact music precedence between character entrance, fight, tournament and story
+
+whether accessories are included in the MVP
+
+which alternate battle modes from Teeny Titans are worth adapting
+
+exact visual treatment of rectangular panels and full-screen artwork
+
+Those are appropriate for the design agent to solve creatively and document as proposals.
+
+The uploaded answers should now be supplied alongside the earlier material with an instruction that they override any conflicting speculation or unresolved question in the earlier summary.
+
+Confidence: 99%
+
+
+1Password menu is available. Press down arrow to select.

@@ -1,0 +1,9 @@
+dist/
+coverage/
+node_modules/
+.playwright-cli/
+output/
+public/assets/generated/
+music/
+conversation.txt
+walkthrough-questions.md
