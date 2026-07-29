@@ -25,6 +25,9 @@ export class AudioManager {
     this.#dialogue.volume = preferences.dialogueMuted
       ? 0
       : Math.min(1, Math.max(0, preferences.dialogueVolume));
+    if (preferences.musicMuted || !preferences.musicPlaybackEnabled) {
+      this.#music.pause();
+    }
   }
 
   playSfx(id: string): void {
@@ -49,7 +52,10 @@ export class AudioManager {
       this.#music.src = track.path;
       this.#currentTrackId = track.id;
     }
-    if (this.#preferences.musicMuted) {
+    if (
+      this.#preferences.musicMuted ||
+      !this.#preferences.musicPlaybackEnabled
+    ) {
       return;
     }
     try {
@@ -66,6 +72,10 @@ export class AudioManager {
     }
     this.#music.pause();
     return false;
+  }
+
+  pauseMusic(): void {
+    this.#music.pause();
   }
 
   get currentTrackId(): string {

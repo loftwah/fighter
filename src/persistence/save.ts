@@ -6,6 +6,7 @@ export interface Preferences {
   musicVolume: number;
   sfxVolume: number;
   dialogueVolume: number;
+  musicPlaybackEnabled: boolean;
   musicMuted: boolean;
   sfxMuted: boolean;
   dialogueMuted: boolean;
@@ -37,6 +38,7 @@ export interface TournamentCaseBuild {
 
 export interface TournamentRunData {
   tournamentId: "tournament.cheap-seats";
+  origin: "story" | "standalone";
   roundIndex: 0 | 1 | 2;
   phase: "ready" | "interlude";
   caseBuilds: TournamentCaseBuild[];
@@ -59,6 +61,7 @@ export interface SaveData {
   claimedMissionIds: string[];
   lossesTo: string[];
   tournamentRun: TournamentRunData | null;
+  standaloneTournamentRun: TournamentRunData | null;
   tournamentBadges: string[];
   revealedRivalIds: string[];
   updatedAt: string;
@@ -76,6 +79,7 @@ const preferencesSchema = z.object({
   musicVolume: z.number().min(0).max(1),
   sfxVolume: z.number().min(0).max(1),
   dialogueVolume: z.number().min(0).max(1),
+  musicPlaybackEnabled: z.boolean(),
   musicMuted: z.boolean(),
   sfxMuted: z.boolean(),
   dialogueMuted: z.boolean(),
@@ -129,6 +133,23 @@ const tournamentCaseBuildSchema = z.object({
   equippedPatchId: z.string().min(1).nullable(),
 });
 
+const tournamentRunSchema = z
+  .object({
+    tournamentId: z.literal("tournament.cheap-seats"),
+    origin: z.enum(["story", "standalone"]).default("story"),
+    roundIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+    phase: z.enum(["ready", "interlude"]),
+    caseBuilds: z.array(tournamentCaseBuildSchema).max(8).default([]),
+    healthRatios: z.record(z.string(), z.number().min(0).max(1)),
+    activeInstanceId: z.string().min(1).nullable().default(null),
+    nextRoundChargeBonus: z.number().min(0).max(100),
+    selectedDrop: z
+      .enum(["front-print-repair", "case-repair", "hot-start"])
+      .nullable()
+      .default(null),
+  })
+  .nullable();
+
 const saveSchema = z.object({
   schemaVersion: z.literal(2),
   slot: z.union([z.literal(1), z.literal(2), z.literal(3)]),
@@ -141,22 +162,8 @@ const saveSchema = z.object({
   missionProgress: z.record(z.string(), z.number().int().nonnegative()),
   claimedMissionIds: z.array(z.string().min(1)),
   lossesTo: z.array(z.string().min(1)),
-  tournamentRun: z
-    .object({
-      tournamentId: z.literal("tournament.cheap-seats"),
-      roundIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
-      phase: z.enum(["ready", "interlude"]),
-      caseBuilds: z.array(tournamentCaseBuildSchema).max(8).default([]),
-      healthRatios: z.record(z.string(), z.number().min(0).max(1)),
-      activeInstanceId: z.string().min(1).nullable().default(null),
-      nextRoundChargeBonus: z.number().min(0).max(100),
-      selectedDrop: z
-        .enum(["front-print-repair", "case-repair", "hot-start"])
-        .nullable()
-        .default(null),
-    })
-    .nullable()
-    .default(null),
+  tournamentRun: tournamentRunSchema.default(null),
+  standaloneTournamentRun: tournamentRunSchema.default(null),
   tournamentBadges: z.array(z.string().min(1)).default([]),
   revealedRivalIds: z.array(z.string().min(1)).default([]),
   updatedAt: z.string(),
@@ -167,6 +174,7 @@ export const defaultPreferences: Preferences = {
   musicVolume: 0.5,
   sfxVolume: 0.75,
   dialogueVolume: 0.8,
+  musicPlaybackEnabled: false,
   musicMuted: false,
   sfxMuted: false,
   dialogueMuted: false,
@@ -215,6 +223,7 @@ export function createDefaultSave(slot: 1 | 2 | 3): SaveData {
     claimedMissionIds: [],
     lossesTo: [],
     tournamentRun: null,
+    standaloneTournamentRun: null,
     tournamentBadges: [],
     revealedRivalIds: [],
     updatedAt: new Date(0).toISOString(),

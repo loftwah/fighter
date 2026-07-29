@@ -13,6 +13,8 @@
 7. Existing soundtrack integration and silent SFX/dialogue fallbacks.
 8. Generated MVP art integration.
 9. Desktop and narrow-layout browser verification.
+10. Stable bar-integrated Move controls, full-simulation pause, and a
+    development-only scenario/inspection lab.
 
 The vertical slice also includes validated corrupt-save recovery, independent
 slot selection, persistent Patch ownership/equipping, owned-instance combat
@@ -26,13 +28,14 @@ the Cup purse again by design.
 ## Next — system breadth
 
 1. Move reordering, tiers, stat allocation, selling, and favouriting.
-2. Quick Fight configuration and unrestricted roster.
+2. Quick Fight configuration and unrestricted roster, reusing the validated
+   scenario composer proven by Developer Lab.
 3. Save export/import after schema stabilisation.
 
 ## Later
 
 - expanded stories and cast;
-- balance tools and simulation batches;
+- expanded balance simulation batches built on Developer Lab scenarios;
 - PWA/offline decision;
 - mobile-specific composition and optional Capacitor;
 - Cloudflare sync/identity;

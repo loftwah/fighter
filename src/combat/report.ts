@@ -1,10 +1,12 @@
 import type {
+  ActionTier,
   BattleCommand,
   BattleEvent,
   BattleOutcome,
   BattleState,
   Difficulty,
   Side,
+  StatBlock,
   Transition,
 } from "./types";
 
@@ -14,6 +16,8 @@ export interface BattleReportParticipant {
   characterId: string;
   level: number;
   actionIds: [string, string, string];
+  actionTiers: Record<string, ActionTier>;
+  stats: StatBlock;
   equippedPatchId: string | null;
 }
 
@@ -31,18 +35,27 @@ export interface BattleReportDifficultyChange {
   to: Difficulty;
 }
 
+export interface BattleReportDebugAction {
+  elapsedMs: number;
+  action: "addCharge" | "step" | "pause" | "resume" | "copyState";
+  side?: Side;
+  amount?: number;
+}
+
 export interface BattleReport {
-  schemaVersion: 1;
-  mode: "story" | "tournament" | "quick";
+  schemaVersion: 2;
+  mode: "story" | "tournament" | "quick" | "dev";
   encounterId: string;
   seed: number;
   difficulty: Difficulty;
   difficultyChanges: BattleReportDifficultyChange[];
   participants: BattleReportParticipant[];
   decisions: BattleReportDecision[];
+  debugActions: BattleReportDebugAction[];
   events: BattleEvent[];
   outcome: BattleOutcome | null;
   elapsedMs: number;
+  initialState: BattleState;
 }
 
 export function createBattleReport(
@@ -54,7 +67,7 @@ export function createBattleReport(
   },
 ): BattleReport {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     mode: context.mode,
     encounterId: context.encounterId,
     seed: state.seed,
@@ -67,13 +80,17 @@ export function createBattleReport(
         characterId: combatant.characterId,
         level: combatant.level,
         actionIds: [...combatant.actionIds],
+        actionTiers: { ...combatant.actionTiers },
+        stats: { ...combatant.stats },
         equippedPatchId: combatant.equippedPatchId,
       })),
     ),
     decisions: [],
+    debugActions: [],
     events: structuredClone(events),
     outcome: null,
     elapsedMs: 0,
+    initialState: structuredClone(state),
   };
 }
 
@@ -123,13 +140,30 @@ export function recordBattleDecision(
   };
 }
 
+export function recordBattleDebugAction(
+  report: BattleReport,
+  state: BattleState,
+  action: Omit<BattleReportDebugAction, "elapsedMs">,
+): BattleReport {
+  return {
+    ...report,
+    debugActions: [
+      ...report.debugActions,
+      { ...structuredClone(action), elapsedMs: state.elapsedMs },
+    ],
+  };
+}
+
 export function appendBattleTransition(
   report: BattleReport,
   transition: Transition,
 ): BattleReport {
   return {
     ...report,
-    events: [...report.events, ...structuredClone(transition.events)],
+    events:
+      transition.events.length > 0
+        ? [...report.events, ...structuredClone(transition.events)]
+        : report.events,
     elapsedMs: transition.state.elapsedMs,
     outcome:
       transition.state.outcome === "active" ? null : transition.state.outcome,

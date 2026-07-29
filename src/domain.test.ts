@@ -17,6 +17,7 @@ import {
   appendBattleTransition,
   createBattleReport,
   recordBattleDecision,
+  recordBattleDebugAction,
   recordBattleDifficultyChange,
 } from "./combat/report";
 import { combatContent } from "./content/initial-content";
@@ -234,6 +235,14 @@ describe("combat rules", () => {
         state,
       ).complete,
     ).toBe(true);
+  });
+
+  it("keeps standalone and Story tournament objects explicitly distinct", () => {
+    expect(createCheapSeatsRun().origin).toBe("standalone");
+    expect(createCheapSeatsRun([], "story").origin).toBe("story");
+    const save = createDefaultSave(1);
+    expect(save.tournamentRun).toBeNull();
+    expect(save.standaloneTournamentRun).toBeNull();
   });
 
   it("ends a Cheap Seats run on any lost round", () => {
@@ -699,6 +708,10 @@ describe("combat rules", () => {
       actionId: "action.mara-vex.invoice-breaker",
     });
     report = recordBattleDifficultyChange(report, created.state, "hard");
+    report = recordBattleDebugAction(report, created.state, {
+      action: "step",
+      amount: 100,
+    });
     const terminalState = structuredClone(created.state);
     terminalState.outcome = "playerWon";
     const transition = {
@@ -717,7 +730,15 @@ describe("combat rules", () => {
     expect(report.participants[0]).toMatchObject({
       instanceId: "owned.mara-vex.1",
       level: 9,
+      actionTiers: {
+        "action.mara-vex.invoice-breaker": "stock",
+      },
     });
+    expect(report.schemaVersion).toBe(2);
+    expect(report.initialState.seed).toBe(818);
+    expect(report.debugActions).toEqual([
+      { action: "step", amount: 100, elapsedMs: 0 },
+    ]);
     expect(report.decisions[0]?.command).toEqual({
       kind: "action",
       actionId: "action.mara-vex.invoice-breaker",
@@ -1140,6 +1161,21 @@ describe("validated persistence", () => {
     expect(loadActiveSaveSlot(storage)).toBe(3);
     savePreferences(storage, defaultPreferences);
     expect(loadPreferences(storage)).toEqual(defaultPreferences);
+  });
+
+  it("defaults older valid preferences to music off until the player opts in", () => {
+    const storage = new MemoryStorage();
+    const {
+      musicPlaybackEnabled: _removedPlaybackIntent,
+      ...olderPreferences
+    } = defaultPreferences;
+    void _removedPlaybackIntent;
+    storage.setItem(
+      "riot-relics.preferences.v1",
+      JSON.stringify(olderPreferences),
+    );
+
+    expect(loadPreferences(storage).musicPlaybackEnabled).toBe(false);
   });
 
   it("reconciles an earlier-build save when switching into its slot", () => {

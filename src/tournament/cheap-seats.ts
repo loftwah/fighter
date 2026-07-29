@@ -46,9 +46,11 @@ export const cheapSeatsEncounters: CheapSeatsEncounter[] = [
 
 export function createCheapSeatsRun(
   caseBuilds: TournamentCaseBuild[] = [],
+  origin: "story" | "standalone" = "standalone",
 ): TournamentRunData {
   return {
     tournamentId: "tournament.cheap-seats",
+    origin,
     roundIndex: 0,
     phase: "ready",
     caseBuilds: structuredClone(caseBuilds),

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-28T17:05:36Z",
+  "generatedAt": "2026-07-29T04:35:29Z",
   "title": "Design System: Riot Relics",
   "extensions": {
     "colorMeta": {
@@ -211,6 +211,11 @@
         "purpose": "Alternates paired rectangular idle prints when reduced motion is not active."
       },
       {
+        "name": "print-echo-pulse",
+        "value": "2200ms interval; 420ms Expo.easeOut, 170ms hold, yoyo",
+        "purpose": "Laterally displaces enlarged low-opacity still layers to create deliberate print misregistration."
+      },
+      {
         "name": "hit-nudge",
         "value": "70ms Quad.easeOut",
         "purpose": "A short directional impact displacement with yoyo return."
@@ -259,12 +264,20 @@
       "css": ".ds-btn-secondary { min-height: 3.4rem; border: 3px solid var(--chalk, #f7f0dd); padding: 0.65rem 1rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-btn-secondary:hover { background: var(--tomato, #ef4d39); } .ds-btn-secondary:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-btn-secondary:active { transform: translateY(1px); }"
     },
     {
-      "name": "Archive Navigation Tab",
+      "name": "Game Mode Launcher",
+      "kind": "card",
+      "refersTo": "mode-bill",
+      "description": "Three explicit session bills that explain Story, sandbox, and tournament consequences before entry.",
+      "html": "<section class=\"ds-launcher\" aria-label=\"Choose a game\"><article class=\"ds-mode ds-mode-story\"><h2>STORY MODE</h2><p>Progress your collection through First Run.</p><button>START NEW STORY →</button></article><article class=\"ds-mode ds-mode-quick\"><h2>QUICK FIGHT</h2><p>Sandbox play with no Story rewards changed.</p><button>SET UP QUICK FIGHT →</button></article><article class=\"ds-mode ds-mode-tournament\"><h2>TOURNAMENT</h2><p>A separate three-round persistent Case.</p><button>START TOURNAMENT →</button></article></section>",
+      "css": ".ds-launcher { display: grid; grid-template-columns: 1.35fr 0.65fr 0.65fr; gap: 1rem; background: var(--indigo-deep, #091128); padding: 1rem; } .ds-mode { display: grid; align-content: center; gap: 0.75rem; border: 5px solid var(--ink, #14151a); padding: 1.5rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); } .ds-mode-quick { background: var(--yellow, #f2d742); } .ds-mode h2 { margin: 0; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 3rem; line-height: 0.86; } .ds-mode p { margin: 0; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); line-height: 1.4; } .ds-mode button { min-height: 2.8rem; border: 3px solid var(--ink, #14151a); background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-weight: 700; cursor: pointer; } .ds-mode button:hover { background: var(--tomato, #ef4d39); } .ds-mode button:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } @media (max-width: 620px) { .ds-launcher { grid-template-columns: 1fr; gap: 0.45rem; padding: 0.8rem; } .ds-mode { border-width: 3px; padding: 0.75rem; box-shadow: 0.2rem 0.25rem 0 var(--ink, #14151a); } .ds-mode h2 { font-size: 2.35rem; } }"
+    },
+    {
+      "name": "Context Navigation Rail",
       "kind": "nav",
       "refersTo": "navigation-tab",
-      "description": "An equal-width destination tab with a perforated divider and printed active marker.",
-      "html": "<nav class=\"ds-nav\" aria-label=\"Game\"><button class=\"ds-nav-tab ds-is-active\">STORY</button><button class=\"ds-nav-tab\">COLLECTION</button><button class=\"ds-nav-tab\">STORE</button></nav>",
-      "css": ".ds-nav { display: flex; border: 4px solid var(--ink, #14151a); background: var(--chalk, #f7f0dd); } .ds-nav-tab { min-width: 6rem; flex: 1; border: 0; border-right: 2px dashed rgb(20 21 26 / 36%); padding: 0.8rem 0.65rem; background: transparent; color: var(--indigo, #111f46); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-nav-tab:last-child { border-right: 0; } .ds-nav-tab:hover, .ds-nav-tab.ds-is-active { background: var(--yellow, #f2d742); color: var(--ink, #14151a); } .ds-nav-tab.ds-is-active { box-shadow: inset 0 -0.45rem 0 var(--tomato, #ef4d39); } .ds-nav-tab:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
+      "description": "A context-specific rail: this global example exposes Main Menu, Profile, Settings, and persisted music intent; Story swaps in its own destinations.",
+      "html": "<div class=\"ds-global-rail\"><nav class=\"ds-nav\" aria-label=\"Global\"><button class=\"ds-nav-tab ds-is-active\">MAIN MENU</button><button class=\"ds-nav-tab\">PROFILE</button><button class=\"ds-nav-tab\">SETTINGS</button></nav><button class=\"ds-music\" aria-label=\"Turn music on\" aria-pressed=\"false\">♫</button></div>",
+      "css": ".ds-global-rail { display: flex; border: 4px solid var(--ink, #14151a); background: var(--chalk, #f7f0dd); } .ds-nav { display: flex; flex: 1; } .ds-nav-tab { min-width: 6rem; flex: 1; border: 0; border-right: 2px dashed rgb(20 21 26 / 36%); padding: 0.8rem 0.65rem; background: transparent; color: var(--indigo, #111f46); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-nav-tab:hover, .ds-nav-tab.ds-is-active { background: var(--yellow, #f2d742); color: var(--ink, #14151a); } .ds-nav-tab.ds-is-active { box-shadow: inset 0 -0.45rem 0 var(--tomato, #ef4d39); } .ds-nav-tab:focus-visible, .ds-music:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-music { width: 3.5rem; border: 0; border-left: 3px solid var(--ink, #14151a); background: var(--tomato, #ef4d39); color: var(--chalk, #f7f0dd); font-size: 1.25rem; cursor: pointer; } .ds-music[aria-pressed=\"true\"] { background: var(--indigo, #111f46); }"
     },
     {
       "name": "Registration Field",
@@ -286,17 +299,17 @@
       "name": "Move Label",
       "kind": "custom",
       "refersTo": "print-ticket",
-      "description": "One of three equally prominent battle actions with position, prediction, cost, and timing.",
-      "html": "<button class=\"ds-move\"><span class=\"ds-move-position\">1L</span><span class=\"ds-move-copy\"><strong>QUICK PRINT</strong><small>Fast strike · instant</small></span><span class=\"ds-move-number\"><b>34</b><small>POWER</small></span></button>",
-      "css": ".ds-move { display: grid; width: 28rem; min-height: 7.5rem; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.7rem; align-items: center; border: 4px solid var(--ink, #14151a); padding: 0.7rem 0.9rem; background: var(--yellow, #f2d742); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.65rem), calc(100% - 0.65rem) 100%, 0 100%); cursor: pointer; } .ds-move:hover { transform: translateY(-0.22rem) rotate(-0.25deg); } .ds-move:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-move-position { display: grid; width: 2.6rem; height: 3.7rem; place-items: center; border: 3px solid currentColor; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2rem; } .ds-move-copy { display: grid; gap: 0.2rem; } .ds-move-copy strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.4rem; line-height: 0.95; } .ds-move-copy small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-move-number { display: grid; min-width: 3rem; justify-items: center; border: 3px solid currentColor; padding: 0.2rem; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.6rem; } .ds-move-number small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.55rem; font-weight: 700; }"
+      "description": "One of three equal actions with a visible touch description and a fuller hover/focus explanation.",
+      "html": "<button class=\"ds-move\" aria-disabled=\"true\" aria-label=\"Red Tape. Charge, strike, and probably stun the active enemy. Costs 50 Charge. Predicted hit 19. 0.7 second charge.\"><span class=\"ds-move-position\">2</span><span class=\"ds-move-copy\"><strong>RED TAPE</strong><small>Charge, strike, and probably stun the active enemy.</small></span><span class=\"ds-move-number\"><b>50</b><small>COST</small></span><span class=\"ds-move-tip\" role=\"tooltip\"><strong>RED TAPE</strong><span>Predicted hit 19. 0.7 second charge.</span><small>Needs 21 more Charge.</small></span></button>",
+      "css": ".ds-move { position: relative; display: grid; width: 18rem; min-height: 7.4rem; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.5rem; align-items: start; border: 4px solid var(--ink, #14151a); padding: 0.5rem; overflow: visible; background: var(--yellow, #f2d742); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); text-align: left; cursor: pointer; } .ds-move[aria-disabled=\"true\"] { filter: saturate(0.55); opacity: 0.72; } .ds-move:hover, .ds-move:focus-visible { filter: saturate(1); opacity: 1; transform: translateY(-0.22rem) rotate(-0.25deg); } .ds-move:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-move-position { display: grid; width: 2rem; height: 2rem; place-items: center; border: 3px solid currentColor; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.25rem; } .ds-move-copy { display: grid; gap: 0.2rem; } .ds-move-copy strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.6rem; line-height: 0.95; } .ds-move-copy small { display: -webkit-box; overflow: hidden; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.72rem; line-height: 1.15; -webkit-box-orient: vertical; -webkit-line-clamp: 3; } .ds-move-number { display: grid; min-width: 2.5rem; justify-items: center; border: 3px solid currentColor; padding: 0.2rem; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.2rem; } .ds-move-number small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.55rem; font-weight: 700; } .ds-move-tip { position: absolute; z-index: 5; right: 0.25rem; bottom: calc(100% + 0.5rem); left: 0.25rem; display: none; gap: 0.25rem; border: 4px solid var(--ink, #14151a); padding: 0.65rem; background: var(--chalk, #f7f0dd); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); } .ds-move:hover .ds-move-tip, .ds-move:focus-visible .ds-move-tip { display: grid; } @media (max-width: 620px) { .ds-move { width: 100%; grid-template-columns: 1fr; } .ds-move-tip { display: none !important; } }"
     },
     {
-      "name": "Health and Charge Strips",
+      "name": "Player Charge Strip",
       "kind": "custom",
       "refersTo": "meter-track",
-      "description": "Compact labelled bars that pair values with colour-coded transform fills.",
-      "html": "<div class=\"ds-strips\"><div class=\"ds-meter-label\"><span>HEALTH</span><strong>118 / 160</strong></div><div class=\"ds-meter\"><span style=\"--ds-fill: .7375\"></span></div><div class=\"ds-meter-label\"><span>CHARGE</span><strong>62 / 100</strong></div><div class=\"ds-meter ds-charge\"><span style=\"--ds-fill: .62\"></span></div></div>",
-      "css": ".ds-strips { width: 18rem; padding: 0.55rem; border: 3px solid var(--ink, #14151a); background: rgb(247 240 221 / 94%); color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-meter-label { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; } .ds-meter { height: 0.7rem; border: 2px solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-deep, #091128); } .ds-meter span { display: block; width: 100%; height: 100%; background: var(--tomato, #ef4d39); transform: scaleX(var(--ds-fill, 0)); transform-origin: left center; transition: transform 80ms linear; } .ds-meter.ds-charge span { background: var(--yellow, #f2d742); }"
+      "description": "The full-width player resource immediately below the three Moves, including named cost thresholds.",
+      "html": "<div class=\"ds-charge-deck\"><div class=\"ds-charge-heading\"><span>YOUR CHARGE STRIP</span><strong>62 / 100</strong></div><div class=\"ds-meter\" role=\"meter\" aria-label=\"Player Charge\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"62\"><span style=\"--ds-fill: .62\"></span></div><div class=\"ds-thresholds\"><span style=\"left:25%\">25<br />INVOICE</span><span style=\"left:50%\">50<br />RED TAPE</span><span style=\"left:82%\">82<br />HOSTILE</span></div></div>",
+      "css": ".ds-charge-deck { position: relative; width: min(48rem, 100%); border: 4px solid var(--ink, #14151a); padding: 0.45rem 0.75rem 1.8rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-charge-heading { display: flex; justify-content: space-between; font-weight: 700; } .ds-charge-heading strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.8rem; } .ds-meter { height: 1.15rem; border: 3px solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-deep, #091128); } .ds-meter span { display: block; width: 100%; height: 100%; background: var(--yellow, #f2d742); transform: scaleX(var(--ds-fill, 0)); transform-origin: left center; transition: transform 80ms linear; } .ds-thresholds { position: relative; height: 1.35rem; } .ds-thresholds span { position: absolute; width: max-content; font-size: 0.58rem; font-weight: 700; line-height: 1; text-align: center; transform: translateX(-50%); }"
     },
     {
       "name": "Status Stamp",
@@ -317,11 +330,13 @@
   ],
   "narrative": {
     "northStar": "The Collector Drawer",
-    "overview": "Riot Relics feels like a pulled-open collector drawer full of underground fight bills, specimen labels, scuffed toys, and hand-stamped results. It is tactile, dense, irreverent, and immediately playable: the interface behaves like a physical archive being sorted under pressure, never like a floating sci-fi HUD.\n\nThe visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. Static rectangular character art becomes kinetic through two-frame swaps, panel translation, cut-ins, hit-stop, shake, flashes, and stamped feedback. The durable interaction story is story node → Lineup → Charge Strip → Stamps → next print.",
+    "overview": "Riot Relics feels like a pulled-open collector drawer full of underground fight bills, specimen labels, scuffed toys, and hand-stamped results. It is tactile, dense, irreverent, and immediately playable: the interface behaves like a physical archive being sorted under pressure, never like a floating sci-fi HUD.\n\nThe visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. The player enters through an explicit three-mode launcher, then sees navigation scoped to the chosen game context. Static rectangular character art becomes kinetic through layered stills, two-frame swaps, panel translation, cut-ins, hit-stop, shake, flashes, and stamped feedback. Story's durable interaction loop is story node → Lineup → Charge Strip → Stamps → next print.",
     "keyCharacteristics": [
       "Pulled-open drawer composition with compact rails and strict trays.",
+      "Three explicit game-mode bills before any session begins.",
+      "Separate global and Story-scoped navigation rails.",
       "Indigo board, tomato and acid-yellow spot inks, chalk stock, and near-black registration ink.",
-      "Rectangular Kinetic Print art with halftone wear and purposeful misregistration.",
+      "Layered rectangular Kinetic Print stills with halftone wear and purposeful misregistration.",
       "Square, bordered controls with torn or clipped paper edges; circles are reserved for holes and stamps.",
       "Large condensed uppercase display type paired with highly legible body copy.",
       "Short, forceful motion that always has a reduced-motion equivalent."
@@ -363,6 +378,21 @@
         "section": "layout"
       },
       {
+        "name": "The Explicit Launch Rule",
+        "body": "Story, Quick Fight, and Tournament begin or resume only from a deliberate launcher action.",
+        "section": "layout"
+      },
+      {
+        "name": "The Context Rail Rule",
+        "body": "Global navigation and Story navigation are separate; Store and Missions never leak into global, Quick Fight, or standalone Tournament context.",
+        "section": "layout"
+      },
+      {
+        "name": "The Decision Deck Rule",
+        "body": "The player reads Moves first and their shared Charge Strip second as one bounded decision surface.",
+        "section": "layout"
+      },
+      {
         "name": "The Printed-Object Rule",
         "body": "A shadow represents a physical label or drawer layer, never a generic floating panel.",
         "section": "elevation"
@@ -370,6 +400,11 @@
       {
         "name": "The No-Glass Rule",
         "body": "Tonal opacity may support legibility over art, but blur, glow, and glassmorphism do not belong in this world.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Layered-Still Rule",
+        "body": "Build spectacle by composing and displacing static prints; never disguise limited-frame art with generic particle noise.",
         "section": "elevation"
       },
       {
@@ -381,21 +416,37 @@
         "name": "The Controlled-Crooked Rule",
         "body": "Rotation stays subtle on cards and forceful only on explicit stamps; content alignment remains readable.",
         "section": "shapes"
+      },
+      {
+        "name": "The Persistent Intent Rule",
+        "body": "Turning music off is durable user intent, not a temporary state for the current screen.",
+        "section": "components"
+      },
+      {
+        "name": "The Touch Explanation Rule",
+        "body": "Responsive compression may shorten a Move explanation, but it may not remove the explanation entirely.",
+        "section": "components"
       }
     ],
     "dos": [
       "Do stage play as labelled physical matter: drawers, tickets, specimen wells, pull-tabs, perforations, and stamps.",
-      "Do keep the first battle viewport readable as compact rail, Lineups, central arena, paired meters, and three Moves.",
-      "Do use rectangular and square art as an intentional Kinetic Print language.",
+      "Do open on the explicit three-mode launcher and preserve the selected session context until the player exits it.",
+      "Do keep the first battle viewport readable as compact rail, Lineups, central arena, three Moves, then the player's Charge Strip.",
+      "Do use layered rectangular and square art as an intentional Kinetic Print language.",
+      "Do retain a readable short Move explanation on touch layouts and a fuller explanation on hover or keyboard focus.",
       "Do pair colour with text, shape, position, or value for every gameplay state.",
       "Do preserve visible keyboard focus, touch-sized controls, and the reduced-motion override.",
+      "Do preserve the player's music on/off intent across navigation, reloads, and Collector profiles.",
       "Do use stable logical asset IDs and the approved fallback chain when adding new art."
     ],
     "donts": [
       "Don't introduce rounded dashboard cards, pills as default controls, glassmorphism, neon glow, or a sci-fi HUD.",
       "Don't turn tomato or acid yellow into unbounded decoration; they communicate action and state.",
       "Don't obscure the arena with floating panels or let opposing readouts collide with the matchup stamp.",
+      "Don't mix global navigation with Story-only destinations such as Store or Missions.",
+      "Don't start Story, Quick Fight, Tournament, or music playback merely because a screen rendered.",
       "Don't make one Move visually dominant over the other two.",
+      "Don't separate the player's Moves from the Charge Strip or hide all Move explanation on touch.",
       "Don't rely on colour alone for class, status, availability, health, or outcome.",
       "Don't add decorative motion without a short purpose and a reduced-motion equivalent."
     ]

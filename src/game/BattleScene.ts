@@ -7,12 +7,15 @@ import { combatContent } from "../content/initial-content";
 export class BattleScene extends Phaser.Scene {
   #snapshot: BattleState | null = null;
   #background?: Phaser.GameObjects.Image;
+  #playerEcho?: Phaser.GameObjects.Image;
+  #enemyEcho?: Phaser.GameObjects.Image;
   #playerArt?: Phaser.GameObjects.Image;
   #enemyArt?: Phaser.GameObjects.Image;
   #playerFallback?: Phaser.GameObjects.Container;
   #enemyFallback?: Phaser.GameObjects.Container;
   #idleFrame = 0;
   #reducedMotion = false;
+  #snapshotArtSignature = "";
   #onReady: (scene: BattleScene) => void;
 
   constructor(onReady: (scene: BattleScene) => void) {
@@ -45,13 +48,26 @@ export class BattleScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor("#111f46");
     this.#background = this.add.image(0, 0, "arena-bg").setOrigin(0.5);
+    this.#playerEcho = this.add
+      .image(0, 0, "image.mara-vex.idle.a")
+      .setOrigin(0.5, 1)
+      .setDepth(2)
+      .setAlpha(0.22);
+    this.#enemyEcho = this.add
+      .image(0, 0, "image.knuckle-tax.idle.a")
+      .setOrigin(0.5, 1)
+      .setFlipX(true)
+      .setDepth(2)
+      .setAlpha(0.22);
     this.#playerArt = this.add
       .image(0, 0, "image.mara-vex.idle.a")
-      .setOrigin(0.5, 1);
+      .setOrigin(0.5, 1)
+      .setDepth(4);
     this.#enemyArt = this.add
       .image(0, 0, "image.knuckle-tax.idle.a")
       .setOrigin(0.5, 1)
-      .setFlipX(true);
+      .setFlipX(true)
+      .setDepth(4);
     this.#playerFallback = this.createFallback("player");
     this.#enemyFallback = this.createFallback("enemy");
     this.scale.on("resize", () => this.layout());
@@ -64,6 +80,11 @@ export class BattleScene extends Phaser.Scene {
           this.syncArt();
         }
       },
+    });
+    this.time.addEvent({
+      delay: 2_200,
+      loop: true,
+      callback: () => this.pulsePrintLayers(),
     });
     this.layout();
     this.#onReady(this);
@@ -79,7 +100,23 @@ export class BattleScene extends Phaser.Scene {
 
   setSnapshot(snapshot: BattleState): void {
     this.#snapshot = snapshot;
-    this.syncArt();
+    const player =
+      snapshot.player.squad[snapshot.player.activeIndex]?.instanceId ?? "";
+    const enemy =
+      snapshot.enemy.squad[snapshot.enemy.activeIndex]?.instanceId ?? "";
+    const signature = `${player}:${enemy}`;
+    if (signature !== this.#snapshotArtSignature) {
+      this.#snapshotArtSignature = signature;
+      this.syncArt();
+    }
+  }
+
+  setSimulationPaused(paused: boolean): void {
+    if (paused) {
+      this.scene.pause();
+    } else {
+      this.scene.resume();
+    }
   }
 
   present(events: BattleEvent[]): void {
@@ -144,6 +181,22 @@ export class BattleScene extends Phaser.Scene {
       this.#enemyFallback,
       enemy.characterId,
     );
+    if (this.#playerEcho && this.#playerArt.visible) {
+      this.#playerEcho
+        .setTexture(this.#playerArt.texture.key)
+        .setVisible(true)
+        .setAlpha(0.22);
+    } else {
+      this.#playerEcho?.setVisible(false);
+    }
+    if (this.#enemyEcho && this.#enemyArt.visible) {
+      this.#enemyEcho
+        .setTexture(this.#enemyArt.texture.key)
+        .setVisible(true)
+        .setAlpha(0.22);
+    } else {
+      this.#enemyEcho?.setVisible(false);
+    }
     this.layout();
   }
 
@@ -213,6 +266,48 @@ export class BattleScene extends Phaser.Scene {
           .setScale(characterHeight / source.height);
       }
       fallback?.setPosition(point.x, point.y - characterHeight * 0.42);
+    }
+    for (const [side, echo] of [
+      ["player", this.#playerEcho],
+      ["enemy", this.#enemyEcho],
+    ] as const) {
+      if (!echo?.visible) {
+        continue;
+      }
+      const source = echo.texture.getSourceImage() as {
+        width: number;
+        height: number;
+      };
+      echo
+        .setPosition(width * (side === "player" ? 0.16 : 0.84), height * 1.08)
+        .setScale((characterHeight * 1.36) / source.height)
+        .setAngle(side === "player" ? -7 : 7);
+    }
+  }
+
+  private pulsePrintLayers(): void {
+    if (this.#reducedMotion) {
+      return;
+    }
+    for (const [side, echo] of [
+      ["player", this.#playerEcho],
+      ["enemy", this.#enemyEcho],
+    ] as const) {
+      if (!echo?.visible) {
+        continue;
+      }
+      const originX = echo.x;
+      this.tweens.add({
+        targets: echo,
+        x: originX + (side === "player" ? 22 : -22),
+        alpha: 0.32,
+        scaleX: echo.scaleX * 1.035,
+        scaleY: echo.scaleY * 1.035,
+        duration: 420,
+        ease: "Expo.easeOut",
+        hold: 170,
+        yoyo: true,
+      });
     }
   }
 

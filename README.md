@@ -8,11 +8,14 @@ exhibitions.
 
 The current vertical slice includes:
 
+- an explicit Main Menu with separately startable Story Mode, Quick Fight, and
+  standalone Tournament sessions;
 - a playable seeded battle engine with class matchups, charge-up attacks,
   interruptions, statuses, dodges, critical hits, switching, AI, and a
   90-second timer;
-- Story, Lineup, Battle, Collection, Store, Missions, Tournament, Settings,
-  results, retry, rewards, XP, and three local save slots;
+- Story-scoped Lineup, Collection, Store, and Missions views; sandbox Quick
+  Fight setup; standalone Tournament; separate Profile and Settings views; and
+  three local Collector profiles;
 - a complete persisted First Run path through nodes `00`–`07`, including the
   Backroom Counter reveal, mission-board unlock, two authored story fights,
   ending reward, and rival reveal;
@@ -57,7 +60,7 @@ validation, and a production build.
 - `src/content/` — typed authored characters, actions, story, and missions
 - `src/app/` — semantic application shell and navigation
 - `src/game/` — Phaser battle presentation
-- `src/persistence/` — validated versioned save slots and preferences
+- `src/persistence/` — validated versioned local profiles and preferences
 - `src/progression/` — levels, owned-instance loadouts, and Patch effects
 - `src/store/` — deterministic rotation and atomic purchases
 - `src/story/` — authored First Run encounter configuration and progression
@@ -67,6 +70,7 @@ validation, and a production build.
 - `public/music/` — supplied soundtrack with stable filenames
 - `docs/game-design.md` — authoritative game design
 - `docs/technical-design.md` — architecture and system boundaries
+- `docs/view-inventory.md` — authoritative map of global and per-mode views
 - `docs/implementation-plan.md` — staged delivery plan and remaining scope
 
 `PRODUCT.md` records the product contract and `DESIGN.md` records the final

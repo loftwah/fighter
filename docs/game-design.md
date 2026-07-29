@@ -56,6 +56,11 @@ Initial cast:
 
 ## 4. Modes
 
+Riot Relics opens on a Main Menu. The player explicitly starts or resumes Story
+Mode, Quick Fight, or Tournament Mode; launching the application never drops
+the player into an active game. Global navigation contains Main Menu, Profile,
+and Settings only.
+
 ### Story Mode
 
 - One canonical main story and any number of independent or unofficial stories.
@@ -64,12 +69,16 @@ Initial cast:
 - Choices may alter reachable short-term nodes but never permanently lock content.
 - Story progress is shared across difficulty settings.
 - A story may lend characters or override a Lineup only by giving the player additional access, never by permanently taking owned content.
+- Collection, Store, Missions, story Lineup, and authored story tournaments are
+  scoped to an active Story Mode session. Store and Missions are not global
+  Main Menu destinations.
 
 ### Quick Fight
 
 - All Relics, levels, Move orders, tiers, Patches, opponents, music, and supported rules are available.
 - It is a sandbox and does not require ownership.
-- During an active Story save, Quick Fight may award modest Stamps and XP, but it cannot grant first-clear rewards or story unlocks.
+- Quick Fight never changes Story progress, Stamps, XP, Missions, ownership, or
+  tournament runs.
 
 ### Tournament Mode
 
@@ -85,21 +94,56 @@ Initial cast:
 
 Uses the same combat engine with authored constraints such as forced Lineups, time limits, reduced healing, pre-applied statuses, or target objectives.
 
+### Developer Lab
+
+- Development builds expose a Developer Lab from the Main Menu and from the
+  pause menu during every battle.
+- The Lab launches validated, named scenarios or a custom one-to-three-Relic
+  matchup without requiring Story progress, ownership, or setup navigation.
+- Scenario controls include Lineups, levels, Move presentation tiers, Patches,
+  seed, difficulty, starting health and Charge, time limit, and whether the
+  fight opens paused.
+- Development battles and their in-battle debug actions never grant rewards,
+  update missions, advance Story, or mutate a tournament run. A report records
+  that the fight was a development sandbox.
+- Convenience tools may inspect and export local state, open reached content,
+  and grant explicit persistent development-only progression. Persistent tools
+  are visibly separated from the isolated battle controls; destructive save
+  actions remain labelled and confirmed.
+- The Lab and its in-battle inspector are development surfaces, not a fourth
+  player-facing game mode.
+
 ## 5. Combat rules
 
 ### 5.1 Format
 
 - Two sides only: player and opponent.
 - Each side deploys one to three Relics and has exactly one active Relic.
+- Every side has an explicit controller assignment. The current player-facing
+  modes assign the player side to one local human and the opponent to AI; the
+  command boundary remains side-agnostic so a second local human controller can
+  be added without changing combat rules.
 - A battle ends when every Relic on a side is defeated or that side forfeits.
 - Standard time limit: 90 seconds, content-configurable.
 - At timeout, the side with the greater surviving-health percentage wins; exact ties favour the player on Easy/Normal and the opponent on Hard/Brutal.
+- Escape pauses and resumes the complete single-player battle simulation.
+  Opening the development inspector also pauses it. While paused, elapsed time,
+  Charge, statuses, pending Moves, AI, and Phaser presentation time do not
+  advance.
 
 ### 5.2 Charge Strips
 
 - Each team owns an independent Charge Strip from 0 to 100.
 - A Strip fills continuously and belongs to the team, not the active Relic.
 - Switching never resets it.
+- The local player's Charge Strip is the primary combat control. It is large,
+  persistent, and visually dominant beneath the arena.
+- The active Relic's three Move controls are circular nodes anchored directly
+  above their cost positions on the Strip. A node becomes explicitly ready
+  when the fill reaches it; readiness never relies on colour alone.
+- Player-facing Move tiers are Normal, Tier 1, and Tier 2. Persisted
+  `stock`/`gold`/`platinum` identifiers remain compatible: Normal has the base
+  outline, Tier 1 has a silver outline, and Tier 2 has a gold outline.
 - Tempo, statuses, Patches, scenario rules, and Moves may change fill speed, add Charge, drain Charge, or freeze the Strip.
 - Default Move costs are 25, 50, and 75. Reordering uses the nine positions `1L`, `1`, `1H`, `2L`, `2`, `2H`, `3L`, `3`, `3H`.
 - Moving a Move earlier reduces its output; moving it later increases output.
@@ -309,14 +353,19 @@ The working visual world is an underground risograph fight bill crossed with a c
 - Characters, stories, tournaments, battles, and menu surfaces may reference any track by stable ID.
 - The player can replace associations, choose music in sandbox modes, mute music, and set volume.
 - Music, SFX, and dialogue settings are independent.
+- Music playback intent persists separately from volume/mute state. A player who
+  stops music is never opted back in by navigation, battle entry, or reload.
 - Dialogue and SFX are silent logical placeholders in this stage.
 - Future dialogue is subtitled and normally overlaps presentation without pausing combat.
 
-## 14. Saves and accessibility
+## 14. Profiles, saves, and accessibility
 
-- Three local save slots.
+- The prototype supports three local Collector profiles. Slot-shaped storage is
+  an implementation detail; the player manages identity and progression from
+  Profile, not Settings.
 - Autosave after battles, purchases, upgrades, and story progress.
 - Preferences are separate from progression and survive progression wipes.
+- Settings owns accessibility, audio, difficulty, and local-data management.
 - Save export/import is deferred until the schema stabilises.
 - Reduced motion, keyboard navigation, touch targets, subtitles, volume categories, readable contrast, and redundant class/status labels are required.
 

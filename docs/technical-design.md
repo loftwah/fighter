@@ -13,7 +13,12 @@
 
 ## Application boundary
 
-The application is a desktop-first responsive web game. Semantic DOM renders navigation, settings, story copy, roster controls, action buttons, and accessibility state. Phaser renders the arena, Kinetic Print imagery, two-frame swaps, camera motion, particles, impact effects, and cut-ins.
+The application is a desktop-first responsive web game. It opens on a global
+launcher and only constructs a Story, Quick Fight, or Tournament view context
+after an explicit player action. Semantic DOM renders contextual navigation,
+profile/settings surfaces, story copy, roster controls, action buttons, and
+accessibility state. Phaser renders the arena, Kinetic Print imagery, two-frame
+swaps, camera motion, particles, impact effects, and cut-ins.
 
 The DOM and Phaser layers share a controller. They do not share mutable view state directly.
 
@@ -35,6 +40,7 @@ src/
 ├── audio/         music/SFX/dialogue resolution and settings
 ├── combat/        deterministic battle types, reducers, calculations, AI
 ├── content/       authored definitions and validation
+├── dev/           development-only scenario definitions and lab helpers
 ├── economy/       rewards and currency
 ├── game/          Phaser scenes and event presentation
 ├── missions/      generic mission evaluation
@@ -76,6 +82,12 @@ forfeitBattle(state, side): Transition
 chooseAiCommand(state, difficulty): BattleCommand | null
 ```
 
+The application controller assigns `human` or `ai` ownership per side outside
+the domain engine. The engine command API remains side-agnostic. Pausing is
+also an application/runtime concern: a paused controller does not call
+`tickBattle` or AI selection, and pauses Phaser scene time without modifying the
+deterministic battle state.
+
 Every transition returns a new state plus semantic events. Events include:
 
 ```text
@@ -97,6 +109,12 @@ Adding content should require:
 4. optionally an authored balance test.
 
 No new Phaser scene is required for a new story, tournament, Relic, or Move.
+
+Development scenarios follow the same data rule. `src/dev/` owns validated
+scenario definitions made only from stable content IDs and explicit starting
+state. Launching a development scenario creates a non-progressing battle report
+with mode `dev`; debug state changes are labelled in the report and cannot flow
+into rewards, missions, Story, or tournament persistence.
 
 ## Persistence
 
@@ -158,6 +176,9 @@ Missing art must not crash a scene. Approved generated assets are never overwrit
 - Build and typecheck.
 - Browser smoke flow: new save → gated story → battle → store/missions →
   qualifier → three-round Cup/interludes → ending reward → persisted state.
+- Browser control regression: a Move control keeps identity and keyboard focus
+  while Charge changes, Escape pauses/resumes the simulation, and the
+  development inspector cannot advance progression.
 
 ## Deployment boundary
 

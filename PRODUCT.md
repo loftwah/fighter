@@ -30,10 +30,15 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
 
 ## Operating Context
 
+- The application opens on a Main Menu. Story Mode, Quick Fight, and Tournament
+  Mode are explicit game-session objects that the player starts or resumes.
 - Story Mode contains replayable, skippable authored nodes and a canonical main story, while independent stories can be added from content data.
 - Quick Fight exposes all characters, actions, levels, and builds for unrestricted experimentation.
 - Tournament Mode runs a self-contained sequence in one sitting, with a locked tournament roster and persistent health/defeat state between rounds.
-- The collection, store, missions, character builds, settings, and save slots are permanent application surfaces outside an individual battle.
+- Store and Missions are Story Mode surfaces and never appear in the global
+  Main Menu.
+- Profile owns Collector identity and progression selection. Settings separately
+  owns preferences, accessibility, audio, and local-data controls.
 - Desktop is the first target. A mobile layout may later use portrait, landscape, or both.
 
 ## Capabilities and Constraints
@@ -46,7 +51,7 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
 - Seeded randomness, visible predicted action values, switching, charge-up actions, interruption, critical hits, dodge, statuses, team targeting, type advantage, and squad synergy.
 - Six character classes plus optional neutral characters. Character class determines effectiveness; actions do not have independent classes.
 - Character cap 25; modifications unlock at level 5; action reordering and upgrades unlock at level 10; action tiers are stock, gold, and platinum.
-- Local-first settings and multiple save slots, with progression separate from preferences.
+- Local-first settings and multiple local Collector profiles, with progression separate from preferences.
 - Easy, Normal, Hard, and Brutal difficulty; changing difficulty never blocks story progress.
 - Existing music under `music/` is the current soundtrack pool.
 - Dialogue and sound effects use silent placeholder files until a later ElevenLabs integration.
