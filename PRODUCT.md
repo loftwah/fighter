@@ -31,14 +31,20 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
 ## Operating Context
 
 - The application opens on a Main Menu. Story Mode, Quick Fight, and Tournament
-  Mode are explicit game-session objects that the player starts or resumes.
+  Mode are explicit game-session objects that the player starts or resumes. A
+  skippable data-driven intro and visible wait state may run before the launcher
+  without creating a game session.
 - Story Mode contains replayable, skippable authored nodes and a canonical main story, while independent stories can be added from content data.
-- Quick Fight exposes all characters, actions, levels, and builds for unrestricted experimentation.
+- Quick Fight exposes all characters and begins with a progression-neutral
+  Standard Build; explicitly labelled Custom rules can expose supported levels,
+  actions, tiers, Patches, and encounter overrides.
 - Tournament Mode runs a self-contained sequence in one sitting, with a locked tournament roster and persistent health/defeat state between rounds.
 - Store and Missions are Story Mode surfaces and never appear in the global
   Main Menu.
 - Profile owns Collector identity and progression selection. Settings separately
   owns preferences, accessibility, audio, and local-data controls.
+- Achievements are profile-specific and retroactively derived from durable
+  progression facts.
 - Desktop is the first target. A mobile layout may later use portrait, landscape, or both.
 
 ## Capabilities and Constraints

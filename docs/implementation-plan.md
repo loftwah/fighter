@@ -28,9 +28,14 @@ the Cup purse again by design.
 ## Next — system breadth
 
 1. Move reordering, tiers, stat allocation, selling, and favouriting.
-2. Quick Fight configuration and unrestricted roster, reusing the validated
-   scenario composer proven by Developer Lab.
-3. Save export/import after schema stabilisation.
+2. Accessory selection and a reusable setup policy shared by Story selection,
+   Quick Fight, and Tournament Case selection.
+3. Custom Quick/Tournament rules layered over the implemented Standard Build
+   defaults.
+4. Save import after schema stabilisation; profile and battle-report export are
+   already implemented.
+5. Extract the cohesive live battle-session controller from `App` once the
+   Accessory and custom-match configuration contracts are stable.
 
 ## Later
 

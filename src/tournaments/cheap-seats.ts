@@ -1,4 +1,6 @@
 import type { BattleState } from "../combat/types";
+
+// Tournament orchestration remains separate from the shared combat engine.
 import type {
   TournamentCaseBuild,
   TournamentRunData,

@@ -29,6 +29,14 @@ export const TIER_MULTIPLIERS: Record<ActionTier, number> = {
   platinum: 1.34,
 };
 
+export const BASE_CHARGE_PER_SECOND = 6;
+export const TEMPO_CHARGE_PER_SECOND = 0.3;
+
+export function chargePerSecond(tempo: number, echoBonus = false): number {
+  const base = BASE_CHARGE_PER_SECOND + tempo * TEMPO_CHARGE_PER_SECOND;
+  return base * (echoBonus ? 1.08 : 1);
+}
+
 const CLASS_ADVANTAGE: Partial<Record<CharacterClass, CharacterClass>> = {
   impact: "feral",
   feral: "guile",

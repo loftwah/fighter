@@ -1,4 +1,10 @@
 import type Phaser from "phaser";
+import {
+  isRouteAvailableInSession,
+  routeIds,
+  type Route,
+  type SessionMode,
+} from "./routes";
 import { AudioManager } from "../audio/manager";
 import { findMusic } from "../audio/registry";
 import {
@@ -23,6 +29,7 @@ import type {
   Side,
   Transition,
 } from "../combat/types";
+import { createStandardBuild } from "../combat/standard-build";
 import {
   appendBattleTransition,
   createBattleReport,
@@ -36,8 +43,13 @@ import {
   missions,
   storyNodes,
 } from "../content/initial-content";
+import { startupSequence } from "../content/startup-content";
 import { calculateBattleReward } from "../economy/rewards";
 import type { BattleScene } from "../game/BattleScene";
+import {
+  BATTLE_COUNTDOWN,
+  battlePresentationDuration,
+} from "../game/presentation-timing";
 import { evaluateMissionProgress } from "../missions/evaluate";
 import { nextImageFallback, resolveImagePath } from "../assets/registry";
 import {
@@ -76,18 +88,16 @@ import { loadFirstRunSave } from "../story/save";
 import {
   applyCheapSeatsDrop,
   cheapSeatsEncounter,
-  cheapSeatsEncounters,
   cheapSeatsPlayerIds,
   createCheapSeatsRun,
   lockCheapSeatsCase,
   recordCheapSeatsResult,
   restoreCaseHealth,
   type CheapSeatsDrop,
-} from "../tournament/cheap-seats";
+} from "../tournaments/cheap-seats";
 import {
   applyDevStartingHealth,
   defaultDevScenario,
-  devBattleScenarios,
   devBuildsForSide,
   findDevScenario,
   validateDevScenario,
@@ -95,22 +105,34 @@ import {
   type DevBattleScenario,
   type DevMoveTier,
 } from "../dev/scenarios";
-
-type Route =
-  | "menu"
-  | "story"
-  | "lineup"
-  | "battle"
-  | "collection"
-  | "store"
-  | "missions"
-  | "quick"
-  | "tournament"
-  | "profile"
-  | "settings"
-  | "dev";
-
-type SessionMode = "menu" | "story" | "quick" | "tournament" | "dev";
+import { escapeHtml, formatClass, formatTime } from "../ui/format";
+import {
+  renderStartupScreen,
+  type StartupStage,
+} from "../ui/screens/startup-screen";
+import { renderAchievementsScreen } from "../ui/screens/achievements-screen";
+import { renderQuickFightScreen } from "../ui/screens/quick-fight-screen";
+import { renderProfileScreen } from "../ui/screens/profile-screen";
+import { renderSettingsScreen } from "../ui/screens/settings-screen";
+import { renderMainMenuScreen } from "../ui/screens/main-menu-screen";
+import { renderStoryScreen } from "../ui/screens/story-screen";
+import { renderLineupScreen } from "../ui/screens/lineup-screen";
+import { renderCollectionScreen } from "../ui/screens/collection-screen";
+import { renderStoreScreen } from "../ui/screens/store-screen";
+import { renderMissionsScreen } from "../ui/screens/missions-screen";
+import { renderTournamentScreen } from "../ui/screens/tournament-screen";
+import { renderDevLabScreen } from "../ui/screens/dev-lab-screen";
+import {
+  renderBattleScreen,
+  type BattleScreenModel,
+} from "../ui/screens/battle-screen";
+import { renderDifficultyOptions } from "../ui/components/difficulty-options";
+import {
+  renderAppHeader,
+  renderMobileNavigation,
+  type AppShellModel,
+} from "../ui/shell/app-shell";
+import { renderStorageWarning } from "../ui/shell/storage-warning";
 
 interface BattleRewardView {
   won: boolean;
@@ -121,48 +143,8 @@ interface BattleRewardView {
   cupCompletionBonus: number;
 }
 
-const ICONS = {
-  story:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm3 0v13a3 3 0 0 0-3-3m6-6h5m-5 4h5"/></svg>',
-  collection:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4v10l-8 4-8-4V7l8-4Zm0 0v18M4 7l8 4 8-4"/></svg>',
-  store:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1-5H5L4 9Zm1 0v11h14V9M9 20v-6h6v6"/></svg>',
-  missions:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6V3Zm3 5 2 2 4-4m-6 9h6"/></svg>',
-  tournament:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v4m-4 3h8"/></svg>',
-  quick:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 11h6l-1 9 9-12h-6V2Z"/></svg>',
-  profile:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0H5Z"/></svg>',
-  settings:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0-5v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/></svg>',
-  music:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13M9 9l10-2M6 16c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Zm10-2c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Z"/></svg>',
-} as const;
-
 const CUP_COMPLETION_BONUS = 240;
 const DEV_TOOLS_ENABLED = import.meta.env.DEV;
-
-function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function formatClass(value: string): string {
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function formatTime(remainingMs: number): string {
-  return Math.max(0, Math.ceil(remainingMs / 1000))
-    .toString()
-    .padStart(2, "0");
-}
 
 export class App {
   readonly #root: HTMLElement;
@@ -184,8 +166,8 @@ export class App {
   #isTournamentFight = false;
   #isQuickFight = false;
   #isDevFight = false;
-  #quickPlayerId = "character.mara-vex";
-  #quickEnemyId = "character.knuckle-tax";
+  #quickPlayerIds = ["character.mara-vex"];
+  #quickEnemyIds = ["character.knuckle-tax"];
   #devScenario: DevBattleScenario | null = null;
   #devDraft: DevBattleScenario = structuredClone(defaultDevScenario);
   #battleControllers: Record<Side, BattleControllerKind> = {
@@ -194,6 +176,9 @@ export class App {
   };
   #battleReady = false;
   #battlePaused = false;
+  #battleCountdownTimer = 0;
+  #battlePresentationLockedUntil = 0;
+  #battleViewDirty = false;
   #pauseMenuOpen = false;
   #devInspectorOpen = false;
   #battleOverlayOpener: HTMLElement | null = null;
@@ -207,6 +192,10 @@ export class App {
   #battleReportArchived = false;
   #stableMarkup = new WeakMap<HTMLElement, string>();
   #storageWarning: string | null;
+  #startupStage: StartupStage =
+    startupSequence.length > 0 ? "intro" : "loading";
+  #startupBeatIndex = 0;
+  #startupTimer = 0;
 
   constructor(root: HTMLElement) {
     this.#root = root;
@@ -227,10 +216,13 @@ export class App {
 
   mount(): void {
     this.render();
+    this.scheduleStartupAdvance();
   }
 
   destroy(): void {
     cancelAnimationFrame(this.#animationFrame);
+    window.clearTimeout(this.#battleCountdownTimer);
+    window.clearTimeout(this.#startupTimer);
     this.#phaserGame?.destroy(true);
     this.#audio.destroy();
     this.#root.removeEventListener("click", this.onClick);
@@ -264,7 +256,12 @@ export class App {
       this.trapBattleOverlayFocus(event);
       return;
     }
-    if (event.key === "Escape" && this.#battle.outcome === "active") {
+    if (
+      event.key === "Escape" &&
+      this.#battleReady &&
+      !this.isBattlePresentationLocked() &&
+      this.#battle.outcome === "active"
+    ) {
       event.preventDefault();
       if (this.#devInspectorOpen) {
         this.#devInspectorOpen = false;
@@ -276,7 +273,9 @@ export class App {
       return;
     }
     if (
+      !this.#battleReady ||
       this.#battlePaused ||
+      this.isBattlePresentationLocked() ||
       this.#battle.outcome !== "active" ||
       event.metaKey ||
       event.ctrlKey ||
@@ -314,6 +313,12 @@ export class App {
       return;
     }
     switch (command.dataset.command) {
+      case "advance-startup":
+        this.advanceStartup();
+        break;
+      case "skip-startup":
+        this.enterStartupLoading();
+        break;
       case "enter-story":
         this.#sessionMode = "story";
         this.navigate("story");
@@ -527,12 +532,25 @@ export class App {
         this.render();
       }
     }
-    if (target.name === "quickPlayer") {
-      this.#quickPlayerId = target.value;
-      this.render();
-    }
-    if (target.name === "quickEnemy") {
-      this.#quickEnemyId = target.value;
+    const quickSelection = target.name.match(/^quick(Player|Enemy)\.(\d)$/);
+    if (quickSelection) {
+      const side = quickSelection[1];
+      const index = Number(quickSelection[2]);
+      const ids =
+        side === "Player"
+          ? [...this.#quickPlayerIds]
+          : [...this.#quickEnemyIds];
+      if (target.value) {
+        ids[index] = target.value;
+      } else {
+        ids.splice(index, 1);
+      }
+      const compactIds = ids.filter(Boolean).slice(0, 3);
+      if (side === "Player") {
+        this.#quickPlayerIds = compactIds;
+      } else {
+        this.#quickEnemyIds = compactIds;
+      }
       this.render();
     }
     if (target.dataset.devField && DEV_TOOLS_ENABLED) {
@@ -699,24 +717,10 @@ export class App {
   }
 
   private routeLocked(route: Route): boolean {
-    if (route === "dev") {
-      return !DEV_TOOLS_ENABLED;
-    }
     if (
-      (route === "story" ||
-        route === "lineup" ||
-        route === "collection" ||
-        route === "store" ||
-        route === "missions") &&
-      this.#sessionMode !== "story"
+      !isRouteAvailableInSession(route, this.#sessionMode, DEV_TOOLS_ENABLED)
     ) {
       return true;
-    }
-    if (route === "quick" && this.#sessionMode !== "quick") {
-      return true;
-    }
-    if (route === "tournament" && this.#sessionMode === "tournament") {
-      return false;
     }
     const targetNodeId =
       route === "store"
@@ -817,36 +821,103 @@ export class App {
 
   private render(): void {
     this.persistPreferences();
+    if (this.#startupStage !== "ready") {
+      this.renderStartup();
+      return;
+    }
     if (this.#route === "battle") {
       this.renderBattle();
       return;
     }
+    const shellModel = this.appShellModel();
     this.#root.innerHTML = `
       <div class="app-shell">
-        ${this.shellHeader()}
-        ${this.storageWarningBanner()}
+        ${renderAppHeader(shellModel)}
+        ${renderStorageWarning(this.#storageWarning)}
         <main class="screen" id="main-content">
           ${this.screenContent()}
         </main>
-        ${this.mobileNavigation()}
+        ${renderMobileNavigation(shellModel)}
         <div class="sr-only" aria-live="polite" id="announcer"></div>
       </div>
     `;
   }
 
-  private storageWarningBanner(): string {
-    if (!this.#storageWarning) {
-      return "";
+  private appShellModel(): AppShellModel {
+    return {
+      route: this.#route,
+      sessionMode: this.#sessionMode,
+      save: this.#save,
+      preferences: this.#preferences,
+      difficultyOptions: renderDifficultyOptions(
+        this.#preferences.difficulty,
+        true,
+      ),
+      devToolsEnabled: DEV_TOOLS_ENABLED,
+      lockedRoutes: new Set(
+        routeIds.filter((route) => this.routeLocked(route)),
+      ),
+    };
+  }
+
+  private renderStartup(): void {
+    const beat = startupSequence[this.#startupBeatIndex];
+    if (this.#startupStage === "intro" && !beat) {
+      this.enterStartupLoading();
+      return;
     }
-    return `
-      <aside class="storage-warning" role="status">
-        <span>${escapeHtml(this.#storageWarning)}</span>
-        <div>
-          <button data-command="download-storage-backup">Download backup</button>
-          <button data-command="dismiss-storage-warning">Use safe defaults</button>
-        </div>
-      </aside>
-    `;
+    this.#root.innerHTML = renderStartupScreen({
+      stage: this.#startupStage === "loading" ? "loading" : "intro",
+      beat: beat ?? null,
+      beatIndex: this.#startupBeatIndex,
+      beatCount: startupSequence.length,
+    });
+  }
+
+  private scheduleStartupAdvance(): void {
+    window.clearTimeout(this.#startupTimer);
+    if (this.#startupStage === "ready") {
+      return;
+    }
+    const delay =
+      this.#startupStage === "loading"
+        ? this.#preferences.reducedMotion
+          ? 120
+          : 650
+        : startupSequence[this.#startupBeatIndex]?.durationMs;
+    if (delay === undefined) {
+      this.enterStartupLoading();
+      return;
+    }
+    this.#startupTimer = window.setTimeout(() => {
+      if (this.#startupStage === "loading") {
+        this.#startupStage = "ready";
+        this.render();
+        return;
+      }
+      this.advanceStartup();
+    }, delay);
+  }
+
+  private advanceStartup(): void {
+    window.clearTimeout(this.#startupTimer);
+    if (
+      this.#startupStage === "intro" &&
+      this.#startupBeatIndex < startupSequence.length - 1
+    ) {
+      this.#startupBeatIndex += 1;
+      this.render();
+      this.scheduleStartupAdvance();
+      return;
+    }
+    this.enterStartupLoading();
+  }
+
+  private enterStartupLoading(): void {
+    window.clearTimeout(this.#startupTimer);
+    this.#startupStage = "loading";
+    this.render();
+    this.scheduleStartupAdvance();
   }
 
   private downloadStorageBackup(): void {
@@ -956,624 +1027,70 @@ export class App {
     this.announce("First Run views unlocked for development.");
   }
 
-  private shellHeader(): string {
-    const storyNavigation =
-      this.#sessionMode === "story" &&
-      this.#route !== "menu" &&
-      this.#route !== "profile" &&
-      this.#route !== "settings";
-    const showPlayTools =
-      this.#sessionMode !== "menu" &&
-      this.#route !== "profile" &&
-      this.#route !== "settings";
-    return `
-      <header class="top-rail">
-        <button class="wordmark" data-command="main-menu" aria-label="Riot Relics Main Menu">
-          <span>RIOT</span><span>RELICS</span>
-        </button>
-        <nav class="primary-nav ${
-          storyNavigation ? "is-story-nav" : "is-global-nav"
-        }" aria-label="${storyNavigation ? "Story Mode" : "Global"}">
-          ${
-            storyNavigation
-              ? `
-                ${this.navButton("story", "Story", ICONS.story)}
-                ${this.navButton("lineup", "Lineup", ICONS.quick)}
-                ${this.navButton("collection", "Collection", ICONS.collection)}
-                ${this.navButton("store", "Store", ICONS.store)}
-                ${this.navButton("missions", "Missions", ICONS.missions)}
-              `
-              : `
-                ${this.navButton("menu", "Main Menu", ICONS.story)}
-                ${this.navButton("profile", "Profile", ICONS.profile)}
-                ${this.navButton("settings", "Settings", ICONS.settings)}
-              `
-          }
-        </nav>
-        <div class="rail-tools">
-          ${
-            storyNavigation
-              ? `
-                <span class="stamp-counter" aria-label="${this.#save.stamps} Stamps">
-                  <span aria-hidden="true">★</span>${this.#save.stamps}
-                </span>
-              `
-              : `<span class="collector-chip">${escapeHtml(this.#save.playerName)}</span>`
-          }
-          ${
-            showPlayTools
-              ? `
-                <label class="difficulty-control">
-                  <span>Difficulty</span>
-                  <select name="difficulty">
-                    ${this.difficultyOptions(true)}
-                  </select>
-                </label>
-              `
-              : ""
-          }
-          ${
-            DEV_TOOLS_ENABLED
-              ? `<button class="dev-rail-button ${
-                  this.#route === "dev" ? "is-active" : ""
-                }" data-command="enter-dev">DEV LAB</button>`
-              : ""
-          }
-          <button
-            class="icon-button"
-            data-command="toggle-music"
-            aria-label="${
-              this.#preferences.musicPlaybackEnabled
-                ? "Turn music off"
-                : "Turn music on"
-            }"
-            aria-pressed="${this.#preferences.musicPlaybackEnabled}"
-          >
-            ${ICONS.music}
-          </button>
-          ${
-            showPlayTools
-              ? '<button class="exit-mode-button" data-command="main-menu">Exit game</button>'
-              : ""
-          }
-        </div>
-      </header>
-    `;
-  }
-
-  private navButton(route: Route, label: string, icon: string): string {
-    const locked = this.routeLocked(route);
-    return `
-      <button
-        class="nav-control ${this.#route === route ? "is-active" : ""}"
-        data-route="${route}"
-        ${this.#route === route ? 'aria-current="page"' : ""}
-        ${locked ? 'disabled aria-label="' + label + ' locked"' : ""}
-      >
-        ${icon}<span>${label}</span>
-      </button>
-    `;
-  }
-
-  private mobileNavigation(): string {
-    if (this.#route === "battle") {
-      return "";
-    }
-    const storyNavigation =
-      this.#sessionMode === "story" &&
-      this.#route !== "profile" &&
-      this.#route !== "settings";
-    return `
-      <nav class="mobile-nav" aria-label="Game">
-        ${
-          storyNavigation
-            ? `
-              ${this.navButton("story", "Story", ICONS.story)}
-              ${this.navButton("lineup", "Lineup", ICONS.quick)}
-              ${this.navButton("collection", "Relics", ICONS.collection)}
-              ${this.navButton("store", "Store", ICONS.store)}
-              ${this.navButton("missions", "Missions", ICONS.missions)}
-              <button class="nav-control" data-command="main-menu">
-                ${ICONS.settings}<span>Menu</span>
-              </button>
-            `
-            : `
-              ${this.navButton("menu", "Menu", ICONS.story)}
-              ${this.navButton("profile", "Profile", ICONS.profile)}
-              ${this.navButton("settings", "Settings", ICONS.settings)}
-            `
-        }
-      </nav>
-    `;
-  }
-
-  private difficultyOptions(compact = false): string {
-    const descriptions: Record<Difficulty, string> = {
-      easy: "Easy — mostly here for the posters",
-      normal: "Normal — attentive is enough",
-      hard: "Hard — look at you, trying",
-      brutal: "Brutal — fun apparently requires paperwork",
-    };
-    const selectedDifficulty =
-      this.#route === "battle" && this.#battle
-        ? this.#battle.difficulty
-        : this.#preferences.difficulty;
-    return (["easy", "normal", "hard", "brutal"] as const)
-      .map(
-        (difficulty) =>
-          `<option value="${difficulty}" ${
-            selectedDifficulty === difficulty ? "selected" : ""
-          }>${compact ? formatClass(difficulty) : descriptions[difficulty]}</option>`,
-      )
-      .join("");
-  }
-
   private screenContent(): string {
     switch (this.#route) {
       case "menu":
-        return this.mainMenuScreen();
+        return renderMainMenuScreen({
+          save: this.#save,
+          devToolsEnabled: DEV_TOOLS_ENABLED,
+        });
       case "story":
-        return this.storyScreen();
+        return renderStoryScreen(this.#save);
       case "lineup":
-        return this.lineupScreen();
+        return renderLineupScreen({
+          save: this.#save,
+          difficulty: this.#preferences.difficulty,
+        });
       case "collection":
-        return this.collectionScreen();
+        return renderCollectionScreen(this.#save);
       case "store":
-        return this.storeScreen();
+        return renderStoreScreen({
+          save: this.#save,
+          offers: this.currentOffers(),
+          locked: this.routeLocked("store"),
+        });
       case "missions":
-        return this.missionsScreen();
+        return renderMissionsScreen(this.#save, this.routeLocked("missions"));
       case "quick":
-        return this.quickFightScreen();
+        return renderQuickFightScreen({
+          playerIds: this.#quickPlayerIds,
+          enemyIds: this.#quickEnemyIds,
+          difficultyOptions: renderDifficultyOptions(
+            this.#preferences.difficulty,
+          ),
+        });
       case "tournament":
-        return this.tournamentScreen();
+        return renderTournamentScreen({
+          save: this.#save,
+          sessionMode: this.#sessionMode,
+          run: this.activeTournamentRun(),
+          locked: this.routeLocked("tournament"),
+        });
+      case "achievements":
+        return renderAchievementsScreen(this.#save);
       case "profile":
-        return this.profileScreen();
+        return renderProfileScreen(this.#save);
       case "settings":
-        return this.settingsScreen();
+        return renderSettingsScreen({
+          preferences: this.#preferences,
+          difficultyOptions: renderDifficultyOptions(
+            this.#preferences.difficulty,
+          ),
+        });
       case "dev":
-        return DEV_TOOLS_ENABLED ? this.devLabScreen() : this.mainMenuScreen();
+        return DEV_TOOLS_ENABLED
+          ? renderDevLabScreen({
+              save: this.#save,
+              draft: this.#devDraft,
+              recentBattleReports: this.#recentBattleReports,
+            })
+          : renderMainMenuScreen({
+              save: this.#save,
+              devToolsEnabled: DEV_TOOLS_ENABLED,
+            });
       case "battle":
         return "";
     }
-  }
-
-  private mainMenuScreen(): string {
-    const storyStarted =
-      this.#save.clearedNodeIds.length > 0 ||
-      this.#save.collection.length > 0 ||
-      this.#save.currentNodeId !== "story.first-run.00";
-    const storyComplete =
-      this.#save.clearedNodeIds.includes("story.first-run.07");
-    const standaloneRun = this.#save.standaloneTournamentRun;
-    return `
-      <section class="main-menu" aria-labelledby="main-menu-title">
-        <div class="main-menu-intro">
-          <h1 id="main-menu-title">Choose a game.</h1>
-          <p>
-            Nothing starts until you choose it. Story Mode keeps progression;
-            Quick Fight is a sandbox; Tournament is a separate multi-round run.
-          </p>
-        </div>
-        <div class="mode-launcher">
-          <article class="mode-bill mode-story">
-            <div class="mode-art mode-art-story" role="img" aria-label="The Free Shelf print shop"></div>
-            <div class="mode-copy">
-              <h2>Story Mode</h2>
-              <p>
-                Play First Run from dialogue to battles, Store, Missions, the
-                story Cup, and the ending. This is where your collection grows.
-              </p>
-              <dl>
-                <div><dt>Story</dt><dd>First Run</dd></div>
-                <div><dt>Status</dt><dd>${
-                  storyComplete
-                    ? "Complete"
-                    : storyStarted
-                      ? "In progress"
-                      : "Not started"
-                }</dd></div>
-              </dl>
-              <button class="primary-action" data-command="enter-story">
-                ${
-                  storyComplete
-                    ? "Open completed story"
-                    : storyStarted
-                      ? "Continue Story Mode"
-                      : "Start New Story"
-                }
-                <span aria-hidden="true">→</span>
-              </button>
-            </div>
-          </article>
-          <div class="mode-side-stack">
-            <article class="mode-bill mode-quick">
-              <div class="mode-copy">
-                <h2>Quick Fight</h2>
-                <p>
-                  Pick any two Relics and fight immediately. No ownership,
-                  Story unlocks, Stamps, or XP are changed.
-                </p>
-                <button class="secondary-action" data-command="enter-quick">
-                  Set up Quick Fight <span aria-hidden="true">→</span>
-                </button>
-              </div>
-            </article>
-            <article class="mode-bill mode-tournament">
-              <div class="mode-art mode-art-tournament" role="img" aria-label="The Cheap Seats arena"></div>
-              <div class="mode-copy">
-                <h2>Tournament</h2>
-                <p>
-                  Open a standalone three-round Cheap Seats Case. Health and
-                  interlude choices persist until the run ends.
-                </p>
-                <button class="secondary-action" data-command="enter-tournament">
-                  ${
-                    standaloneRun
-                      ? `Resume Round ${standaloneRun.roundIndex + 1}`
-                      : "Start Tournament"
-                  }
-                  <span aria-hidden="true">→</span>
-                </button>
-              </div>
-            </article>
-          </div>
-        </div>
-        ${
-          DEV_TOOLS_ENABLED
-            ? `
-              <aside class="dev-launch-ticket" aria-label="Development tools">
-                <div>
-                  <strong>Developer Lab</strong>
-                  <span>Launch isolated scenarios, inspect battles, and use local convenience tools.</span>
-                </div>
-                <button data-command="enter-dev">Open Dev Lab <span aria-hidden="true">→</span></button>
-              </aside>
-            `
-            : ""
-        }
-        <footer class="main-menu-profile">
-          <div>
-            <strong>${escapeHtml(this.#save.playerName)}</strong>
-            <span>Collector profile ${this.#save.slot} · ${this.#save.collection.length} owned Relic${
-              this.#save.collection.length === 1 ? "" : "s"
-            } · ${this.#save.tournamentBadges.length} badge${
-              this.#save.tournamentBadges.length === 1 ? "" : "s"
-            }</span>
-          </div>
-          <button data-route="profile">Manage Profile</button>
-          <button data-route="settings">Settings</button>
-        </footer>
-      </section>
-    `;
-  }
-
-  private quickFightScreen(): string {
-    const player = combatContent.characters[this.#quickPlayerId]!;
-    const enemy = combatContent.characters[this.#quickEnemyId]!;
-    const characterOptions = (selectedId: string): string =>
-      Object.values(combatContent.characters)
-        .map(
-          (character) =>
-            `<option value="${character.id}" ${
-              character.id === selectedId ? "selected" : ""
-            }>${character.name} · ${formatClass(character.classId)} · L${character.level}</option>`,
-        )
-        .join("");
-    return `
-      <section class="quick-setup" aria-labelledby="quick-title">
-        <div class="quick-heading">
-          <button class="text-button" data-command="main-menu">← Main Menu</button>
-          <h1 id="quick-title">Build a Quick Fight.</h1>
-          <p>
-            Sandbox rules: every Relic is available at its authored stock level.
-            The result is recorded on screen but does not change Story progress.
-          </p>
-        </div>
-        <div class="quick-versus">
-          <label class="quick-pick">
-            <span>Your Relic</span>
-            <select name="quickPlayer">${characterOptions(this.#quickPlayerId)}</select>
-            <img src="${resolveImagePath(player.portraitAssetId)}" data-asset-id="${player.portraitAssetId}" alt="" />
-            <strong>${player.name}</strong>
-            <small>${formatClass(player.classId)} · Level ${player.level}</small>
-          </label>
-          <span class="versus-stamp" aria-hidden="true">VS</span>
-          <label class="quick-pick is-enemy">
-            <span>Opponent</span>
-            <select name="quickEnemy">${characterOptions(this.#quickEnemyId)}</select>
-            <img src="${resolveImagePath(enemy.portraitAssetId)}" data-asset-id="${enemy.portraitAssetId}" alt="" />
-            <strong>${enemy.name}</strong>
-            <small>${formatClass(enemy.classId)} · Level ${enemy.level}</small>
-          </label>
-        </div>
-        <div class="quick-footer">
-          <label>
-            <span>Difficulty</span>
-            <select name="difficulty">${this.difficultyOptions()}</select>
-          </label>
-          <button class="primary-action" data-command="start-quick-battle">
-            Start Quick Fight <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </section>
-    `;
-  }
-
-  private devLabScreen(): string {
-    const characterOptions = (
-      selectedId: string,
-      optional: boolean,
-    ): string => {
-      const options = Object.values(combatContent.characters)
-        .map(
-          (character) =>
-            `<option value="${character.id}" ${
-              character.id === selectedId ? "selected" : ""
-            }>${character.name} · ${formatClass(character.classId)}</option>`,
-        )
-        .join("");
-      return `${optional ? '<option value="">Empty slot</option>' : ""}${options}`;
-    };
-    const lineupFields = (side: Side): string => {
-      const ids =
-        side === "player"
-          ? this.#devDraft.playerCharacterIds
-          : this.#devDraft.enemyCharacterIds;
-      return [0, 1, 2]
-        .map((index) => {
-          const selectedId = ids[index] ?? "";
-          return `
-            <label class="dev-lineup-slot">
-              <span>${index + 1}</span>
-              <select
-                name="dev-${side}-${index}"
-                data-dev-field="${side}Character.${index}"
-                aria-label="${side === "player" ? "Player" : "Enemy"} Relic ${index + 1}"
-              >
-                ${characterOptions(selectedId, index > 0)}
-              </select>
-            </label>
-          `;
-        })
-        .join("");
-    };
-    const recentReport = this.#recentBattleReports[0];
-    return `
-      <!--
-      THESIS: Development is a fight switchboard, not an admin dashboard.
-      OWN-WORLD: Indigo drawer board, chalk scenario tickets, tomato actions, acid-yellow selection, hard registration borders.
-      STORY: Pick a known test or compose one, prove it is isolated, then start paused or live with diagnostics beside the work.
-      FIRST VIEWPORT: Six launch tickets lead; the Lineup composer fills the centre; a narrow diagnostic ledger stays at right; launch actions close the bottom edge.
-      FORM: Fight Switchboard, grounded structure six, staged as threshold relay; seed ef4be0e0.
-      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-      -->
-      <section class="dev-lab" aria-labelledby="dev-lab-title">
-        <header class="dev-lab-heading">
-          <div>
-            <button class="text-button" data-command="main-menu">← Main Menu</button>
-            <h1 id="dev-lab-title">Developer Lab</h1>
-            <p>
-              Isolated sandbox. Development fights never change Story,
-              progression, Missions, rewards, or tournament runs.
-            </p>
-          </div>
-          <div class="dev-environment-stamp">
-            <span>Environment</span>
-            <strong>Development</strong>
-            <small>Local state · deterministic combat</small>
-          </div>
-        </header>
-
-        <section class="dev-switchboard" aria-labelledby="dev-presets-title">
-          <div class="dev-section-title">
-            <h2 id="dev-presets-title">Fight Switchboard</h2>
-            <span>One-click scenarios</span>
-          </div>
-          <div class="dev-preset-grid">
-            ${devBattleScenarios
-              .map(
-                (preset) => `
-                  <button
-                    class="dev-preset-ticket"
-                    data-command="start-dev-scenario"
-                    data-scenario-id="${preset.id}"
-                  >
-                    <strong>${preset.name}</strong>
-                    <span>${preset.description}</span>
-                    <small>${preset.playerCharacterIds.length}v${preset.enemyCharacterIds.length} · ${
-                      preset.startPaused ? "Starts paused" : "Starts live"
-                    }</small>
-                  </button>
-                `,
-              )
-              .join("")}
-          </div>
-        </section>
-
-        <div class="dev-workbench">
-          <section class="dev-composer" aria-labelledby="dev-composer-title">
-            <div class="dev-section-title">
-              <h2 id="dev-composer-title">Custom Fight Composer</h2>
-              <span>Build a deterministic sandbox</span>
-            </div>
-            <div class="dev-versus-builder">
-              <fieldset>
-                <legend>Your Lineup</legend>
-                ${lineupFields("player")}
-              </fieldset>
-              <span class="dev-versus-mark" aria-hidden="true">VS</span>
-              <fieldset>
-                <legend>Enemy Lineup</legend>
-                ${lineupFields("enemy")}
-              </fieldset>
-            </div>
-            <div class="dev-config-grid">
-              <label>
-                <span>Player level</span>
-                <input type="number" min="1" max="25" value="${
-                  this.#devDraft.playerLevel
-                }" data-dev-field="playerLevel" />
-              </label>
-              <label>
-                <span>Enemy level</span>
-                <input type="number" min="1" max="25" value="${
-                  this.#devDraft.enemyLevel
-                }" data-dev-field="enemyLevel" />
-              </label>
-              <label>
-                <span>Player Moves</span>
-                <select data-dev-field="playerTier">
-                  ${this.devTierOptions(this.#devDraft.playerTier)}
-                </select>
-              </label>
-              <label>
-                <span>Enemy Moves</span>
-                <select data-dev-field="enemyTier">
-                  ${this.devTierOptions(this.#devDraft.enemyTier)}
-                </select>
-              </label>
-              <label>
-                <span>Player Patch</span>
-                <select data-dev-field="playerPatchId">
-                  ${this.devPatchOptions(this.#devDraft.playerPatchId)}
-                </select>
-              </label>
-              <label>
-                <span>Enemy Patch</span>
-                <select data-dev-field="enemyPatchId">
-                  ${this.devPatchOptions(this.#devDraft.enemyPatchId)}
-                </select>
-              </label>
-              <label>
-                <span>Player Charge</span>
-                <input type="number" min="0" max="100" value="${
-                  this.#devDraft.playerStartingBar
-                }" data-dev-field="playerStartingBar" />
-              </label>
-              <label>
-                <span>Enemy Charge</span>
-                <input type="number" min="0" max="100" value="${
-                  this.#devDraft.enemyStartingBar
-                }" data-dev-field="enemyStartingBar" />
-              </label>
-              <label>
-                <span>Player health · %</span>
-                <input type="number" min="1" max="100" value="${
-                  this.#devDraft.playerHealthRatio * 100
-                }" data-dev-field="playerHealthPercent" />
-              </label>
-              <label>
-                <span>Enemy health · %</span>
-                <input type="number" min="1" max="100" value="${
-                  this.#devDraft.enemyHealthRatio * 100
-                }" data-dev-field="enemyHealthPercent" />
-              </label>
-              <label>
-                <span>Difficulty</span>
-                <select data-dev-field="devDifficulty">
-                  ${(["easy", "normal", "hard", "brutal"] as const)
-                    .map(
-                      (difficulty) =>
-                        `<option value="${difficulty}" ${
-                          this.#devDraft.difficulty === difficulty
-                            ? "selected"
-                            : ""
-                        }>${formatClass(difficulty)}</option>`,
-                    )
-                    .join("")}
-                </select>
-              </label>
-              <label>
-                <span>Time limit · seconds</span>
-                <input type="number" min="1" max="600" value="${
-                  this.#devDraft.timeLimitMs / 1000
-                }" data-dev-field="timeLimitSeconds" />
-              </label>
-              <label class="dev-seed-field">
-                <span>Seed</span>
-                <input type="number" min="0" value="${
-                  this.#devDraft.seed
-                }" data-dev-field="seed" />
-              </label>
-            </div>
-            <div class="dev-launch-actions">
-              <button
-                class="primary-action"
-                data-command="start-dev-custom"
-                data-paused="true"
-              >Start Paused</button>
-              <button
-                class="secondary-action"
-                data-command="start-dev-custom"
-                data-paused="false"
-              >Start Live</button>
-            </div>
-          </section>
-
-          <aside class="dev-ledger" aria-labelledby="dev-ledger-title">
-            <div class="dev-section-title">
-              <h2 id="dev-ledger-title">Diagnostics</h2>
-            </div>
-            <dl>
-              <div><dt>Profile</dt><dd>${escapeHtml(this.#save.playerName)} · slot ${
-                this.#save.slot
-              }</dd></div>
-              <div><dt>Content</dt><dd>${
-                Object.keys(combatContent.characters).length
-              } Relics · ${Object.keys(combatContent.actions).length} Moves</dd></div>
-              <div><dt>Recent reports</dt><dd>${
-                this.#recentBattleReports.length
-              } this session</dd></div>
-              <div><dt>Last fight</dt><dd>${
-                recentReport
-                  ? `${escapeHtml(recentReport.encounterId)} · ${recentReport.outcome ?? "active"}`
-                  : "Run a fight to generate a report"
-              }</dd></div>
-            </dl>
-            <div class="dev-convenience">
-              <h3>Convenience</h3>
-              <button data-command="dev-grant-collection">Grant all Relics + Patches</button>
-              <button data-command="dev-grant-stamps" data-amount="500">Add 500 Stamps</button>
-              <button data-command="dev-unlock-story">Unlock First Run views</button>
-              <button data-command="download-profile-data">Export profile JSON</button>
-              <button
-                data-command="download-battle-report"
-                ${recentReport ? "" : "disabled"}
-              >Export last battle report</button>
-            </div>
-          </aside>
-        </div>
-      </section>
-    `;
-  }
-
-  private devTierOptions(selected: DevMoveTier): string {
-    return (
-      [
-        ["normal", "Normal · base outline"],
-        ["tier1", "Tier 1 · silver outline"],
-        ["tier2", "Tier 2 · gold outline"],
-      ] as const
-    )
-      .map(
-        ([value, label]) =>
-          `<option value="${value}" ${
-            selected === value ? "selected" : ""
-          }>${label}</option>`,
-      )
-      .join("");
-  }
-
-  private devPatchOptions(selectedId: string | null): string {
-    return [
-      '<option value="">No Patch</option>',
-      ...patches.map(
-        (patch) =>
-          `<option value="${patch.id}" ${
-            selectedId === patch.id ? "selected" : ""
-          }>${escapeHtml(patch.name)} · ${escapeHtml(patch.description)}</option>`,
-      ),
-    ].join("");
   }
 
   private updateDevDraftFromControl(
@@ -1647,533 +1164,8 @@ export class App {
     }
   }
 
-  private profileScreen(): string {
-    const storyClears = this.#save.clearedNodeIds.length;
-    return `
-      <section class="profile-sheet" aria-labelledby="profile-title">
-        <div class="section-heading">
-          <button class="text-button" data-command="main-menu">← Main Menu</button>
-          <h1 id="profile-title">Collector Profile</h1>
-          <p>
-            Identity and progression live here. Audio, accessibility, and local
-            data controls live separately in Settings.
-          </p>
-        </div>
-        <div class="profile-layout">
-          <fieldset class="profile-identity">
-            <legend>Identity</legend>
-            <label>
-              <span>Collector name</span>
-              <input name="playerName" value="${escapeHtml(this.#save.playerName)}" />
-            </label>
-            <label>
-              <span>Local profile</span>
-              <select name="profileSlot">
-                ${([1, 2, 3] as const)
-                  .map(
-                    (slot) =>
-                      `<option value="${slot}" ${
-                        this.#save.slot === slot ? "selected" : ""
-                      }>Collector profile ${slot}</option>`,
-                  )
-                  .join("")}
-              </select>
-            </label>
-            <small>
-              Three local profiles are available in this prototype. Switching
-              profiles never changes your global Settings.
-            </small>
-          </fieldset>
-          <section class="profile-record" aria-labelledby="profile-record-title">
-            <h2 id="profile-record-title">${escapeHtml(this.#save.playerName)}'s drawer</h2>
-            <dl>
-              <div><dt>Story prints cleared</dt><dd>${storyClears}/8</dd></div>
-              <div><dt>Owned Relics</dt><dd>${this.#save.collection.length}</dd></div>
-              <div><dt>Stamps</dt><dd>${this.#save.stamps}</dd></div>
-              <div><dt>Tournament badges</dt><dd>${this.#save.tournamentBadges.length}</dd></div>
-            </dl>
-            <button class="primary-action" data-command="enter-story">
-              ${storyClears > 0 ? "Continue this Story" : "Start this Story"}
-              <span aria-hidden="true">→</span>
-            </button>
-          </section>
-        </div>
-      </section>
-    `;
-  }
-
-  private storyScreen(): string {
-    const cleared = new Set(this.#save.clearedNodeIds);
-    const firstRunComplete = cleared.has("story.first-run.07");
-    const baseProgress = {
-      "story.first-run.00": {
-        title: "The ink is wet. The bill is due.",
-        copy: "The Ledger has arrived to confiscate every unofficial Relic in the shop. Mara Vex has one reply and three increasingly expensive ways to print it.",
-        speaker: "MARA",
-        line: "Tell Knuckle Tax I kept the receipt. It says no refunds.",
-        action: "Start First Run",
-      },
-      "story.first-run.01": {
-        title: "Shelf space is a legal argument.",
-        copy: "Mara Vex is off the display card and in your Lineup. The Ledger would prefer you called that evidence.",
-        speaker: "MARA",
-        line: "If they wanted it mint, they should have left it wrapped.",
-        action: "Face the invoice",
-      },
-      "story.first-run.02": {
-        title: "An invoice with fists.",
-        copy: "Knuckle Tax is blocking the front door with a three-print collection notice. Your Charge Strip belongs to the whole Lineup—switch without losing it.",
-        speaker: "KNUCKLE TAX",
-        line: "Unofficial stock. Official consequences.",
-        action: "Set the Tax Due Lineup",
-      },
-      "story.first-run.03": {
-        title: "The backroom counter opens.",
-        copy: "Winning bought breathing room and access to rotating Relics and reusable Patches. Browsing is free. The labels are not.",
-        speaker: "MARA",
-        line: "Nothing says legitimate like a price written by hand.",
-        action: "Enter Backroom Counter",
-      },
-      "story.first-run.04": {
-        title: "Read the fine print.",
-        copy: "Three mission slips have appeared on the wall. Their rewards count whether the story likes your methods or not.",
-        speaker: "ZIPWIRE",
-        line: "I read all three. That felt more dangerous than fighting.",
-        action: "Open the mission board",
-      },
-      "story.first-run.05": {
-        title: "Two prints enter the qualifier.",
-        copy: "The qualifier checks whether you can share Charge and switch cleanly. Zipwire is available as a story loan if you have not bought a copy.",
-        speaker: "MARA",
-        line: "Try not to make the teamwork look deliberate.",
-        action: "Set the Qualifier Lineup",
-      },
-      "story.first-run.06": {
-        title: "Cheap seats. Expensive mistakes.",
-        copy: "The qualifier stamp is dry. The three-round Cup is the next print on the board.",
-        speaker: "KNUCKLE TAX",
-        line: "The bracket has already billed you for losing.",
-        action: "Enter the Cheap Seats Cup",
-      },
-      "story.first-run.07": {
-        title: "Officially unofficial.",
-        copy: "The first print run survives. Stamp the ending panel to archive the run and reveal the rival file.",
-        speaker: "MARA",
-        line: "Put that on the invoice.",
-        action: "Claim the ending print",
-      },
-    }[this.#save.currentNodeId] ?? {
-      title: "The ink is wet. The bill is due.",
-      copy: "The Ledger has arrived to confiscate every unofficial Relic in the shop.",
-      speaker: "MARA",
-      line: "Tell Knuckle Tax I kept the receipt.",
-      action: "Continue First Run",
-    };
-    const progress =
-      this.#save.currentNodeId === "story.first-run.07" && firstRunComplete
-        ? {
-            title: "First Run: archived.",
-            copy: "The shop survives, the champion badge is in the drawer, and Knuckle Tax is now filed as a revealed rival.",
-            speaker: "MARA",
-            line: "Official enough for me.",
-            action: "First Run complete",
-          }
-        : baseProgress;
-    return `
-      <section class="story-board" aria-labelledby="story-title">
-        <div class="story-art" role="img" aria-label="The Free Shelf print shop at night"></div>
-        <div class="story-copy">
-          <p class="story-label">Main story · First Run</p>
-          <h1 id="story-title">${escapeHtml(progress.title)}</h1>
-          <p>${escapeHtml(progress.copy)}</p>
-          <div class="dialogue-line">
-            <span class="speaker-stamp">${escapeHtml(progress.speaker)}</span>
-            <q>${escapeHtml(progress.line)}</q>
-          </div>
-          <button
-            class="primary-action"
-            data-command="continue-story"
-            ${
-              this.#save.currentNodeId === "story.first-run.07" &&
-              firstRunComplete
-                ? "disabled"
-                : ""
-            }
-          >
-            ${escapeHtml(progress.action)} <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </section>
-      ${
-        this.#save.currentNodeId === "story.first-run.07"
-          ? `
-            <aside class="ending-reward-panel ${
-              firstRunComplete ? "is-claimed" : ""
-            }" aria-label="First Run ending reward">
-              <span>${firstRunComplete ? "ARCHIVED" : "ENDING REWARD"}</span>
-              <div>
-                <strong>★ ${FIRST_RUN_ENDING_REWARD} Stamps</strong>
-                <strong>Rival file · Knuckle Tax</strong>
-                <strong>Badge · Cheap Seats Champion</strong>
-              </div>
-            </aside>
-          `
-          : ""
-      }
-      <section class="node-strip" aria-labelledby="path-title">
-        <div class="section-heading">
-          <h2 id="path-title">Eight prints. One very bad invoice.</h2>
-          <p>Cleared prints stay stamped. Locked prints preview what comes next.</p>
-        </div>
-        <ol class="story-path">
-          ${storyNodes
-            .map((node) => {
-              const isAvailable =
-                cleared.has(node.id) || node.id === this.#save.currentNodeId;
-              const isCleared = cleared.has(node.id);
-              return `
-                <li class="story-node ${isCleared ? "is-cleared" : ""} ${
-                  isAvailable ? "" : "is-locked"
-                }">
-                  <span class="node-index">${node.index}</span>
-                  <span class="node-kind">${node.type}</span>
-                  <strong>${node.title}</strong>
-                  <span>${node.summary}</span>
-                  <span class="node-state">${
-                    isCleared ? "Cleared" : isAvailable ? "Available" : "Locked"
-                  }</span>
-                </li>
-              `;
-            })
-            .join("")}
-        </ol>
-      </section>
-    `;
-  }
-
-  private lineupScreen(): string {
-    const encounter = firstRunEncounter(this.#save.currentNodeId);
-    const lineup = encounter.playerCharacterIds;
-    const factionCounts = new Map<string, number>();
-    for (const id of lineup) {
-      const factionId = combatContent.characters[id]!.factionId;
-      factionCounts.set(factionId, (factionCounts.get(factionId) ?? 0) + 1);
-    }
-    const synergyCount = Math.max(...factionCounts.values());
-    return `
-      <section class="lineup-workbench" aria-labelledby="lineup-title">
-        <div class="lineup-heading">
-          <button class="text-button" data-route="story">← Back to story</button>
-          <h1 id="lineup-title">${
-            encounter.nodeId === "story.first-run.05"
-              ? "Two prints. One shared strip."
-              : "Pull three. Print one."
-          }</h1>
-          <p>
-            ${
-              encounter.nodeId === "story.first-run.05"
-                ? "Qualifier rules require two Relics. Zipwire is supplied as a story loan when you do not own a copy."
-                : "Story loaners are marked in yellow. Your Charge Strip belongs to the Lineup and survives every switch."
-            }
-          </p>
-        </div>
-        <div class="match-sheet">
-          <div class="lineup-side">
-            <h2>Your Lineup</h2>
-            ${lineup
-              .map((id) =>
-                this.lineupRelic(
-                  id,
-                  !this.#save.collection.some(
-                    (entry) => entry.characterId === id,
-                  ),
-                ),
-              )
-              .join("")}
-            <div class="synergy-ticket">
-              <span>Free Shelf ×${synergyCount}</span>
-              <strong>${
-                synergyCount >= 3
-                  ? "+2 Vitality · +2 Power"
-                  : synergyCount >= 2
-                    ? "+2 Vitality"
-                    : "No active synergy"
-              }</strong>
-            </div>
-          </div>
-          <div class="versus-stamp" aria-label="versus">VS</div>
-          <div class="lineup-side is-enemy">
-            <h2>The Ledger</h2>
-            ${encounter.enemyCharacterIds
-              .map((id) => this.lineupRelic(id, false))
-              .join("")}
-            <div class="class-wheel-mini">
-              <strong>Class wheel</strong>
-              <span>Impact → Feral → Guile → Circuit → Hex → Guard</span>
-            </div>
-          </div>
-        </div>
-        <div class="lineup-footer">
-          <div>
-            <span>Node ${encounter.index} · ${encounter.title}</span>
-            <strong>${formatClass(this.#preferences.difficulty)}</strong>
-          </div>
-          <button class="primary-action" data-command="start-battle">
-            Tear into battle <span aria-hidden="true">→</span>
-          </button>
-        </div>
-      </section>
-    `;
-  }
-
-  private lineupRelic(characterId: string, loaned: boolean): string {
-    const character = combatContent.characters[characterId]!;
-    const owned = this.#save.collection.find(
-      (entry) => entry.characterId === characterId,
-    );
-    const level = owned?.level ?? character.level;
-    return `
-      <article class="lineup-ticket">
-        <div class="ticket-portrait is-${character.classId}">
-          <img src="${resolveImagePath(character.portraitAssetId)}" data-asset-id="${character.portraitAssetId}" alt="" />
-        </div>
-        <div>
-          <span class="class-mark">${formatClass(character.classId)}</span>
-          <h3>${character.name}</h3>
-          <p>Level ${level} · ${owned ? "Owned build" : loaned ? "Story loan" : "Ready"}</p>
-        </div>
-        <span class="ticket-notch" aria-hidden="true"></span>
-      </article>
-    `;
-  }
-
-  private collectionScreen(): string {
-    const ownedIds = new Set(
-      this.#save.collection.map((entry) => entry.characterId),
-    );
-    return `
-      <section class="collection-wall" aria-labelledby="collection-title">
-        <div class="section-heading">
-          <h1 id="collection-title">Your shelf has opinions.</h1>
-          <p>
-            Owned copies keep independent levels, Move tiers, allocations, and
-            Patches. Exact duplicates are legal. Taste is not guaranteed.
-          </p>
-        </div>
-        <div class="collection-grid">
-          ${Object.values(combatContent.characters)
-            .map((character) => {
-              const ownedCopies = this.#save.collection.filter(
-                (entry) => entry.characterId === character.id,
-              );
-              const owned = ownedIds.has(character.id);
-              return `
-                <article class="relic-box ${owned ? "" : "is-locked"}">
-                  <div class="box-art">
-                    <img src="${resolveImagePath(character.portraitAssetId)}" data-asset-id="${character.portraitAssetId}" alt="" />
-                  </div>
-                  <div class="box-label">
-                    <span>${formatClass(character.classId)}</span>
-                    <h2>${owned ? character.name : "Unrevealed Relic"}</h2>
-                    <p>${
-                      owned
-                        ? `Owned ×${ownedCopies.length} · ${ownedCopies
-                            .map((entry) => `L${entry.level}`)
-                            .join(" / ")}`
-                        : "Find the right print first."
-                    }</p>
-                  </div>
-                </article>
-              `;
-            })
-            .join("")}
-        </div>
-        <section class="patch-shelf" aria-labelledby="patch-shelf-title">
-          <h2 id="patch-shelf-title">Patch drawer</h2>
-          <p>
-            One Patch per owned Relic from level 5. Reusable means moving a
-            Patch here removes it from its previous wearer.
-          </p>
-          <div class="patch-inventory">
-            ${
-              this.#save.ownedPatches.length > 0
-                ? this.#save.ownedPatches
-                    .map((patchId) => {
-                      const patch = findPatch(patchId);
-                      return `
-                        <span>
-                          <strong>${escapeHtml(patch?.name ?? patchId)}</strong>
-                          ${escapeHtml(patch?.description ?? "Unknown Patch")}
-                        </span>
-                      `;
-                    })
-                    .join("")
-                : "<p>No Patches owned yet. The Backroom Counter rotates them in.</p>"
-            }
-          </div>
-          <div class="owned-build-list">
-            ${this.#save.collection
-              .map((owned) => {
-                const character = combatContent.characters[owned.characterId];
-                if (!character) {
-                  return "";
-                }
-                const patch = findPatch(owned.equippedPatchId);
-                const unlocked = owned.level >= 5;
-                const patchLocked = Boolean(this.#save.tournamentRun);
-                return `
-                  <article class="owned-build-ticket">
-                    <div>
-                      <span>${formatClass(character.classId)} · ${owned.instanceId}</span>
-                      <h3>${character.name} · Level ${owned.level}</h3>
-                      <p>${owned.xp} XP · ${owned.unspentStatPoints} unspent stat points</p>
-                    </div>
-                    <label>
-                      <span>${
-                        patchLocked
-                          ? "Patch locked during the Cheap Seats Cup"
-                          : unlocked
-                            ? "Equipped Patch"
-                            : "Patch slot unlocks at level 5"
-                      }</span>
-                      <select
-                        name="equippedPatch"
-                        data-instance-id="${owned.instanceId}"
-                        ${
-                          unlocked &&
-                          !patchLocked &&
-                          this.#save.ownedPatches.length > 0
-                            ? ""
-                            : "disabled"
-                        }
-                      >
-                        <option value="">No Patch</option>
-                        ${this.#save.ownedPatches
-                          .map(
-                            (patchId) =>
-                              `<option value="${patchId}" ${
-                                owned.equippedPatchId === patchId
-                                  ? "selected"
-                                  : ""
-                              }>${escapeHtml(findPatch(patchId)?.name ?? patchId)}</option>`,
-                          )
-                          .join("")}
-                      </select>
-                    </label>
-                    <small>${escapeHtml(patch?.description ?? "No build modifier equipped.")}</small>
-                  </article>
-                `;
-              })
-              .join("")}
-          </div>
-        </section>
-      </section>
-    `;
-  }
-
-  private storeScreen(): string {
-    if (this.routeLocked("store")) {
-      return this.lockedFeatureScreen(
-        "store-title",
-        "Backroom Counter",
-        "Clear Tax Due to reveal rotating Relics and Patches.",
-      );
-    }
-    const offers = this.currentOffers();
-    const ownedIds = new Set(
-      this.#save.collection.map((entry) => entry.characterId),
-    );
-    const ownedPatches = new Set(this.#save.ownedPatches);
-    return `
-      <section class="store-counter" aria-labelledby="store-title">
-        ${
-          this.#save.currentNodeId === "story.first-run.03"
-            ? `
-              <aside class="story-unlock-slip">
-                <div>
-                  <span>First Run · Node 03</span>
-                  <strong>Rotating stock revealed</strong>
-                  <p>Inspect today's four labels. Buying is optional; the mission board is already being pinned up.</p>
-                </div>
-                <button class="primary-action" data-command="advance-story-node">
-                  Read the mission slips <span aria-hidden="true">→</span>
-                </button>
-              </aside>
-            `
-            : ""
-        }
-        <div class="store-scene">
-          <div>
-            <h1 id="store-title">Backroom Counter</h1>
-            <p>
-              Prices rotate with the print run. Favourites will eventually pin
-              revealed stock; for now, today's four labels are the whole box.
-            </p>
-          </div>
-          <span class="store-balance">★ ${this.#save.stamps} Stamps</span>
-        </div>
-        <div class="offer-rack">
-          ${offers
-            .map((offer, index) =>
-              this.offerLabel(
-                offer,
-                index,
-                offer.kind === "character"
-                  ? ownedIds.has(offer.itemId)
-                  : ownedPatches.has(offer.itemId),
-              ),
-            )
-            .join("")}
-        </div>
-      </section>
-    `;
-  }
-
   private currentOffers(): StoreOffer[] {
     return rotatingOffers(new Date().toISOString().slice(0, 10));
-  }
-
-  private offerLabel(
-    offer: StoreOffer,
-    index: number,
-    alreadyOwned: boolean,
-  ): string {
-    const canAfford = this.#save.stamps >= offer.price;
-    const canBuy = canAfford && !(offer.kind === "patch" && alreadyOwned);
-    return `
-      <article class="offer-label tone-${index % 3}">
-        <div>
-          <span>${offer.rarity} · ${offer.kind}</span>
-          <h2>${offer.name}</h2>
-          <p>${
-            offer.kind === "character"
-              ? `Arrives at level ${offer.level}. ${
-                  alreadyOwned
-                    ? "Another independent copy."
-                    : "New shelf entry."
-                }`
-              : escapeHtml(
-                  findPatch(offer.itemId)?.description ??
-                    "Reusable. One equipped Relic at a time.",
-                )
-          }</p>
-        </div>
-        <button
-          data-command="buy-offer"
-          data-offer-id="${offer.id}"
-          ${canBuy ? "" : "disabled"}
-        >
-          <span>★ ${offer.price}</span>
-          ${
-            offer.kind === "patch" && alreadyOwned
-              ? "Already on shelf"
-              : canAfford
-                ? "Buy label"
-                : "Need more Stamps"
-          }
-        </button>
-      </article>
-    `;
   }
 
   private buyOffer(offerId: string): void {
@@ -2198,92 +1190,6 @@ export class App {
     this.announce(`${offer.name} added to your shelf.`);
   }
 
-  private missionsScreen(): string {
-    if (this.routeLocked("missions")) {
-      return this.lockedFeatureScreen(
-        "missions-title",
-        "Mission Board",
-        "Inspect the Backroom Counter in Node 03 to reveal these slips.",
-      );
-    }
-    return `
-      <section class="mission-board" aria-labelledby="missions-title">
-        ${
-          this.#save.currentNodeId === "story.first-run.04"
-            ? `
-              <aside class="story-unlock-slip">
-                <div>
-                  <span>First Run · Node 04</span>
-                  <strong>Three missions unlocked</strong>
-                  <p>Progress is semantic: losses can count actions, but win objectives still require a win.</p>
-                </div>
-                <button class="primary-action" data-command="advance-story-node">
-                  Set the Qualifier Lineup <span aria-hidden="true">→</span>
-                </button>
-              </aside>
-            `
-            : ""
-        }
-        <div class="section-heading">
-          <h1 id="missions-title">Reasons to make it personal.</h1>
-          <p>
-            Action objectives can progress on a loss. Win objectives remain
-            stubbornly interested in winning.
-          </p>
-        </div>
-        <div class="mission-list">
-          ${missions
-            .map((mission) => {
-              const progress = Math.min(
-                mission.target,
-                this.#save.missionProgress[mission.id] ?? 0,
-              );
-              const complete = progress >= mission.target;
-              return `
-                <article class="mission-slip ${complete ? "is-complete" : ""}">
-                  <span class="mission-check" aria-hidden="true">${
-                    complete ? "✓" : "×"
-                  }</span>
-                  <div>
-                    <h2>${mission.name}</h2>
-                    <p>${mission.description}</p>
-                  </div>
-                  <div class="mission-progress">
-                    <strong>${progress}/${mission.target}</strong>
-                    ${
-                      this.#save.claimedMissionIds.includes(mission.id)
-                        ? `<span>Paid · ★ ${mission.rewardStamps}</span>`
-                        : complete
-                          ? `<button data-command="claim-mission" data-mission-id="${mission.id}">Claim ★ ${mission.rewardStamps}</button>`
-                          : `<span>★ ${mission.rewardStamps}</span>`
-                    }
-                  </div>
-                </article>
-              `;
-            })
-            .join("")}
-        </div>
-      </section>
-    `;
-  }
-
-  private lockedFeatureScreen(
-    headingId: string,
-    title: string,
-    copy: string,
-  ): string {
-    return `
-      <section class="locked-feature" aria-labelledby="${headingId}">
-        <span>FIRST RUN · LOCKED PRINT</span>
-        <h1 id="${headingId}">${escapeHtml(title)}</h1>
-        <p>${escapeHtml(copy)}</p>
-        <button class="primary-action" data-route="story">
-          Return to the story <span aria-hidden="true">→</span>
-        </button>
-      </section>
-    `;
-  }
-
   private claimMission(missionId: string): void {
     const mission = missions.find((candidate) => candidate.id === missionId);
     if (
@@ -2300,331 +1206,12 @@ export class App {
     this.announce(`${mission.name} paid ${mission.rewardStamps} Stamps.`);
   }
 
-  private tournamentScreen(): string {
-    if (this.routeLocked("tournament")) {
-      return this.lockedFeatureScreen(
-        "tournament-title",
-        "The Cheap Seats Cup",
-        "Clear the two-Relic qualifier to earn a place in the bracket.",
-      );
-    }
-    const run = this.activeTournamentRun();
-    const champion = this.#save.tournamentBadges.includes(
-      "badge.cheap-seats-champion",
-    );
-    const encounter = cheapSeatsEncounter(run?.roundIndex ?? 0);
-    const caseEntries = Object.entries(run?.healthRatios ?? {});
-    const caseStatus =
-      caseEntries.length > 0
-        ? caseEntries
-            .map(([instanceId, ratio]) => {
-              const owned = this.#save.collection.find(
-                (entry) => entry.instanceId === instanceId,
-              );
-              const character = owned
-                ? combatContent.characters[owned.characterId]
-                : Object.values(combatContent.characters).find((candidate) =>
-                    instanceId.includes(candidate.id),
-                  );
-              return `<span><strong>${escapeHtml(character?.name ?? "Case Relic")}</strong>${Math.round(ratio * 100)}% Case health</span>`;
-            })
-            .join("")
-        : "<span><strong>Fresh Case</strong>Full health at the opening bell</span>";
-    const controls =
-      run?.phase === "interlude"
-        ? `
-          <div class="cup-drops" aria-label="Choose an interstitial drop">
-            <button data-command="cup-drop" data-drop="front-print-repair">
-              <strong>Front Print Repair</strong>
-              Heal the Relic that ended the prior round active by 45%.
-            </button>
-            <button data-command="cup-drop" data-drop="case-repair">
-              <strong>Case Repair</strong>
-              Heal the Case by 18% and revive one defeated Relic at 35%.
-            </button>
-            <button data-command="cup-drop" data-drop="hot-start">
-              <strong>Hot Start</strong>
-              Begin the next round with another 18 Charge.
-            </button>
-          </div>
-        `
-        : `
-          <button class="primary-action" data-command="start-tournament">
-            ${run ? `Enter Round ${encounter.roundIndex + 1}` : "Open Case · Enter Round 1"}
-            <span aria-hidden="true">→</span>
-          </button>
-        `;
-    return `
-      <section class="tournament-poster" aria-labelledby="tournament-title">
-        <div class="tournament-art"></div>
-        <div class="tournament-copy">
-          <button class="text-button" ${
-            this.#sessionMode === "story"
-              ? 'data-route="story"'
-              : 'data-command="main-menu"'
-          }>
-            ← ${this.#sessionMode === "story" ? "Back to Story" : "Main Menu"}
-          </button>
-          ${champion ? '<span class="cup-badge">★ Cheap Seats Champion</span>' : ""}
-          <h1 id="tournament-title">The Cheap Seats Cup</h1>
-          <p>
-            ${
-              run?.phase === "interlude"
-                ? `Round ${run.roundIndex} is stamped. Choose one drop before ${escapeHtml(encounter.title)}.`
-                : `Round ${encounter.roundIndex + 1} · ${escapeHtml(encounter.title)} — ${escapeHtml(encounter.subtitle)}`
-            }
-          </p>
-          <div class="bracket">
-            ${cheapSeatsEncounters
-              .map(
-                (round) => `
-                  <span class="${
-                    run && round.roundIndex < run.roundIndex
-                      ? "is-cleared"
-                      : round.roundIndex === (run?.roundIndex ?? 0)
-                        ? "is-current"
-                        : ""
-                  }">
-                    Round ${round.roundIndex + 1}<br />
-                    <strong>${escapeHtml(round.title)}</strong>
-                  </span>
-                `,
-              )
-              .join("")}
-          </div>
-          <div class="case-health">${caseStatus}</div>
-          ${controls}
-          <small>
-            Case health, defeats, chosen drops, and the current round persist in
-            this ${
-              this.#sessionMode === "story" ? "Story game" : "Tournament game"
-            }. Equipped Patches stay locked for the run.${
-              champion ? " Opening a new Case replays the full bracket." : ""
-            }
-          </small>
-        </div>
-      </section>
-    `;
-  }
-
-  private settingsScreen(): string {
-    return `
-      <section class="settings-sheet" aria-labelledby="settings-title">
-        <div class="section-heading">
-          <button class="text-button" data-command="main-menu">← Main Menu</button>
-          <h1 id="settings-title">Settings</h1>
-          <p>
-            These preferences apply to every game type and every Collector
-            profile. Identity and progression are managed from Profile.
-          </p>
-        </div>
-        <div class="settings-columns">
-          <fieldset>
-            <legend>Play and accessibility</legend>
-            <label>
-              <span>Difficulty</span>
-              <select name="difficulty">${this.difficultyOptions()}</select>
-            </label>
-            <label class="toggle-row">
-              <span>
-                <strong>Reduced motion</strong>
-                <small>Preserves state changes without shake, cut-in travel, or bob.</small>
-              </span>
-              <input type="checkbox" name="reducedMotion" ${
-                this.#preferences.reducedMotion ? "checked" : ""
-              } />
-            </label>
-            <label class="toggle-row">
-              <span>
-                <strong>Music playback</strong>
-                <small>
-                  Off stays off across menus, battles, reloads, and profiles.
-                </small>
-              </span>
-              <input type="checkbox" name="musicPlaybackEnabled" ${
-                this.#preferences.musicPlaybackEnabled ? "checked" : ""
-              } />
-            </label>
-          </fieldset>
-          <fieldset>
-            <legend>Audio</legend>
-            ${this.volumeControl("music", "Music", this.#preferences.musicVolume)}
-            ${this.volumeControl("sfx", "Sound effects", this.#preferences.sfxVolume)}
-            ${this.volumeControl(
-              "dialogue",
-              "Dialogue",
-              this.#preferences.dialogueVolume,
-            )}
-            <p class="settings-note">
-              SFX and dialogue currently resolve to valid silent placeholders.
-              The controls and logical IDs are ready for ElevenLabs output.
-            </p>
-          </fieldset>
-          <fieldset class="data-settings">
-            <legend>Local data</legend>
-            <p>
-              Progress is stored in this browser. Export the selected Collector
-              profile and global preferences as readable JSON.
-            </p>
-            <button class="secondary-action" data-command="download-profile-data">
-              Export current profile
-            </button>
-            <button class="text-button" data-route="profile">
-              Manage Collector profiles
-            </button>
-          </fieldset>
-        </div>
-      </section>
-    `;
-  }
-
-  private volumeControl(
-    category: "music" | "sfx" | "dialogue",
-    label: string,
-    value: number,
-  ): string {
-    const muted = this.#preferences[`${category}Muted`];
-    return `
-      <div class="volume-row">
-        <label for="${category}-volume">${label}</label>
-        <input
-          id="${category}-volume"
-          type="range"
-          name="${category}Volume"
-          min="0"
-          max="1"
-          step="0.05"
-          value="${value}"
-        />
-        <output for="${category}-volume">${Math.round(value * 100)}%</output>
-        <label class="mute-control">
-          <input type="checkbox" name="${category}Muted" ${muted ? "checked" : ""} />
-          Mute
-        </label>
-      </div>
-    `;
-  }
-
   private renderBattle(): void {
     if (!this.#battle) {
       this.startBattle(false);
       return;
     }
-    this.#root.innerHTML = `
-      <!--
-      THESIS: The Charge Strip is the combat control, not a meter beneath three cards.
-      OWN-WORLD: Indigo drawer, chalk track, acid fill, tomato readiness, circular press seals, hard registration borders.
-      STORY: Read Charge, see exactly which Move threshold it has reached, activate without losing focus, and pause or inspect safely.
-      FIRST VIEWPORT: Rail and Lineups frame the arena; one full-width integrated Move-and-Charge field anchors the lower edge.
-      FORM: Bar-first battle control, pinned by the supplied Teeny Titans 2 structural reference.
-      FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
-      -->
-      <main class="battle-screen" id="main-content">
-        <header class="battle-rail">
-          <button class="battle-wordmark" data-command="pause-battle">RIOT RELICS</button>
-          <span class="round-label">${
-            this.#isTournamentFight
-              ? `CHEAP SEATS · ROUND ${this.#tournamentRoundIndex + 1} · ${cheapSeatsEncounter(this.#tournamentRoundIndex).title.toUpperCase()}`
-              : this.#isDevFight && this.#devScenario
-                ? `DEV LAB · ${this.#devScenario.name.toUpperCase()}`
-                : this.#isQuickFight
-                  ? `QUICK FIGHT · ${combatContent.characters[this.#quickPlayerId]!.name.toUpperCase()} VS ${combatContent.characters[this.#quickEnemyId]!.name.toUpperCase()}`
-                  : firstRunEncounter(this.#storyBattleNodeId).railLabel
-          }</span>
-          <span class="timer-ticket"><span>TIME</span><strong data-battle-time>90</strong></span>
-          <div class="battle-rail-tools">
-            <label>
-              <span class="sr-only">Difficulty</span>
-              <select name="difficulty">${this.difficultyOptions(true)}</select>
-            </label>
-            <button
-              data-command="toggle-music"
-              class="now-playing"
-              aria-label="${
-                this.#preferences.musicPlaybackEnabled
-                  ? "Turn music off"
-                  : "Turn music on"
-              }"
-              aria-pressed="${this.#preferences.musicPlaybackEnabled}"
-            >
-              ${ICONS.music}<span data-now-playing>Red Thread</span>
-            </button>
-            ${
-              DEV_TOOLS_ENABLED
-                ? '<button class="dev-battle-button" data-command="open-dev-inspector">DEV</button>'
-                : ""
-            }
-            <button class="pause-battle-button" data-command="pause-battle">PAUSE</button>
-          </div>
-        </header>
-        <section class="battle-drawer" aria-label="Battle">
-          <aside class="bench-rail player-bench" aria-label="Your Lineup">
-            <h2>Your Lineup</h2>
-            <div data-player-bench></div>
-          </aside>
-          <section class="arena-specimen">
-            <div class="fighter-readout player-readout" data-player-readout></div>
-            <div class="fighter-readout enemy-readout" data-enemy-readout></div>
-            <div class="arena-canvas" id="battle-canvas" aria-hidden="true"></div>
-            <div class="matchup-stamp" data-matchup></div>
-            <div class="combat-log" aria-live="polite" data-combat-log></div>
-            <div class="battle-loading" data-battle-loading role="status">
-              Preparing print
-            </div>
-          </section>
-          <aside class="bench-rail enemy-bench" aria-label="Enemy Lineup">
-            <h2>Enemy Lineup</h2>
-            <div data-enemy-bench></div>
-          </aside>
-          <section class="command-deck" aria-label="Moves and player Charge">
-            <div class="player-charge-deck">
-              <div class="charge-deck-heading">
-                <span>Your Charge</span>
-                <strong data-player-charge-value>0 / 100</strong>
-              </div>
-              <div class="charge-control-field">
-                <section
-                  class="action-tray"
-                  aria-label="Moves integrated with Charge"
-                  data-action-tray
-                ></section>
-                <div
-                  class="meter charge-meter command-charge-meter"
-                  role="meter"
-                  aria-label="Player Charge"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
-                  aria-valuenow="0"
-                  data-player-charge-meter
-                >
-                  <span data-player-charge-fill></span>
-                </div>
-                <div class="charge-scale" aria-hidden="true">
-                  <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
-                </div>
-              </div>
-            </div>
-          </section>
-        </section>
-        <section
-          class="battle-overlay"
-          data-battle-overlay
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="battle-overlay-title"
-          hidden
-        ></section>
-        <section
-          class="battle-result"
-          data-battle-result
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="battle-result-title"
-          hidden
-        ></section>
-        <div class="sr-only" aria-live="polite" id="announcer"></div>
-      </main>
-    `;
+    this.#root.innerHTML = renderBattleScreen(this.battleScreenModel());
 
     const canvasParent =
       this.#root.querySelector<HTMLElement>("#battle-canvas");
@@ -2642,6 +1229,26 @@ export class App {
       .then(() => this.updateNowPlaying());
   }
 
+  private battleScreenModel(): BattleScreenModel {
+    const roundLabel = this.#isTournamentFight
+      ? `CHEAP SEATS · ROUND ${this.#tournamentRoundIndex + 1} · ${cheapSeatsEncounter(this.#tournamentRoundIndex).title.toUpperCase()}`
+      : this.#isDevFight && this.#devScenario
+        ? `DEV LAB · ${this.#devScenario.name.toUpperCase()}`
+        : this.#isQuickFight
+          ? `QUICK FIGHT · ${this.#quickPlayerIds.length} VS ${this.#quickEnemyIds.length}`
+          : firstRunEncounter(this.#storyBattleNodeId).railLabel;
+
+    return {
+      roundLabel,
+      difficultyOptions: renderDifficultyOptions(
+        this.#battle?.difficulty ?? this.#preferences.difficulty,
+        true,
+      ),
+      musicPlaybackEnabled: this.#preferences.musicPlaybackEnabled,
+      devToolsEnabled: DEV_TOOLS_ENABLED,
+    };
+  }
+
   private async mountBattleGame(canvasParent: HTMLElement): Promise<void> {
     const { createBattleGame } = await import("../game/create-game");
     if (
@@ -2657,7 +1264,6 @@ export class App {
       if (this.#battle) {
         scene.setSnapshot(this.#battle);
       }
-      this.#battleReady = true;
       this.#lastFrameAt = performance.now();
       scene.setSimulationPaused(this.#battlePaused);
       const loading = this.#root.querySelector<HTMLElement>(
@@ -2666,8 +1272,110 @@ export class App {
       if (loading) {
         loading.hidden = true;
       }
-      this.updateBattleOverlay();
+      if (this.#isDevFight && this.#battlePaused) {
+        this.activateBattle();
+        this.updateBattleOverlay();
+      } else {
+        this.startBattleCountdown();
+      }
     });
+  }
+
+  private startBattleCountdown(): void {
+    window.clearTimeout(this.#battleCountdownTimer);
+    this.#battleCountdownTimer = 0;
+    this.#battleReady = false;
+    this.setBattlePhase("countdown");
+    const panel = this.#root.querySelector<HTMLElement>(
+      "[data-battle-countdown]",
+    );
+    const label = panel?.querySelector<HTMLElement>("[data-countdown-label]");
+    const note = panel?.querySelector<HTMLElement>("span");
+    if (panel) {
+      panel.hidden = false;
+    }
+
+    let index = 0;
+    const showBeat = (): void => {
+      if (!this.#battle || this.#route !== "battle") {
+        return;
+      }
+      const beat = BATTLE_COUNTDOWN[index];
+      if (!beat) {
+        this.activateBattle();
+        return;
+      }
+      if (label) {
+        label.textContent = beat.label;
+      }
+      if (note) {
+        note.textContent = beat.label === "FIGHT" ? "Fight!" : "Stand by";
+      }
+      panel?.classList.remove("is-beat");
+      void panel?.offsetWidth;
+      panel?.classList.add("is-beat");
+      this.#battleScene?.presentCountdownBeat(beat.label);
+      index += 1;
+      this.#battleCountdownTimer = window.setTimeout(showBeat, beat.durationMs);
+    };
+
+    showBeat();
+  }
+
+  private activateBattle(): void {
+    window.clearTimeout(this.#battleCountdownTimer);
+    this.#battleCountdownTimer = 0;
+    this.#battleReady = true;
+    this.#battlePresentationLockedUntil = 0;
+    this.#lastFrameAt = performance.now();
+    this.#lastAiAt = this.#lastFrameAt;
+    this.setBattlePhase(this.#battlePaused ? "paused" : "active");
+    const countdown = this.#root.querySelector<HTMLElement>(
+      "[data-battle-countdown]",
+    );
+    if (countdown) {
+      countdown.hidden = true;
+    }
+    const pause = this.#root.querySelector<HTMLButtonElement>(
+      '[data-command="pause-battle"]',
+    );
+    if (pause) {
+      pause.disabled = false;
+    }
+    this.updateBattleView();
+    this.announce("Fight.");
+  }
+
+  private setBattlePhase(
+    phase: "loading" | "countdown" | "active" | "presenting" | "paused",
+  ): void {
+    const screen = this.#root.querySelector<HTMLElement>(".battle-stage");
+    if (!screen) {
+      return;
+    }
+    screen.dataset.battlePhase = phase;
+    screen.setAttribute(
+      "aria-busy",
+      String(
+        phase === "loading" || phase === "countdown" || phase === "presenting",
+      ),
+    );
+  }
+
+  private isBattlePresentationLocked(now = performance.now()): boolean {
+    return this.#battlePresentationLockedUntil > now;
+  }
+
+  private lockBattlePresentation(durationMs: number): void {
+    if (durationMs <= 0 || this.#battlePaused) {
+      return;
+    }
+    this.#battlePresentationLockedUntil = Math.max(
+      this.#battlePresentationLockedUntil,
+      performance.now() + durationMs,
+    );
+    this.#battleViewDirty = true;
+    this.setBattlePhase("presenting");
   }
 
   private startTournamentBattle(): void {
@@ -2699,7 +1407,12 @@ export class App {
       if (!run || run.caseBuilds.length > 0) {
         continue;
       }
-      this.#save[field] = lockCheapSeatsCase(run, this.tournamentCaseBuilds());
+      this.#save[field] = lockCheapSeatsCase(
+        run,
+        this.tournamentCaseBuilds(
+          field === "tournamentRun" ? "story" : "standalone",
+        ),
+      );
       changed = true;
     }
     if (changed) {
@@ -2784,14 +1497,14 @@ export class App {
     const playerIds = devScenario
       ? devScenario.playerCharacterIds
       : quick
-        ? [this.#quickPlayerId]
+        ? this.#quickPlayerIds
         : tournament
           ? tournamentRun.caseBuilds.map((build) => build.characterId)
           : storyEncounter.playerCharacterIds;
     const enemyIds = devScenario
       ? devScenario.enemyCharacterIds
       : quick
-        ? [this.#quickEnemyId]
+        ? this.#quickEnemyIds
         : tournament
           ? tournamentEncounter.enemyCharacterIds
           : storyEncounter.enemyCharacterIds;
@@ -2807,10 +1520,18 @@ export class App {
       : quick
         ? this.quickFightBuilds(enemyIds, "enemy")
         : undefined;
-    const quickSeed =
-      20_261_000 +
-      Object.keys(combatContent.characters).indexOf(this.#quickPlayerId) * 10 +
-      Object.keys(combatContent.characters).indexOf(this.#quickEnemyId);
+    const quickSeed = [
+      ...this.#quickPlayerIds,
+      "versus",
+      ...this.#quickEnemyIds,
+    ]
+      .join(".")
+      .split("")
+      .reduce(
+        (seed, character) =>
+          Math.imul(seed ^ character.charCodeAt(0), 16_777_619) >>> 0,
+        2_026_100,
+      );
     const created = createBattle(
       {
         playerCharacterIds: playerIds,
@@ -2819,8 +1540,7 @@ export class App {
         enemyBuilds,
         playerStartingBar: devScenario
           ? devScenario.playerStartingBar + openingChargeBonus(playerBuilds)
-          : 22 +
-            openingChargeBonus(playerBuilds) +
+          : openingChargeBonus(playerBuilds) +
             (tournament ? tournamentRun.nextRoundChargeBonus : 0),
         enemyStartingBar: devScenario
           ? devScenario.enemyStartingBar + openingChargeBonus(enemyBuilds ?? [])
@@ -2856,20 +1576,12 @@ export class App {
         : tournament
           ? `tournament.cheap-seats.round-${tournamentEncounter.roundIndex + 1}`
           : quick
-            ? `quick.${this.#quickPlayerId}.vs.${this.#quickEnemyId}`
+            ? `quick.${this.#quickPlayerIds.join("+")}.vs.${this.#quickEnemyIds.join("+")}`
             : storyEncounter.nodeId,
     });
     this.#battleReportArchived = false;
     this.#battleReward = null;
-    this.#eventLog = [
-      tournament
-        ? `${tournamentEncounter.title} is live. Case damage carries.`
-        : devScenario
-          ? `${devScenario.name} loaded. Development sandbox; progression is isolated.`
-          : quick
-            ? "Quick Fight is live. Sandbox results do not change Story progress."
-            : "The print is live. Spend Charge or switch Relics.",
-    ];
+    this.#eventLog = [];
     this.#battleHandled = false;
     this.#route = "battle";
     this.render();
@@ -2884,14 +1596,7 @@ export class App {
       if (!definition) {
         throw new Error(`Missing character definition: ${characterId}`);
       }
-      return {
-        instanceId: `quick.${side}.${index}.${characterId}`,
-        level: definition.level,
-        actionIds: definition.actionIds,
-        actionTiers: Object.fromEntries(
-          definition.actionIds.map((actionId) => [actionId, "stock"]),
-        ),
-      };
+      return createStandardBuild(definition, side, index);
     });
   }
 
@@ -2918,8 +1623,16 @@ export class App {
     });
   }
 
-  private tournamentCaseBuilds(): TournamentCaseBuild[] {
-    return this.playerBuilds([...cheapSeatsPlayerIds]).map((build, index) => {
+  private tournamentCaseBuilds(
+    origin: "story" | "standalone" = this.#sessionMode === "story"
+      ? "story"
+      : "standalone",
+  ): TournamentCaseBuild[] {
+    const builds =
+      origin === "story"
+        ? this.playerBuilds([...cheapSeatsPlayerIds])
+        : this.quickFightBuilds([...cheapSeatsPlayerIds], "player");
+    return builds.map((build, index) => {
       const characterId = cheapSeatsPlayerIds[index];
       if (!characterId) {
         throw new Error(`Missing Cheap Seats Case character at ${index}`);
@@ -2956,7 +1669,11 @@ export class App {
   private stopBattle(): void {
     this.archiveCurrentBattleReport();
     cancelAnimationFrame(this.#animationFrame);
+    window.clearTimeout(this.#battleCountdownTimer);
     this.#animationFrame = 0;
+    this.#battleCountdownTimer = 0;
+    this.#battlePresentationLockedUntil = 0;
+    this.#battleViewDirty = false;
     this.#phaserGame?.destroy(true);
     this.#phaserGame = null;
     this.#battleScene = null;
@@ -2993,12 +1710,29 @@ export class App {
       this.#animationFrame = requestAnimationFrame(this.battleLoop);
       return;
     }
+    if (this.isBattlePresentationLocked(now)) {
+      this.#lastFrameAt = now;
+      this.#animationFrame = requestAnimationFrame(this.battleLoop);
+      return;
+    }
+    if (this.#battlePresentationLockedUntil > 0) {
+      this.#battlePresentationLockedUntil = 0;
+      this.setBattlePhase("active");
+      if (this.#battleViewDirty) {
+        this.#battleViewDirty = false;
+        this.updateBattleView();
+      }
+    }
     const delta = Math.min(
       250,
       (now - this.#lastFrameAt) * this.#battleTimeScale,
     );
     this.#lastFrameAt = now;
     this.applyTransition(tickBattle(this.#battle, delta, combatContent));
+    if (this.isBattlePresentationLocked(now)) {
+      this.#animationFrame = requestAnimationFrame(this.battleLoop);
+      return;
+    }
 
     if (
       this.#battle.outcome === "active" &&
@@ -3016,6 +1750,10 @@ export class App {
           requestSwitch(this.#battle, "enemy", command.targetIndex),
         );
       }
+    }
+    if (this.isBattlePresentationLocked(now)) {
+      this.#animationFrame = requestAnimationFrame(this.battleLoop);
+      return;
     }
 
     if (now - this.#lastUiAt >= 70) {
@@ -3037,7 +1775,12 @@ export class App {
   }
 
   private openBattlePause(): void {
-    if (!this.#battle || this.#battle.outcome !== "active") {
+    if (
+      !this.#battle ||
+      !this.#battleReady ||
+      this.isBattlePresentationLocked() ||
+      this.#battle.outcome !== "active"
+    ) {
       return;
     }
     this.captureBattleOverlayOpener();
@@ -3120,6 +1863,7 @@ export class App {
     this.#lastFrameAt = performance.now();
     this.#lastAiAt = this.#lastFrameAt;
     this.#battleScene?.setSimulationPaused(paused);
+    this.setBattlePhase(paused ? "paused" : "active");
     if (this.#battleReport) {
       this.#battleReport = recordBattleDebugAction(
         this.#battleReport,
@@ -3371,12 +2115,25 @@ export class App {
     }
     this.#battle = transition.state;
     this.#battleScene?.setSnapshot(transition.state);
-    this.#battleScene?.present(transition.events);
+    this.updateChargeRails();
+    const presentationMs = battlePresentationDuration(transition.events);
+    if (!this.#battlePaused) {
+      this.#battleScene?.present(transition.events, presentationMs);
+      this.lockBattlePresentation(presentationMs);
+      if (presentationMs > 0) {
+        this.updateActions();
+      }
+    }
     for (const event of transition.events) {
       if (event.type === "actionStarted" && event.actionId) {
         const audioId = combatContent.actions[event.actionId]?.audioId;
+        const action = combatContent.actions[event.actionId];
+        const source = this.characterNameFromInstance(event.sourceId);
         if (audioId) {
           this.#audio.playSfx(audioId);
+        }
+        if (action) {
+          this.announce(`${source} uses ${action.name}.`);
         }
       }
     }
@@ -3388,6 +2145,7 @@ export class App {
       !this.#battle ||
       !this.#battleReady ||
       this.#battlePaused ||
+      this.isBattlePresentationLocked() ||
       this.#battle.outcome !== "active"
     ) {
       return;
@@ -3406,7 +2164,9 @@ export class App {
     this.applyTransition(
       requestAction(this.#battle, side, actionId, combatContent),
     );
-    this.updateBattleView();
+    if (!this.isBattlePresentationLocked()) {
+      this.updateBattleView();
+    }
   }
 
   private playerSwitch(side: Side, index: number): void {
@@ -3414,6 +2174,7 @@ export class App {
       !this.#battle ||
       !this.#battleReady ||
       this.#battlePaused ||
+      this.isBattlePresentationLocked() ||
       this.#battle.outcome !== "active"
     ) {
       return;
@@ -3430,7 +2191,9 @@ export class App {
       );
     }
     this.applyTransition(requestSwitch(this.#battle, side, index));
-    this.updateBattleView();
+    if (!this.isBattlePresentationLocked()) {
+      this.updateBattleView();
+    }
   }
 
   private logEvents(events: BattleEvent[]): void {
@@ -3462,7 +2225,7 @@ export class App {
         this.#eventLog.unshift(message);
       }
     }
-    this.#eventLog = this.#eventLog.slice(0, 3);
+    this.#eventLog = this.#eventLog.slice(0, 1);
   }
 
   private characterNameFromInstance(instanceId?: string): string {
@@ -3490,7 +2253,7 @@ export class App {
     }
     this.updateTeamReadout("player");
     this.updateTeamReadout("enemy");
-    this.updatePlayerChargeDeck();
+    this.updateChargeRails();
     this.updateBench("player");
     this.updateBench("enemy");
     this.updateActions();
@@ -3528,7 +2291,7 @@ export class App {
     const statusLabels = combatant.statuses
       .map((status) => `<span>${formatClass(status.kind)}</span>`)
       .join("");
-    target.innerHTML = `
+    const markup = `
       <div class="readout-heading">
         <div>
           <span>${side === "player" ? "Active print" : "Target print"}</span>
@@ -3548,24 +2311,6 @@ export class App {
         aria-valuemax="${combatant.maxHealth}"
         aria-valuenow="${combatant.currentHealth}"
       ><span style="--meter-scale:${healthPercent / 100}"></span></div>
-      ${
-        side === "enemy"
-          ? `
-            <div class="meter-label">
-              <span>Enemy Charge</span>
-              <strong>${Math.floor(team.bar)}/100</strong>
-            </div>
-            <div
-              class="meter charge-meter"
-              role="meter"
-              aria-label="Enemy Charge"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-valuenow="${Math.floor(team.bar)}"
-            ><span style="--meter-scale:${team.bar / 100}"></span></div>
-          `
-          : ""
-      }
       <div class="pending-move ${pendingAction ? "is-active" : ""}">
         <span>${pendingAction ? "Pending Move" : "Move state"}</span>
         <strong>${
@@ -3577,32 +2322,44 @@ export class App {
             : "Ready for command"
         }</strong>
       </div>
-      <div class="status-row">${statusLabels || "<span>Clear</span>"}</div>
+      <div class="status-row ${statusLabels ? "is-active" : ""}">${statusLabels}</div>
     `;
+    this.setStableMarkup(target, markup);
   }
 
-  private updatePlayerChargeDeck(): void {
+  private updateChargeRails(): void {
     if (!this.#battle) {
       return;
     }
-    const value = Math.floor(this.#battle.player.bar);
-    const label = this.#root.querySelector<HTMLElement>(
-      "[data-player-charge-value]",
-    );
-    const meter = this.#root.querySelector<HTMLElement>(
-      "[data-player-charge-meter]",
-    );
-    const fill = this.#root.querySelector<HTMLElement>(
-      "[data-player-charge-fill]",
-    );
-    if (label) {
-      label.textContent = `${value} / 100`;
-    }
-    if (meter) {
-      meter.setAttribute("aria-valuenow", String(value));
-    }
-    if (fill) {
-      fill.style.setProperty("--meter-scale", String(value / 100));
+
+    for (const side of ["player", "enemy"] as const) {
+      const exactValue = this.#battle[side].bar;
+      const displayValue = Math.floor(exactValue);
+      const label = this.#root.querySelector<HTMLElement>(
+        `[data-${side}-charge-value]`,
+      );
+      const meter = this.#root.querySelector<HTMLElement>(
+        `[data-${side}-charge-meter]`,
+      );
+      const fill = this.#root.querySelector<HTMLElement>(
+        `[data-${side}-charge-fill]`,
+      );
+      const nextLabel = `${displayValue} / 100`;
+      if (label && label.textContent !== nextLabel) {
+        label.textContent = nextLabel;
+      }
+      if (
+        meter &&
+        meter.getAttribute("aria-valuenow") !== String(displayValue)
+      ) {
+        meter.setAttribute("aria-valuenow", String(displayValue));
+      }
+      if (fill) {
+        fill.style.transform = `scaleX(${Math.max(
+          0,
+          Math.min(1, exactValue / 100),
+        )})`;
+      }
     }
   }
 
@@ -3732,8 +2489,10 @@ export class App {
       const stunned = active.statuses.some(
         (status) => status.kind === "stun" && status.remainingMs > 0,
       );
+      const presentationLocked = this.isBattlePresentationLocked();
       const available =
         this.#battleReady &&
+        !presentationLocked &&
         this.#battle.player.bar >= rule.cost &&
         !pending &&
         !stunned &&
@@ -3752,14 +2511,16 @@ export class App {
       const stateLabel = charging
         ? `Charging ${Math.max(0, pending.remainingMs / 1000).toFixed(1)}s`
         : !this.#battleReady
-          ? "Preparing"
-          : stunned
-            ? "Stunned"
-            : available
-              ? "Ready"
-              : this.#battle.outcome === "active"
-                ? `${remainingCharge} to go`
-                : "Fight ended";
+          ? "Stand by"
+          : presentationLocked
+            ? "Resolving"
+            : stunned
+              ? "Stunned"
+              : available
+                ? `READY · PRESS ${index + 1}`
+                : this.#battle.outcome === "active"
+                  ? `${remainingCharge} to go`
+                  : "Fight ended";
       button.classList.toggle("is-available", available);
       button.classList.toggle("is-unavailable", !available);
       button.classList.toggle("is-charging", charging);
@@ -4037,12 +2798,12 @@ export class App {
               : this.#isDevFight
                 ? `${this.#devScenario?.name ?? "Development scenario"}: player side wins.`
                 : this.#isQuickFight
-                  ? `${combatContent.characters[this.#quickPlayerId]!.name} wins the sandbox.`
+                  ? `${combatContent.characters[this.#quickPlayerIds[0]!]!.name}'s Lineup wins the sandbox.`
                   : storyEncounter.victoryTitle
             : this.#isDevFight
               ? `${this.#devScenario?.name ?? "Development scenario"}: enemy side wins.`
               : this.#isQuickFight
-                ? `${combatContent.characters[this.#quickEnemyId]!.name} takes the print.`
+                ? `${combatContent.characters[this.#quickEnemyIds[0]!]!.name}'s Lineup takes the print.`
                 : "Partial credit. Full grudge."
         }</h2>
         <p>

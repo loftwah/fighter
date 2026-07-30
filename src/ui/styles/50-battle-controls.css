@@ -1,0 +1,644 @@
+/* Charge-first battle control */
+
+.battle-loading {
+  position: absolute;
+  z-index: 12;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--indigo-deep);
+  color: var(--yellow);
+  font-family: var(--display);
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.battle-loading[hidden] {
+  display: none;
+}
+
+.player-charge-deck {
+  padding: 0.45rem 0.9rem 0.65rem;
+  overflow: visible;
+}
+
+.charge-control-field {
+  position: relative;
+  min-height: 8.4rem;
+  padding-top: 6.4rem;
+}
+
+.command-deck .action-tray {
+  position: absolute;
+  z-index: 4;
+  inset: 0 0 auto;
+  display: block;
+  height: 7rem;
+  pointer-events: none;
+}
+
+.charge-move {
+  position: absolute;
+  bottom: 0.72rem;
+  left: var(--action-threshold);
+  display: grid;
+  width: 7.5rem;
+  min-height: 6.45rem;
+  justify-items: center;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--ink);
+  pointer-events: auto;
+  text-align: center;
+  transform: translateX(-50%);
+}
+
+.charge-move::after {
+  position: absolute;
+  bottom: -0.85rem;
+  left: 50%;
+  width: 3px;
+  height: 1.1rem;
+  background: var(--ink);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.charge-move-seal {
+  position: relative;
+  display: grid;
+  width: 4.9rem;
+  height: 4.9rem;
+  place-content: center;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  background: var(--paper-muted);
+  box-shadow: 0.2rem 0.28rem 0 var(--ink);
+  line-height: 0.9;
+  transition:
+    transform 100ms ease,
+    background 100ms ease;
+}
+
+.charge-move.tier-1 .charge-move-seal {
+  box-shadow:
+    0 0 0 4px #b9c3cc,
+    0.22rem 0.3rem 0 4px var(--ink);
+}
+
+.charge-move.tier-2 .charge-move-seal {
+  box-shadow:
+    0 0 0 4px #e2b531,
+    0.22rem 0.3rem 0 4px var(--ink);
+}
+
+.charge-move-key {
+  position: absolute;
+  top: 0.15rem;
+  left: 50%;
+  font-size: 0.58rem;
+  font-weight: 700;
+  transform: translateX(-50%);
+}
+
+.charge-move-seal strong {
+  font-family: var(--display);
+  font-size: 2.15rem;
+}
+
+.charge-move-seal small {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.charge-move-name {
+  width: 100%;
+  margin-top: 0.25rem;
+  overflow: hidden;
+  font-family: var(--display);
+  font-size: 1.15rem;
+  line-height: 0.92;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.charge-move-state,
+.charge-move-tier,
+.charge-move-output {
+  display: inline-block;
+  padding: 0.05rem 0.24rem;
+  background: var(--indigo);
+  color: var(--chalk);
+  font-size: 0.57rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.charge-move-output {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--chalk);
+  font-size: 0.55rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.charge-move-tier {
+  position: absolute;
+  top: 3.75rem;
+  right: -0.2rem;
+  background: var(--chalk);
+  color: var(--ink);
+}
+
+.charge-move.is-available .charge-move-seal {
+  background: var(--tomato);
+  color: var(--chalk);
+  transform: translateY(-0.18rem);
+}
+
+.charge-move.is-available .charge-move-state {
+  background: var(--tomato);
+}
+
+.charge-move.is-charging .charge-move-seal {
+  background: var(--yellow);
+  color: var(--ink);
+  animation: move-windup 500ms steps(2, end) infinite;
+}
+
+.charge-move:hover .charge-move-seal,
+.charge-move:focus-visible .charge-move-seal {
+  transform: translateY(-0.25rem) rotate(-2deg);
+}
+
+.charge-move:focus-visible {
+  outline-offset: 0.2rem;
+}
+
+.charge-move .action-tooltip {
+  right: -2rem;
+  bottom: calc(100% + 0.45rem);
+  left: -2rem;
+  width: 11.5rem;
+  text-align: left;
+}
+
+.charge-move:hover .action-tooltip,
+.charge-move:focus-visible .action-tooltip {
+  display: grid;
+}
+
+.command-charge-meter {
+  position: relative;
+  z-index: 2;
+  height: 2rem;
+  border-width: 4px;
+  overflow: visible;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--indigo-deep) 0 calc(25% - 2px),
+    rgb(247 240 221 / 58%) calc(25% - 2px) 25%
+  );
+}
+
+.command-charge-meter::after {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 0 2px rgb(247 240 221 / 18%);
+  content: "";
+  pointer-events: none;
+}
+
+.command-charge-meter span {
+  background: linear-gradient(90deg, var(--yellow), #fff083);
+}
+
+.charge-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.18rem;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.pending-move {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+  border-top: 2px dashed var(--ink);
+  padding-top: 0.25rem;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+}
+
+.pending-move strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pending-move.is-active {
+  color: var(--tomato-dark);
+}
+
+@keyframes move-windup {
+  50% {
+    transform: translateY(-0.22rem) rotate(2deg);
+  }
+}
+
+/* Pause menu and live development inspector */
+
+.battle-overlay {
+  position: fixed;
+  z-index: 110;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  overflow: auto;
+  background: rgb(9 17 40 / 92%);
+}
+
+.battle-overlay[hidden] {
+  display: none;
+}
+
+.pause-sheet,
+.dev-inspector-sheet {
+  width: min(38rem, 100%);
+  border: 6px solid var(--ink);
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+  background: var(--yellow);
+  color: var(--ink);
+  box-shadow: 0.7rem 0.9rem 0 var(--tomato);
+}
+
+.pause-sheet > span,
+.dev-inspector-sheet header span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pause-sheet h2,
+.dev-inspector-sheet h2 {
+  margin: 0.35rem 0 0.6rem;
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 8vw, 5.5rem);
+  line-height: 0.85;
+  text-transform: uppercase;
+}
+
+.pause-actions,
+.dev-inspector-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.pause-sheet > small {
+  display: block;
+  margin-top: 1rem;
+  border-top: 2px dashed var(--ink);
+  padding-top: 0.55rem;
+  font-weight: 700;
+}
+
+.dev-inspector-sheet {
+  width: min(72rem, 100%);
+  padding: 1rem;
+  background: var(--chalk);
+  box-shadow: 0.7rem 0.9rem 0 var(--yellow);
+}
+
+.dev-inspector-sheet header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.dev-inspector-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-block: 3px dashed var(--ink);
+  padding-block: 0.55rem;
+}
+
+.dev-inspector-sheet h2 {
+  font-size: 3.4rem;
+}
+
+.dev-inspector-grid {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1.2fr;
+  gap: 0.7rem;
+  margin-block: 0.8rem;
+}
+
+.dev-inspector-grid > section {
+  min-width: 0;
+  border: 3px solid var(--ink);
+  padding: 0.7rem;
+}
+
+.dev-inspector-grid h3 {
+  margin-bottom: 0.55rem;
+  font-family: var(--display);
+  font-size: 1.7rem;
+  text-transform: uppercase;
+}
+
+.dev-state-summary {
+  display: grid;
+  margin: 0 0 0.7rem;
+}
+
+.dev-state-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  border-bottom: 1px dashed var(--ink);
+  padding: 0.22rem;
+}
+
+.dev-state-summary dt {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.dev-state-summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+.dev-inspector-actions {
+  display: grid;
+}
+
+.dev-event-list {
+  display: grid;
+  max-height: 21rem;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.dev-event-list li {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(6rem, auto) minmax(0, 1fr);
+  gap: 0.4rem;
+  border-bottom: 1px dashed var(--ink);
+  padding-bottom: 0.25rem;
+}
+
+.dev-event-list small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dev-raw-state pre {
+  max-height: 21rem;
+  margin: 0;
+  overflow: auto;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 1180px) {
+  .dev-preset-grid {
+    grid-template-columns: repeat(3, minmax(10rem, 1fr));
+  }
+
+  .dev-workbench {
+    grid-template-columns: minmax(32rem, 1fr) minmax(15rem, 0.4fr);
+  }
+
+  .dev-config-grid {
+    grid-template-columns: repeat(3, minmax(8rem, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .dev-lab {
+    padding: 1.1rem 1.1rem 6rem;
+  }
+
+  .dev-lab-heading,
+  .dev-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-environment-stamp {
+    justify-self: start;
+  }
+
+  .dev-preset-grid {
+    grid-template-columns: repeat(2, minmax(9rem, 1fr));
+  }
+
+  .dev-config-grid {
+    grid-template-columns: repeat(2, minmax(8rem, 1fr));
+  }
+
+  .dev-inspector-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dev-raw-state {
+    grid-column: 1 / -1;
+  }
+
+  .battle-rail .now-playing {
+    display: none;
+  }
+
+  .charge-control-field {
+    min-height: 8rem;
+    padding-top: 6.1rem;
+  }
+
+  .charge-move {
+    width: 6.5rem;
+  }
+
+  .charge-move-seal {
+    width: 4.5rem;
+    height: 4.5rem;
+  }
+}
+
+@media (max-width: 620px) {
+  .dev-rail-button {
+    min-width: 3.25rem;
+    padding-inline: 0.45rem;
+    font-size: 1rem;
+  }
+
+  .dev-launch-ticket {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dev-lab-heading h1 {
+    font-size: 3.65rem;
+  }
+
+  .dev-preset-grid,
+  .dev-config-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-preset-ticket {
+    min-height: 7.5rem;
+  }
+
+  .dev-versus-builder {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-versus-mark {
+    justify-self: center;
+  }
+
+  .dev-config-grid .dev-seed-field {
+    grid-column: auto;
+  }
+
+  .dev-launch-actions,
+  .dev-inspector-sheet header,
+  .dev-inspector-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dev-launch-actions button,
+  .dev-inspector-toolbar button {
+    width: 100%;
+  }
+
+  .battle-rail {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .battle-rail-tools {
+    min-width: 0;
+  }
+
+  .dev-battle-button,
+  .pause-battle-button {
+    min-width: 3.1rem;
+    padding-inline: 0.35rem;
+    font-size: 0.92rem;
+  }
+
+  .timer-ticket {
+    min-width: 4.4rem;
+    gap: 0.3rem;
+  }
+
+  .timer-ticket span {
+    display: none;
+  }
+
+  .charge-deck-heading strong {
+    font-size: 1.5rem;
+  }
+
+  .charge-control-field {
+    min-height: 7.6rem;
+    padding-top: 5.75rem;
+  }
+
+  .charge-move {
+    width: 5rem;
+    min-height: 6.2rem;
+  }
+
+  .charge-move-seal {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-width: 3px;
+  }
+
+  .charge-move-seal strong {
+    font-size: 1.5rem;
+  }
+
+  .charge-move-name {
+    width: 4.6rem;
+    font-size: 0.85rem;
+  }
+
+  .charge-move-state,
+  .charge-move-tier,
+  .charge-move-output {
+    font-size: 0.5rem;
+  }
+
+  .charge-move-tier {
+    top: 2.25rem;
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .charge-move-output {
+    width: 4.6rem;
+  }
+
+  .dev-raw-state pre {
+    max-height: 11rem;
+  }
+
+  .command-charge-meter {
+    height: 1.75rem;
+  }
+
+  .pending-move {
+    display: none;
+  }
+
+  .battle-overlay {
+    align-items: start;
+    padding: 0.7rem;
+  }
+
+  .dev-inspector-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dev-raw-state {
+    grid-column: auto;
+  }
+
+  .pause-sheet,
+  .dev-inspector-sheet {
+    border-width: 4px;
+    padding: 0.85rem;
+  }
+
+  .pause-sheet h2,
+  .dev-inspector-sheet h2 {
+    font-size: 3rem;
+  }
+}

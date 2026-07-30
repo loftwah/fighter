@@ -155,6 +155,22 @@ export function resolveImagePath(id: string): string {
 
 export const fallbackImagePath = placeholderClass;
 
+export interface VideoAsset {
+  id: string;
+  path: string | null;
+}
+
+export const videoAssets: Record<string, VideoAsset> = {
+  "video.intro.first-print": {
+    id: "video.intro.first-print",
+    path: null,
+  },
+};
+
+export function resolveVideoPath(id: string): string | null {
+  return videoAssets[id]?.path ?? null;
+}
+
 export function nextImageFallback(
   id: string,
 ): { id: string; path: string } | null {

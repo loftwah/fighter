@@ -1,0 +1,430 @@
+/* Launcher and explicit game contexts */
+
+.collector-chip,
+.exit-mode-button {
+  display: flex;
+  align-items: center;
+  border: 0;
+  border-left: 3px solid var(--ink);
+  padding: 0.55rem 0.85rem;
+  background: var(--paper-muted);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.exit-mode-button {
+  background: var(--indigo);
+  color: var(--chalk);
+}
+
+.primary-nav.is-global-nav {
+  max-width: 34rem;
+}
+
+.main-menu {
+  min-height: calc(100vh - 4.8rem);
+  padding: clamp(1.5rem, 3vw, 3rem);
+  background:
+    linear-gradient(rgb(9 17 40 / 82%), rgb(9 17 40 / 96%)),
+    url("/assets/generated/tournament-bg.png") center / cover fixed;
+  color: var(--chalk);
+}
+
+.main-menu-intro {
+  display: grid;
+  grid-template-columns: minmax(20rem, 1fr) minmax(18rem, 34rem);
+  gap: 2rem;
+  align-items: end;
+  margin-bottom: 1.25rem;
+}
+
+.main-menu-intro h1 {
+  max-width: 8ch;
+  margin-bottom: 0;
+  font-family: var(--display);
+  font-size: clamp(4rem, 7vw, 5.4rem);
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.main-menu-intro p {
+  margin-bottom: 0.4rem;
+  font-size: 1.08rem;
+}
+
+.mode-launcher {
+  display: grid;
+  grid-template-columns: minmax(32rem, 1.35fr) minmax(20rem, 0.65fr);
+  gap: 1rem;
+}
+
+.mode-bill {
+  position: relative;
+  border: 5px solid var(--ink);
+  background: var(--chalk);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.mode-story {
+  display: grid;
+  min-height: 30rem;
+  grid-template-columns: minmax(15rem, 0.9fr) minmax(20rem, 1.1fr);
+}
+
+.mode-art {
+  min-height: 15rem;
+  background-color: var(--indigo-soft);
+  background-position: center;
+  background-size: cover;
+}
+
+.mode-art-story {
+  background-image: url("/assets/generated/story-bg.png");
+}
+
+.mode-art-tournament {
+  min-height: 11rem;
+  border-bottom: 4px solid var(--ink);
+  background-image: url("/assets/generated/tournament-bg.png");
+}
+
+.mode-copy {
+  display: grid;
+  align-content: center;
+  gap: 1rem;
+  padding: clamp(1.25rem, 3vw, 2.6rem);
+}
+
+.mode-copy h2 {
+  max-width: 10ch;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(3.2rem, 5vw, 5rem);
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.mode-copy p {
+  margin: 0;
+}
+
+.mode-copy dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 0;
+  border-block: 3px dashed var(--ink);
+}
+
+.mode-copy dl div {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.7rem 0;
+}
+
+.mode-copy dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mode-copy dd {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+}
+
+.mode-side-stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 1rem;
+}
+
+.mode-quick {
+  background: var(--yellow);
+}
+
+.mode-quick .mode-copy h2,
+.mode-tournament .mode-copy h2 {
+  font-size: clamp(2.8rem, 4vw, 4rem);
+}
+
+.mode-tournament {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.65fr) minmax(14rem, 1.35fr);
+}
+
+.mode-tournament .mode-art-tournament {
+  min-height: 100%;
+  border-right: 4px solid var(--ink);
+  border-bottom: 0;
+}
+
+.mode-side-stack .mode-copy {
+  padding: clamp(1rem, 2vw, 1.6rem);
+}
+
+.main-menu-profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  border: 4px solid var(--ink);
+  padding: 0.8rem;
+  background: var(--tomato);
+  color: var(--chalk);
+}
+
+.main-menu-profile > div {
+  display: grid;
+  flex: 1;
+}
+
+.main-menu-profile > div strong {
+  font-family: var(--display);
+  font-size: 1.8rem;
+  text-transform: uppercase;
+}
+
+.main-menu-profile button {
+  min-height: 2.8rem;
+  border: 3px solid var(--ink);
+  padding: 0.45rem 0.8rem;
+  background: var(--chalk);
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* Quick Fight */
+
+.quick-setup,
+.profile-sheet {
+  min-height: calc(100vh - 4.8rem);
+  padding: clamp(1.5rem, 3vw, 3rem);
+  background: var(--indigo);
+  color: var(--chalk);
+}
+
+.quick-heading {
+  display: grid;
+  grid-template-columns: minmax(20rem, 1fr) minmax(18rem, 34rem);
+  gap: 1.5rem 3rem;
+  align-items: end;
+  margin-bottom: 1rem;
+}
+
+.quick-heading .text-button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.quick-heading h1 {
+  max-width: 13ch;
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(4rem, 6vw, 5rem);
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.quick-heading p {
+  margin-bottom: 0.5rem;
+}
+
+.quick-versus {
+  display: grid;
+  grid-template-columns: minmax(18rem, 1fr) auto minmax(18rem, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.quick-pick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  border: 5px solid var(--ink);
+  padding: 1rem;
+  background: var(--tomato);
+  color: var(--chalk);
+  box-shadow: var(--shadow);
+}
+
+.quick-pick.is-enemy {
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.quick-pick > span,
+.quick-pick > select {
+  grid-column: 1 / -1;
+}
+
+.quick-pick select {
+  min-height: 3rem;
+  border: 3px solid var(--ink);
+  padding: 0.45rem;
+  background: var(--chalk);
+  color: var(--ink);
+}
+
+.quick-pick img {
+  width: min(100%, 22rem);
+  height: 14rem;
+  grid-column: 1 / -1;
+  justify-self: center;
+  object-fit: contain;
+  filter: drop-shadow(0.45rem 0.6rem 0 rgb(9 17 40 / 35%));
+}
+
+.quick-pick strong {
+  font-family: var(--display);
+  font-size: 2.8rem;
+  text-transform: uppercase;
+}
+
+.quick-pick small {
+  align-self: center;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.quick-versus > .versus-stamp {
+  position: static;
+  width: auto;
+  font-size: 3rem;
+  transform: rotate(-3deg);
+}
+
+.quick-footer {
+  display: flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1rem;
+  border: 4px solid var(--ink);
+  padding: 1rem;
+  background: var(--chalk);
+  color: var(--ink);
+}
+
+.quick-footer label {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.quick-footer select {
+  min-height: 3rem;
+  border: 3px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+}
+
+/* Profile and settings separation */
+
+.profile-sheet .section-heading {
+  align-items: start;
+}
+
+.profile-sheet .section-heading .text-button {
+  position: absolute;
+}
+
+.profile-sheet .section-heading h1 {
+  margin-top: 2rem;
+}
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(20rem, 0.75fr) minmax(24rem, 1.25fr);
+  gap: 1rem;
+}
+
+.profile-identity,
+.profile-record,
+.data-settings {
+  border: 5px solid var(--ink);
+  padding: 1.5rem;
+  background: var(--chalk);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+.profile-identity {
+  display: grid;
+  gap: 1rem;
+}
+
+.profile-identity legend,
+.settings-columns legend {
+  padding-inline: 0.4rem;
+  font-family: var(--display);
+  font-size: 2rem;
+  text-transform: uppercase;
+}
+
+.profile-identity label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.profile-identity input,
+.profile-identity select {
+  min-height: 3rem;
+  border: 3px solid var(--ink);
+  padding: 0.45rem;
+  background: #fff;
+  color: var(--ink);
+}
+
+.profile-record {
+  background: var(--yellow);
+}
+
+.profile-record h2 {
+  font-family: var(--display);
+  font-size: clamp(3rem, 5vw, 5rem);
+  line-height: 0.88;
+  text-transform: uppercase;
+}
+
+.profile-record dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 3px solid var(--ink);
+}
+
+.profile-record dl div {
+  display: grid;
+  border: 2px dashed var(--ink);
+  padding: 0.8rem;
+}
+
+.profile-record dt {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.profile-record dd {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 2rem;
+}
+
+.settings-columns {
+  grid-template-columns: repeat(2, minmax(20rem, 1fr));
+}
+
+.data-settings {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.data-settings p {
+  flex: 1;
+  margin: 0;
+}

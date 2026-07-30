@@ -1,5 +1,6 @@
 import { nextRandom, randomBetween } from "./rng";
 import {
+  chargePerSecond,
   classMultiplier,
   hasStatus,
   isAlive,
@@ -192,13 +193,13 @@ export function createBattle(
       "player",
       input.playerCharacterIds,
       input.playerBuilds,
-      input.playerStartingBar ?? 22,
+      input.playerStartingBar ?? 0,
     ),
     enemy: buildTeam(
       "enemy",
       input.enemyCharacterIds,
       input.enemyBuilds,
-      input.enemyStartingBar ?? 10,
+      input.enemyStartingBar ?? 0,
     ),
     pendingActions: {},
     eventSequence: 1,
@@ -755,8 +756,7 @@ function tickBar(
   deltaMs: number,
 ): void {
   const active = activeCombatant(team);
-  const synergyBonus = team.echoChargeBonus ? 0.08 : 0;
-  const perSecond = 8 * (1 + active.stats.tempo * 0.025 + synergyBonus);
+  const perSecond = chargePerSecond(active.stats.tempo, team.echoChargeBonus);
   const before = team.bar;
   team.bar = clamp(team.bar + perSecond * (deltaMs / 1000), 0, 100);
   if (Math.floor(team.bar) !== Math.floor(before)) {

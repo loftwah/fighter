@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-29T04:35:29Z",
+  "generatedAt": "2026-07-30T01:41:00Z",
   "title": "Design System: Riot Relics",
   "extensions": {
     "colorMeta": {
@@ -153,6 +153,21 @@
           "oklch(86% 0.091 222.8)",
           "oklch(95% 0.091 222.8)"
         ]
+      },
+      "charge-green": {
+        "role": "tertiary",
+        "displayName": "Charge Green",
+        "canonical": "#8eef5d",
+        "tonalRamp": [
+          "oklch(15% 0.18 137)",
+          "oklch(26% 0.18 137)",
+          "oklch(38% 0.18 137)",
+          "oklch(50% 0.18 137)",
+          "oklch(62% 0.18 137)",
+          "oklch(74% 0.18 137)",
+          "oklch(86% 0.18 137)",
+          "oklch(95% 0.18 137)"
+        ]
       }
     },
     "typographyMeta": {
@@ -217,13 +232,23 @@
       },
       {
         "name": "hit-nudge",
-        "value": "70ms Quad.easeOut",
-        "purpose": "A short directional impact displacement with yoyo return."
+        "value": "85ms Quad.easeOut, yoyo",
+        "purpose": "A short directional impact displacement paired with a stamped damage float."
       },
       {
         "name": "kinetic-cut-in",
-        "value": "150ms Expo.easeOut, 160ms hold, yoyo",
-        "purpose": "Slams a selected Move print across the full arena and returns it to the drawer."
+        "value": "170ms Expo.easeOut, 250ms hold, yoyo",
+        "purpose": "Slams a selected Move print across the full arena before the lunge and impact."
+      },
+      {
+        "name": "battle-countdown",
+        "value": "650ms each for 3, 2, 1; 520ms for FIGHT",
+        "purpose": "Owns the full stage while timer, Charge, AI, statuses, and commands remain frozen."
+      },
+      {
+        "name": "presentation-lock",
+        "value": "340ms to 1000ms fixed by semantic event type",
+        "purpose": "Keeps the complete simulation frozen until the authored cut-in, impact, switch, or KO presentation completes."
       },
       {
         "name": "reduced-motion",
@@ -296,20 +321,20 @@
       "css": ".ds-lineup-ticket { position: relative; display: grid; width: 18rem; min-height: 5.4rem; grid-template-columns: 4rem minmax(0, 1fr); gap: 0.6rem; align-items: center; border: 3px solid var(--ink, #14151a); padding: 0.35rem; overflow: hidden; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.55rem), calc(100% - 0.55rem) 100%, 0 100%); cursor: pointer; } .ds-lineup-ticket:hover { background: var(--yellow, #f2d742); transform: translateX(0.2rem); } .ds-lineup-ticket:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-lineup-art { display: grid; width: 4rem; height: 4rem; place-items: center; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.5rem; } .ds-lineup-copy { display: grid; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-lineup-copy strong { font-size: 1rem; } .ds-lineup-copy small { font-size: 0.72rem; } .ds-lineup-state { position: absolute; right: -1.6rem; bottom: 0.45rem; width: 6rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-size: 0.62rem; font-weight: 700; text-align: center; transform: rotate(-38deg); }"
     },
     {
-      "name": "Move Label",
+      "name": "Battle Move Seal",
       "kind": "custom",
       "refersTo": "print-ticket",
-      "description": "One of three equal actions with a visible touch description and a fuller hover/focus explanation.",
-      "html": "<button class=\"ds-move\" aria-disabled=\"true\" aria-label=\"Red Tape. Charge, strike, and probably stun the active enemy. Costs 50 Charge. Predicted hit 19. 0.7 second charge.\"><span class=\"ds-move-position\">2</span><span class=\"ds-move-copy\"><strong>RED TAPE</strong><small>Charge, strike, and probably stun the active enemy.</small></span><span class=\"ds-move-number\"><b>50</b><small>COST</small></span><span class=\"ds-move-tip\" role=\"tooltip\"><strong>RED TAPE</strong><span>Predicted hit 19. 0.7 second charge.</span><small>Needs 21 more Charge.</small></span></button>",
-      "css": ".ds-move { position: relative; display: grid; width: 18rem; min-height: 7.4rem; grid-template-columns: auto minmax(0, 1fr) auto; gap: 0.5rem; align-items: start; border: 4px solid var(--ink, #14151a); padding: 0.5rem; overflow: visible; background: var(--yellow, #f2d742); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); text-align: left; cursor: pointer; } .ds-move[aria-disabled=\"true\"] { filter: saturate(0.55); opacity: 0.72; } .ds-move:hover, .ds-move:focus-visible { filter: saturate(1); opacity: 1; transform: translateY(-0.22rem) rotate(-0.25deg); } .ds-move:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-move-position { display: grid; width: 2rem; height: 2rem; place-items: center; border: 3px solid currentColor; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.25rem; } .ds-move-copy { display: grid; gap: 0.2rem; } .ds-move-copy strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.6rem; line-height: 0.95; } .ds-move-copy small { display: -webkit-box; overflow: hidden; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.72rem; line-height: 1.15; -webkit-box-orient: vertical; -webkit-line-clamp: 3; } .ds-move-number { display: grid; min-width: 2.5rem; justify-items: center; border: 3px solid currentColor; padding: 0.2rem; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.2rem; } .ds-move-number small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.55rem; font-weight: 700; } .ds-move-tip { position: absolute; z-index: 5; right: 0.25rem; bottom: calc(100% + 0.5rem); left: 0.25rem; display: none; gap: 0.25rem; border: 4px solid var(--ink, #14151a); padding: 0.65rem; background: var(--chalk, #f7f0dd); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); } .ds-move:hover .ds-move-tip, .ds-move:focus-visible .ds-move-tip { display: grid; } @media (max-width: 620px) { .ds-move { width: 100%; grid-template-columns: 1fr; } .ds-move-tip { display: none !important; } }"
+      "description": "One of three equal circular actions pinned directly above its exact position on the Charge rail.",
+      "html": "<button class=\"ds-move\" aria-label=\"Red Tape. Ready. Costs 50 Charge. Predicted hit 19.\"><span class=\"ds-move-seal\"><span class=\"ds-move-key\">2</span><strong>50</strong><small>CHARGE</small></span><span class=\"ds-move-name\">RED TAPE</span><span class=\"ds-move-state\">READY</span></button>",
+      "css": ".ds-move { display: grid; width: 8.2rem; justify-items: center; border: 0; background: transparent; color: var(--chalk, #f7f0dd); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); cursor: pointer; } .ds-move-seal { position: relative; display: grid; width: 5rem; height: 5rem; place-content: center; border: 0.32rem solid var(--ink, #14151a); border-radius: 50%; background: var(--charge-green, #8eef5d); color: var(--ink, #14151a); box-shadow: 0 0 0 0.25rem var(--chalk, #f7f0dd), 0 0 0 0.48rem var(--ink, #14151a), 0.34rem 0.4rem 0 0.46rem #48bf36; } .ds-move-seal strong { font-size: 2.45rem; line-height: 0.8; } .ds-move-seal small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.58rem; font-weight: 700; } .ds-move-key { position: absolute; right: 50%; bottom: -0.5rem; display: grid; width: 1.55rem; height: 1.55rem; place-items: center; border: 2px solid var(--ink, #14151a); border-radius: 50%; background: var(--chalk, #f7f0dd); transform: translateX(50%); } .ds-move-name { margin-top: 0.42rem; font-size: 1.25rem; text-shadow: 2px 2px 0 var(--ink, #14151a); } .ds-move-state { border: 2px solid var(--ink, #14151a); padding: 0.05rem 0.3rem; background: var(--charge-green, #8eef5d); color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.58rem; font-weight: 700; } .ds-move:hover .ds-move-seal { transform: translateY(-0.25rem) rotate(-2deg); } .ds-move:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
     },
     {
       "name": "Player Charge Strip",
       "kind": "custom",
       "refersTo": "meter-track",
       "description": "The full-width player resource immediately below the three Moves, including named cost thresholds.",
-      "html": "<div class=\"ds-charge-deck\"><div class=\"ds-charge-heading\"><span>YOUR CHARGE STRIP</span><strong>62 / 100</strong></div><div class=\"ds-meter\" role=\"meter\" aria-label=\"Player Charge\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"62\"><span style=\"--ds-fill: .62\"></span></div><div class=\"ds-thresholds\"><span style=\"left:25%\">25<br />INVOICE</span><span style=\"left:50%\">50<br />RED TAPE</span><span style=\"left:82%\">82<br />HOSTILE</span></div></div>",
-      "css": ".ds-charge-deck { position: relative; width: min(48rem, 100%); border: 4px solid var(--ink, #14151a); padding: 0.45rem 0.75rem 1.8rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-charge-heading { display: flex; justify-content: space-between; font-weight: 700; } .ds-charge-heading strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.8rem; } .ds-meter { height: 1.15rem; border: 3px solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-deep, #091128); } .ds-meter span { display: block; width: 100%; height: 100%; background: var(--yellow, #f2d742); transform: scaleX(var(--ds-fill, 0)); transform-origin: left center; transition: transform 80ms linear; } .ds-thresholds { position: relative; height: 1.35rem; } .ds-thresholds span { position: absolute; width: max-content; font-size: 0.58rem; font-weight: 700; line-height: 1; text-align: center; transform: translateX(-50%); }"
+      "html": "<div class=\"ds-charge-deck\"><div class=\"ds-charge-heading\"><span>YOUR CHARGE</span><strong>62 / 100</strong></div><div class=\"ds-meter\" role=\"meter\" aria-label=\"Player Charge\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"62\"><span style=\"--ds-fill: .62\"></span></div></div>",
+      "css": ".ds-charge-deck { position: relative; width: min(64rem, 100%); padding: 0; color: var(--chalk, #f7f0dd); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-charge-heading { position: absolute; z-index: 2; right: 0.55rem; bottom: 0.52rem; left: 0.55rem; display: flex; justify-content: space-between; font-weight: 700; pointer-events: none; } .ds-charge-heading span, .ds-charge-heading strong { border: 2px solid var(--chalk, #f7f0dd); padding: 0.1rem 0.35rem; background: var(--indigo-deep, #091128); } .ds-charge-heading strong { color: var(--charge-green, #8eef5d); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.45rem; } .ds-meter { height: 3.25rem; border: 0.38rem solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-soft, #1a326a); box-shadow: 0 0 0 0.2rem var(--focus, #8de1ff), 0.38rem 0.45rem 0 0.2rem var(--ink, #14151a); } .ds-meter span { display: block; width: 100%; height: 100%; background: var(--charge-green, #8eef5d); box-shadow: inset -0.5rem 0 0 #48bf36; transform: scaleX(var(--ds-fill, 0)); transform-origin: left center; transition: transform 80ms linear; }"
     },
     {
       "name": "Status Stamp",
@@ -373,6 +398,11 @@
         "section": "layout"
       },
       {
+        "name": "The Pinned-Control Rule",
+        "body": "Health, timer, Lineups, Pause, and the Move-and-Charge field attach to screen edges so the arena never becomes a small card inside UI chrome.",
+        "section": "layout"
+      },
+      {
         "name": "The Three-Move Rule",
         "body": "All three Moves remain equally prominent; no action receives a privileged hero-card slot.",
         "section": "layout"
@@ -388,8 +418,8 @@
         "section": "layout"
       },
       {
-        "name": "The Decision Deck Rule",
-        "body": "The player reads Moves first and their shared Charge Strip second as one bounded decision surface.",
+        "name": "The Charge-First Rule",
+        "body": "The player reads one large Charge Strip and the three Move seals anchored to it as a single control. Moves must never drift into a separate row of dashboard cards.",
         "section": "layout"
       },
       {
@@ -424,14 +454,25 @@
       },
       {
         "name": "The Touch Explanation Rule",
-        "body": "Responsive compression may shorten a Move explanation, but it may not remove the explanation entirely.",
+        "body": "Responsive compression may shorten Move output to a compact hit/effect summary, but it may not remove the explanation entirely.",
+        "section": "components"
+      },
+      {
+        "name": "The Choose-Then-Watch Rule",
+        "body": "A command is selected before its presentation. No further player or AI decision may be accepted while that presentation owns the stage.",
+        "section": "components"
+      },
+      {
+        "name": "The Still-Image-Camera Rule",
+        "body": "Static art earns energy through entrance slides, asymmetric framing, scale changes, diagonal panels, cut-ins, hit reactions, damage stamps, and decisive camera resets—not ambient particles or constant wandering.",
         "section": "components"
       }
     ],
     "dos": [
       "Do stage play as labelled physical matter: drawers, tickets, specimen wells, pull-tabs, perforations, and stamps.",
       "Do open on the explicit three-mode launcher and preserve the selected session context until the player exits it.",
-      "Do keep the first battle viewport readable as compact rail, Lineups, central arena, three Moves, then the player's Charge Strip.",
+      "Do keep the first battle viewport readable as top health, edge Lineups, dominant arena art, then the large integrated Move-and-Charge field.",
+      "Do freeze the complete simulation during countdowns and attack presentations while letting presentation motion finish.",
       "Do use layered rectangular and square art as an intentional Kinetic Print language.",
       "Do retain a readable short Move explanation on touch layouts and a fuller explanation on hover or keyboard focus.",
       "Do pair colour with text, shape, position, or value for every gameplay state.",
@@ -443,6 +484,7 @@
       "Don't introduce rounded dashboard cards, pills as default controls, glassmorphism, neon glow, or a sci-fi HUD.",
       "Don't turn tomato or acid yellow into unbounded decoration; they communicate action and state.",
       "Don't obscure the arena with floating panels or let opposing readouts collide with the matchup stamp.",
+      "Don't allow Charge, timers, status durations, AI, or commands to advance behind a countdown or attack cut-in.",
       "Don't mix global navigation with Story-only destinations such as Store or Missions.",
       "Don't start Story, Quick Fight, Tournament, or music playback merely because a screen rendered.",
       "Don't make one Move visually dominant over the other two.",

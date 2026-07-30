@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { imageAssets, presentationAssets } from "../assets/registry";
+import {
+  imageAssets,
+  presentationAssets,
+  videoAssets,
+} from "../assets/registry";
 import { audioAssets, musicTracks } from "../audio/registry";
 
 const id = z.string().regex(/^[a-z]+(?:[.-][a-z0-9]+)+$/);
@@ -73,6 +77,7 @@ export const actionSchema = z.object({
 export const characterSchema = z.object({
   id,
   name: z.string().min(2),
+  lore: z.string().min(12),
   classId: z.enum([
     "impact",
     "feral",
@@ -96,6 +101,52 @@ export const characterSchema = z.object({
   idleAssetIds: z.tuple([id, id]),
   musicId: id,
 });
+
+const startupBeatBase = {
+  id,
+  eyebrow: z.string().min(1).optional(),
+  title: z.string().min(1),
+  body: z.string().min(1).optional(),
+  durationMs: z.number().int().min(250).max(60_000),
+};
+
+export const startupBeatSchema = z.discriminatedUnion("kind", [
+  z.object({
+    ...startupBeatBase,
+    kind: z.literal("text"),
+  }),
+  z.object({
+    ...startupBeatBase,
+    kind: z.literal("image"),
+    imageAssetId: id,
+    imageAlt: z.string(),
+  }),
+  z.object({
+    ...startupBeatBase,
+    kind: z.literal("video"),
+    videoAssetId: id,
+    posterImageAssetId: id,
+  }),
+]);
+
+export function validateStartupContent(beats: unknown[]): void {
+  const parsed = z.array(startupBeatSchema).parse(beats);
+  for (const beat of parsed) {
+    if (beat.kind === "image" && !imageAssets[beat.imageAssetId]) {
+      throw new Error(`${beat.id} references missing ${beat.imageAssetId}`);
+    }
+    if (beat.kind === "video") {
+      if (!videoAssets[beat.videoAssetId]) {
+        throw new Error(`${beat.id} references missing ${beat.videoAssetId}`);
+      }
+      if (!imageAssets[beat.posterImageAssetId]) {
+        throw new Error(
+          `${beat.id} references missing ${beat.posterImageAssetId}`,
+        );
+      }
+    }
+  }
+}
 
 export function validateContent(
   actions: unknown[],

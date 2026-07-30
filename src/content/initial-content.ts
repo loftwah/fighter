@@ -266,6 +266,7 @@ export const characters = [
   {
     id: "character.mara-vex",
     name: "Mara Vex",
+    lore: "A bootleg bruiser printed after midnight, Mara treats every cease-and-desist as an invitation to make another copy.",
     classId: "impact",
     factionId: "faction.free-shelf",
     level: 7,
@@ -282,6 +283,7 @@ export const characters = [
   {
     id: "character.knuckle-tax",
     name: "Knuckle Tax",
+    lore: "The Ledger's collection agent arrives with a locked briefcase, an itemised threat, and no concept of store credit.",
     classId: "guard",
     factionId: "faction.the-ledger",
     level: 6,
@@ -298,6 +300,7 @@ export const characters = [
   {
     id: "character.zipwire",
     name: "Zipwire",
+    lore: "A live wire in discount packaging, Zipwire turns bad connections and worse timing into impossible speed.",
     classId: "circuit",
     factionId: "faction.free-shelf",
     level: 6,
@@ -314,6 +317,7 @@ export const characters = [
   {
     id: "character.velvet-hex",
     name: "Velvet Hex",
+    lore: "House Stock's soft-spoken omen can mend a cracked Lineup or make an opponent's luck expire without notice.",
     classId: "hex",
     factionId: "faction.house-stock",
     level: 6,
@@ -330,6 +334,7 @@ export const characters = [
   {
     id: "character.gutter-grin",
     name: "Gutter Grin",
+    lore: "Found face-down beneath a market stall, this smiling fake wins fights by ensuring the obvious move is never the real one.",
     classId: "guile",
     factionId: "faction.house-stock",
     level: 5,
@@ -346,6 +351,7 @@ export const characters = [
   {
     id: "character.scrapjack",
     name: "Scrapjack",
+    lore: "Built from recalled parts and pure grievance, Scrapjack considers every bin a parts catalogue and every arena a workshop.",
     classId: "feral",
     factionId: "faction.the-ledger",
     level: 5,

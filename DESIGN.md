@@ -12,6 +12,7 @@ colors:
   registration-ink: "#14151a"
   aged-paper: "#d8d1bf"
   focus-cyan: "#8de1ff"
+  charge-green: "#8eef5d"
 typography:
   display:
     fontFamily: "League Gothic, Arial Narrow, sans-serif"
@@ -148,6 +149,7 @@ The palette behaves like a two-ink risograph job printed over indigo board and w
 ### Tertiary
 
 - **Focus Cyan:** An accessibility-only focus signal that remains visually distinct from the print palette.
+- **Charge Green:** A battle-only readiness signal borrowed from the pinned control reference. It is reserved for player Charge fill and ready Move states and is always paired with a value or label.
 
 ### Neutral
 
@@ -190,13 +192,15 @@ The palette behaves like a two-ink risograph job printed over indigo board and w
 
 The application opens on a deliberate launcher, never inside a game session. On desktop, Story Mode is the dominant image-and-copy bill while Quick Fight and Tournament form a smaller side stack; each card explains persistence and reward consequences before its explicit start or resume action. The global top rail contains Main Menu, Profile, and Settings. Once Story Mode is active, that rail switches to Story, Lineup, Collection, Store, and Missions, with a separate Exit game action back to the launcher.
 
-General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: a three-column collector drawer with opposing Lineup rails around a dominant central specimen arena. Its lower command field is a large Charge Strip with three circular Move seals physically anchored above their cost positions. The fill travels toward each seal, making readiness spatially obvious; the enemy's independent Charge remains with the enemy readout. Fighter readouts share the arena's top edge while a reserved central band keeps the matchup stamp collision-free.
+General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: a full-viewport specimen arena with compact controls pinned around the action rather than a dashboard wrapped around it. Health stays at the top corners, Lineup portraits hug the side edges, and the lower command field is a large Charge Strip with three circular Move seals physically anchored above their cost positions. The fill travels toward each seal, making readiness spatially obvious; the enemy's independent Charge remains with the enemy readout. The arena art and fighters own the remaining field.
 
 Spacing follows a tight print-production rhythm: micro gaps for meter and status internals, compact gaps inside tickets, base gaps between related controls, grouped gaps between modules, and fluid section insets for large surfaces. Thick solid borders establish objects; dashed rules imply perforation, receipts, or separable sections.
 
-At 1180px, navigation and battle labels compress before the structure changes. At 860px, desktop navigation moves to a fixed bottom rail: three destinations in global context or six in Story context. Split story and tournament surfaces stack, and the battle drawer becomes two Lineup rails above the arena with the command field below. At 620px, the launcher becomes three compact, text-first mode bills with large art hidden; the full-width Charge Strip stays visually dominant and all three circular Move seals retain touch-sized targets and compact visible names.
+At 1180px, navigation and battle labels compress before the structure changes. At 860px, desktop navigation moves to a fixed bottom rail: three destinations in global context or six in Story context. Split story and tournament surfaces stack. Battle remains a single full-stage composition rather than stacking into cards. At 620px, the launcher becomes three compact, text-first mode bills with large art hidden. Battle switches to a portrait comic composition: the opponent fills the upper-right field, the player fills the lower-left field, Lineup portraits remain edge-pinned, and the full-width Charge Strip keeps all three touch-sized Move seals and compact visible names.
 
 **The Arena-First Rule.** Compress labels and secondary metadata before reducing the central art stage below a usable decision surface.
+
+**The Pinned-Control Rule.** Health, timer, Lineups, Pause, and the Move-and-Charge field attach to screen edges so the arena never becomes a small card inside UI chrome.
 
 **The Three-Move Rule.** All three Move seals remain equally prominent; no action receives a privileged hero-card slot.
 
@@ -212,7 +216,7 @@ At 1180px, navigation and battle labels compress before the structure changes. A
 
 ## Elevation & Depth
 
-Depth is structural rather than atmospheric. Paper tickets lift from indigo board with hard offset shadows; drawer rails use inset side shadows; image wells deepen through dark tonal fields. In battle, enlarged low-opacity echoes sit behind the active fighter stills to create misregistered print depth, then pulse laterally at a slow cadence. Rotated cards and stamps create physical imperfection, but the interface never becomes soft, translucent, or glassy.
+Depth is structural rather than atmospheric. Paper tickets lift from indigo board with hard offset shadows; drawer rails use inset side shadows; image wells deepen through dark tonal fields. In battle, enlarged low-opacity echoes sit behind the active fighter stills to create misregistered print depth, then pulse laterally at a slow cadence. Attacks replace ordinary control with a full-field Kinetic Print cut-in, lunge, impact, and reset while simulation time is held. Rotated cards and stamps create physical imperfection, but the interface never becomes soft, translucent, or glassy.
 
 ### Shadow Vocabulary
 
@@ -306,7 +310,17 @@ entirely.
 
 ### Meters
 
-Health and Charge Strips are bordered tracks paired directly with numeric labels. Health uses tomato; charge uses acid yellow. The player's Charge Strip is the lower field's dominant object. Each Move is a circular press seal anchored directly above its exact cost on the track, with a compact name, cost, tier, and ready/waiting label. The enemy Charge Strip stays in its readout. Fill updates use transform scaling over 80ms and stop effectively instantly when reduced motion is enabled.
+Health and Charge Strips are bordered tracks paired directly with numeric labels. Health uses tomato; player Charge uses battle-only charge green over an indigo track. The opponent owns a separate, clearly labelled tomato Charge rail beneath the top readouts; it fills toward the player so both sides read as a visible race. The player's Charge Strip remains the lower field's dominant object. Each Move is a circular press seal anchored directly above its exact cost on the track, with a compact name, cost, tier, and ready/waiting label. Both fills track exact fractional simulation state through the active animation frame while their accessible numeric labels update in whole Charge.
+
+### Battle Timing and Motion
+
+Every battle opens with a blocking `3, 2, 1, FIGHT` comic split. Charge, timer, status durations, AI, and player commands remain frozen until `FIGHT` clears. The same complete hold applies whenever a Move resolves: controls read “Stand by”, the action runs as a full-field cut-in plus targeted lunge/impact/float/KO beats, and simulation resumes only after the fixed presentation window.
+
+The lock duration is gameplay presentation timing, not decorative animation timing. Reduced motion removes travel, zoom, flash, and shake but retains the same lock and state sequence so it cannot alter balance. Ordinary idle motion stays limited to two-frame swaps and a restrained misregistration pulse.
+
+**The Choose-Then-Watch Rule.** A command is selected before its presentation. No further player or AI decision may be accepted while that presentation owns the stage.
+
+**The Still-Image-Camera Rule.** Static art earns energy through entrance slides, asymmetric framing, scale changes, diagonal panels, cut-ins, hit reactions, damage stamps, and decisive camera resets—not ambient particles or constant wandering.
 
 ### Result Stamp
 
@@ -332,7 +346,8 @@ panels stack and raw state is height-capped so primary actions are never buried.
 
 - **Do** stage play as labelled physical matter: drawers, tickets, specimen wells, pull-tabs, perforations, and stamps.
 - **Do** open on the explicit three-mode launcher and preserve the selected session context until the player exits it.
-- **Do** keep the first battle viewport readable as compact rail, Lineups, central arena, then the large integrated Move-and-Charge field.
+- **Do** keep the first battle viewport readable as top health, edge Lineups, dominant arena art, then the large integrated Move-and-Charge field.
+- **Do** freeze the complete simulation during countdowns and attack presentations while letting presentation motion finish.
 - **Do** use layered rectangular and square art as an intentional Kinetic Print language.
 - **Do** retain a readable predicted hit/effect summary on touch layouts and a fuller explanation on hover or keyboard focus.
 - **Do** pair colour with text, shape, position, or value for every gameplay state.
@@ -345,6 +360,7 @@ panels stack and raw state is height-capped so primary actions are never buried.
 - **Don't** introduce rounded dashboard cards, pills as default controls, glassmorphism, neon glow, or a sci-fi HUD.
 - **Don't** turn tomato or acid yellow into unbounded decoration; they communicate action and state.
 - **Don't** obscure the arena with floating panels or let opposing readouts collide with the matchup stamp.
+- **Don't** allow Charge, timers, status durations, AI, or commands to advance behind a countdown or attack cut-in.
 - **Don't** mix global navigation with Story-only destinations such as Store or Missions.
 - **Don't** start Story, Quick Fight, Tournament, or music playback merely because a screen rendered.
 - **Don't** make one Move visually dominant over the other two.

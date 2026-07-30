@@ -2,7 +2,7 @@
 
 Status: authoritative for the current prototype  
 Working title: **Riot Relics** (proposed, replaceable)  
-Last design consolidation: 2026-07-29
+Last design consolidation: 2026-07-30
 
 ## 1. Product statement
 
@@ -61,6 +61,12 @@ Mode, Quick Fight, or Tournament Mode; launching the application never drops
 the player into an active game. Global navigation contains Main Menu, Profile,
 and Settings only.
 
+Before the Main Menu, the application may play an ordered, skippable startup
+sequence made from text, registered images, and registered video. A visible
+waiting state separates that sequence from the launcher and is reused for
+genuine arena construction. Startup content never creates or resumes a game
+session by itself.
+
 ### Story Mode
 
 - One canonical main story and any number of independent or unofficial stories.
@@ -75,7 +81,12 @@ and Settings only.
 
 ### Quick Fight
 
-- All Relics, levels, Move orders, tiers, Patches, opponents, music, and supported rules are available.
+- Quick Fight defaults to the progression-neutral **Standard Build**: Level 10,
+  nine equally budgeted allocation points (`2 Vitality / 2 Power / 2 Evasion /
+2 Fortune / 1 Tempo`), Stock Moves, and no Patch.
+- All Relics and opponents are available without ownership. Supported custom
+  rules may override levels, allocations, Move order/tiers, Patches, music, and
+  encounter rules, but the setup and result must be labelled `Custom`.
 - It is a sandbox and does not require ownership.
 - Quick Fight never changes Story progress, Stamps, XP, Missions, ownership, or
   tournament runs.
@@ -89,6 +100,18 @@ and Settings only.
 - Interstitial nodes can heal, heal the Case, revive, grant starting Charge, stun the next enemy, open a store, or give a reward.
 - Losing a fight ends the run. A tournament can be restarted and replayed indefinitely.
 - Standalone tournaments can be customised; Story tournaments are authored.
+- A standalone tournament uses Standard Builds unless its authored or Custom
+  rules explicitly provide another locked Case build. A Story tournament uses
+  owned or authored-loan builds.
+
+### Achievements
+
+- Achievements belong to the selected Collector profile and remain available
+  from the global shell.
+- Achievement state is derived from durable profile facts wherever possible, so
+  an award added in a later build can unlock retroactively.
+- Achievements do not grant combat power unless an authored reward explicitly
+  says so.
 
 ### Challenge Mode
 
@@ -126,6 +149,9 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 - A battle ends when every Relic on a side is defeated or that side forfeits.
 - Standard time limit: 90 seconds, content-configurable.
 - At timeout, the side with the greater surviving-health percentage wins; exact ties favour the player on Easy/Normal and the opponent on Hard/Brutal.
+- Once both sides' art and controls are ready, every player-facing fight runs an
+  explicit `3 → 2 → 1 → FIGHT` countdown. Elapsed time, Charge, statuses,
+  pending Moves, and AI decisions remain frozen until `FIGHT` clears.
 - Escape pauses and resumes the complete single-player battle simulation.
   Opening the development inspector also pauses it. While paused, elapsed time,
   Charge, statuses, pending Moves, AI, and Phaser presentation time do not
@@ -136,6 +162,13 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 - Each team owns an independent Charge Strip from 0 to 100.
 - A Strip fills continuously and belongs to the team, not the active Relic.
 - Switching never resets it.
+- Both sides begin at 0 Charge unless an authored encounter, Patch, or
+  tournament Drop supplies an explicit opening bonus.
+- Base fill speed is `6 + Tempo × 0.3` Charge per second. A three-copy Echo
+  Lineup multiplies that result by `1.08`. The current Tempo range therefore
+  fills a complete Strip in roughly 11–14 seconds before other effects. A
+  middle-Tempo Relic reaches a 25-cost Move in about 3.3 seconds, a 50-cost Move
+  in about 6.7 seconds, and an 82-cost Move in about 10.9 seconds.
 - The local player's Charge Strip is the primary combat control. It is large,
   persistent, and visually dominant beneath the arena.
 - The active Relic's three Move controls are circular nodes anchored directly
@@ -184,6 +217,12 @@ validate → spend Charge → start/charge → lock target → resolve hits
 - Damage or stun interrupts a charging Relic by default.
 - Dodge avoids the hit and therefore does not interrupt.
 - A Patch or effect may grant interruption resistance.
+- Starting, resolving, dodging, interrupting, and reacting to a Move creates a
+  short presentation lock. During that lock the player cannot issue a Move or
+  switch, the AI cannot decide, and elapsed time, Charge, statuses, and pending
+  Moves do not advance. Automatic outcomes already decided by the deterministic
+  transition—such as dodge, critical, status, damage, or defeat—play out before
+  control returns.
 
 ### 5.5 Switching
 

@@ -79,6 +79,7 @@ export interface ActionDefinition {
 export interface CharacterDefinition {
   id: string;
   name: string;
+  lore: string;
   classId: CharacterClass;
   factionId: string;
   level: number;

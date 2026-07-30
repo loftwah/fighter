@@ -9,10 +9,17 @@ import {
 } from "./combat/engine";
 import type { BattleEvent } from "./combat/types";
 import {
+  chargePerSecond,
   classMultiplier,
   POSITION_RULES,
   sideForInstance,
 } from "./combat/rules";
+import {
+  createStandardBuild,
+  STANDARD_MATCH_LEVEL,
+  STANDARD_STAT_ALLOCATIONS,
+  STANDARD_STAT_POINT_BUDGET,
+} from "./combat/standard-build";
 import {
   appendBattleTransition,
   createBattleReport,
@@ -23,6 +30,7 @@ import {
 import { combatContent } from "./content/initial-content";
 import { calculateBattleReward } from "./economy/rewards";
 import { addXp } from "./progression/levels";
+import { evaluateAchievements } from "./progression/achievements";
 import {
   buildForOwnedCharacter,
   equipPatch,
@@ -60,7 +68,7 @@ import {
   recordCheapSeatsResult,
   recordCheapSeatsVictory,
   restoreCaseHealth,
-} from "./tournament/cheap-seats";
+} from "./tournaments/cheap-seats";
 
 class MemoryStorage implements Storage {
   readonly #values = new Map<string, string>();
@@ -91,6 +99,58 @@ class MemoryStorage implements Storage {
 }
 
 describe("combat rules", () => {
+  it("gives non-Story modes one progression-neutral Standard Build contract", () => {
+    const definition = combatContent.characters["character.mara-vex"]!;
+    const build = createStandardBuild(definition, "player", 0);
+
+    expect(build).toMatchObject({
+      instanceId: "standard.player.0.character.mara-vex",
+      level: STANDARD_MATCH_LEVEL,
+      statBonuses: STANDARD_STAT_ALLOCATIONS,
+      actionIds: definition.actionIds,
+      interruptionResistance: 0,
+      equippedPatchId: null,
+    });
+    expect(
+      STANDARD_STAT_ALLOCATIONS.health +
+        STANDARD_STAT_ALLOCATIONS.power +
+        STANDARD_STAT_ALLOCATIONS.evasion +
+        STANDARD_STAT_ALLOCATIONS.fortune +
+        STANDARD_STAT_ALLOCATIONS.tempo,
+    ).toBe(STANDARD_STAT_POINT_BUDGET);
+    expect(Object.values(build.actionTiers ?? {})).toEqual([
+      "stock",
+      "stock",
+      "stock",
+    ]);
+  });
+
+  it("derives achievements retroactively without mutating save data", () => {
+    const save = createDefaultSave(1);
+    save.collection.push(
+      createOwnedCharacter("owned.mara-vex.1", "character.mara-vex", 7),
+    );
+    save.clearedNodeIds.push("story.first-run.02");
+    const before = structuredClone(save);
+    const progress = evaluateAchievements(save);
+
+    expect(
+      progress.find(
+        (achievement) => achievement.id === "achievement.first-print",
+      )?.complete,
+    ).toBe(true);
+    expect(
+      progress.find(
+        (achievement) => achievement.id === "achievement.invoice-denied",
+      )?.complete,
+    ).toBe(true);
+    expect(
+      progress.find((achievement) => achievement.id === "achievement.first-run")
+        ?.complete,
+    ).toBe(false);
+    expect(save).toEqual(before);
+  });
+
   it("authors a distinct two-Relic qualifier after the tutorial battle", () => {
     const tutorial = firstRunEncounter("story.first-run.02");
     const qualifier = firstRunEncounter("story.first-run.05");
@@ -838,6 +898,44 @@ describe("combat rules", () => {
     expect(
       tickBattle(echo, 250, combatContent).state.player.bar,
     ).toBeGreaterThan(tickBattle(mixed, 250, combatContent).state.player.bar);
+  });
+
+  it("uses a deliberate Charge cadence with meaningful Tempo separation", () => {
+    expect(chargePerSecond(5)).toBe(7.5);
+    expect(chargePerSecond(9)).toBeGreaterThan(chargePerSecond(3) * 1.2);
+    expect(25 / chargePerSecond(5)).toBeLessThan(3.5);
+    expect(100 / chargePerSecond(5)).toBeGreaterThan(12);
+    expect(100 / chargePerSecond(5)).toBeLessThan(14);
+
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.mara-vex"],
+        enemyCharacterIds: ["character.knuckle-tax"],
+        seed: 808,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    expect(state.player.bar).toBe(0);
+    expect(state.enemy.bar).toBe(0);
+
+    const afterFiveSeconds = tickBattle(state, 250, combatContent).state;
+    let advanced = afterFiveSeconds;
+    for (let elapsed = 250; elapsed < 5_000; elapsed += 250) {
+      advanced = tickBattle(advanced, 250, combatContent).state;
+    }
+    expect(advanced.player.bar).toBeCloseTo(37.5, 5);
+
+    let quarterStepped = state;
+    for (let quarter = 0; quarter < 4; quarter += 1) {
+      quarterStepped = tickBattle(quarterStepped, 250, combatContent).state;
+    }
+    let frameStepped = state;
+    for (let frame = 0; frame < 62; frame += 1) {
+      frameStepped = tickBattle(frameStepped, 16, combatContent).state;
+    }
+    frameStepped = tickBattle(frameStepped, 8, combatContent).state;
+    expect(frameStepped.player.bar).toBeCloseTo(quarterStepped.player.bar, 8);
   });
 
   it("does not resolve a charged Move beyond the timer", () => {

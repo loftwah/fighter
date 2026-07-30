@@ -4,11 +4,16 @@ import { join } from "node:path";
 import { imageAssets, presentationAssets } from "../assets/registry";
 import { audioAssets, musicTracks } from "../audio/registry";
 import { actions, characters, storyNodes } from "./initial-content";
-import { validateContent } from "./schema";
+import { startupSequence } from "./startup-content";
+import { validateContent, validateStartupContent } from "./schema";
 
 describe("authored content", () => {
   it("validates every initial Relic and Move reference", () => {
     expect(() => validateContent(actions, characters)).not.toThrow();
+  });
+
+  it("validates every startup beat and registered media reference", () => {
+    expect(() => validateStartupContent(startupSequence)).not.toThrow();
   });
 
   it("keeps story node indices and links coherent", () => {

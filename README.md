@@ -58,13 +58,14 @@ validation, and a production build.
 
 - `src/combat/` — pure deterministic combat domain and rules
 - `src/content/` — typed authored characters, actions, story, and missions
-- `src/app/` — semantic application shell and navigation
+- `src/app/` — application controller and typed route/session manifest
 - `src/game/` — Phaser battle presentation
 - `src/persistence/` — validated versioned local profiles and preferences
 - `src/progression/` — levels, owned-instance loadouts, and Patch effects
 - `src/store/` — deterministic rotation and atomic purchases
 - `src/story/` — authored First Run encounter configuration and progression
-- `src/tournament/` — Cheap Seats round, Case-health, and interlude domain
+- `src/tournaments/` — Cheap Seats round, Case-health, and interlude domain
+- `src/ui/` — pure semantic screen renderers, shell, components, and ordered styles
 - `public/assets/generated/` — approved first-slice artwork
 - `public/assets/audio/` — silent SFX/dialogue placeholders
 - `public/music/` — supplied soundtrack with stable filenames
