@@ -1,8 +1,10 @@
 import Phaser from "phaser";
+import type { BattleState } from "../combat/types";
 import { BattleScene } from "./BattleScene";
 
 export function createBattleGame(
   parent: HTMLElement,
+  initialSnapshot: BattleState,
   onReady: (scene: BattleScene) => void,
 ): Phaser.Game {
   return new Phaser.Game({
@@ -13,7 +15,7 @@ export function createBattleGame(
     render: {
       antialias: true,
       pixelArt: false,
-      roundPixels: true,
+      roundPixels: false,
     },
     scale: {
       mode: Phaser.Scale.RESIZE,
@@ -23,6 +25,6 @@ export function createBattleGame(
     audio: {
       noAudio: true,
     },
-    scene: [new BattleScene(onReady)],
+    scene: [new BattleScene(onReady, initialSnapshot)],
   });
 }

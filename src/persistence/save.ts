@@ -1,4 +1,9 @@
-import type { ActionTier, Difficulty, StatBlock } from "../combat/types";
+import type {
+  ActionPosition,
+  ActionTier,
+  Difficulty,
+  StatBlock,
+} from "../combat/types";
 import { z } from "zod";
 
 export interface Preferences {
@@ -21,6 +26,7 @@ export interface OwnedCharacter {
   unspentStatPoints: number;
   statAllocations: StatBlock;
   actionOrder: string[];
+  actionPositions: Partial<Record<string, ActionPosition>>;
   actionTiers: Record<string, ActionTier>;
   equippedPatchId: string | null;
 }
@@ -31,6 +37,7 @@ export interface TournamentCaseBuild {
   level: number;
   statBonuses: StatBlock;
   actionIds: [string, string, string];
+  actionPositions?: Partial<Record<string, ActionPosition>>;
   actionTiers: Record<string, ActionTier>;
   interruptionResistance: number;
   equippedPatchId: string | null;
@@ -42,6 +49,7 @@ export interface TournamentRunData {
   roundIndex: 0 | 1 | 2;
   phase: "ready" | "interlude";
   caseBuilds: TournamentCaseBuild[];
+  deployedInstanceIds: string[];
   healthRatios: Record<string, number>;
   activeInstanceId: string | null;
   nextRoundChargeBonus: number;
@@ -73,6 +81,36 @@ const slotKey = (slot: number): string => `riot-relics.save.v2.${slot}`;
 const legacySlotKey = (slot: number): string => `riot-relics.save.v1.${slot}`;
 const storageWarningKey = "riot-relics.storage-warning.v1";
 const storageRecoveryTargetKey = "riot-relics.storage-recovery-target.v1";
+
+const legacyCharacterIds: Record<string, string> = {
+  "character.mara-vex": "character.viking",
+  "character.knuckle-tax": "character.ned-kelly",
+  "character.zipwire": "character.tux",
+  "character.velvet-hex": "character.moses",
+  "character.gutter-grin": "character.humpty",
+  "character.scrapjack": "character.grim-reaper",
+};
+
+const legacyActionIds: Record<string, string> = {
+  "action.mara-vex.invoice-breaker": "action.viking.axe-first",
+  "action.mara-vex.red-tape": "action.viking.shield-bash",
+  "action.mara-vex.hostile-takeover": "action.viking.berserker-oath",
+  "action.knuckle-tax.late-fee": "action.ned-kelly.warning-shot",
+  "action.knuckle-tax.audit-wall": "action.ned-kelly.iron-outlaw",
+  "action.knuckle-tax.asset-freeze": "action.ned-kelly.last-stand",
+  "action.zipwire.jump-start": "action.tux.ping",
+  "action.zipwire.brownout": "action.tux.root-access",
+  "action.zipwire.full-tilt": "action.tux.kernel-panic",
+  "action.velvet-hex.soft-landing": "action.moses.staff-tap",
+  "action.velvet-hex.bad-omen": "action.moses.part-the-strip",
+  "action.velvet-hex.curtain-call": "action.moses.safe-passage",
+  "action.gutter-grin.sucker-sticker": "action.humpty.egg-on-your-face",
+  "action.gutter-grin.false-bottom": "action.humpty.shell-game",
+  "action.gutter-grin.last-laugh": "action.humpty.great-fall",
+  "action.scrapjack.bin-kick": "action.grim-reaper.cold-touch",
+  "action.scrapjack.loose-screws": "action.grim-reaper.deaths-shadow",
+  "action.scrapjack.hard-rubbish": "action.grim-reaper.final-harvest",
+};
 
 const preferencesSchema = z.object({
   difficulty: z.enum(["easy", "normal", "hard", "brutal"]),
@@ -108,6 +146,12 @@ const ownedCharacterSchema = z.object({
       tempo: 0,
     }),
   actionOrder: z.array(z.string().min(1)).max(3).default([]),
+  actionPositions: z
+    .record(
+      z.string(),
+      z.enum(["1L", "1", "1H", "2L", "2", "2H", "3L", "3", "3H"]),
+    )
+    .default({}),
   actionTiers: z
     .record(z.string(), z.enum(["stock", "gold", "platinum"]))
     .default({}),
@@ -128,6 +172,12 @@ const tournamentCaseBuildSchema = z.object({
   level: z.number().int().min(1).max(25),
   statBonuses: statBlockSchema,
   actionIds: z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)]),
+  actionPositions: z
+    .record(
+      z.string(),
+      z.enum(["1L", "1", "1H", "2L", "2", "2H", "3L", "3", "3H"]),
+    )
+    .default({}),
   actionTiers: z.record(z.string(), z.enum(["stock", "gold", "platinum"])),
   interruptionResistance: z.number().min(0).max(1),
   equippedPatchId: z.string().min(1).nullable(),
@@ -139,7 +189,9 @@ const tournamentRunSchema = z
     origin: z.enum(["story", "standalone"]).default("story"),
     roundIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
     phase: z.enum(["ready", "interlude"]),
+    // Accept retired eight-slot v2 snapshots so migration can trim them safely.
     caseBuilds: z.array(tournamentCaseBuildSchema).max(8).default([]),
+    deployedInstanceIds: z.array(z.string().min(1)).max(3).default([]),
     healthRatios: z.record(z.string(), z.number().min(0).max(1)),
     activeInstanceId: z.string().min(1).nullable().default(null),
     nextRoundChargeBonus: z.number().min(0).max(100),
@@ -200,6 +252,7 @@ export function createOwnedCharacter(
       tempo: 0,
     },
     actionOrder: [],
+    actionPositions: {},
     actionTiers: {},
     equippedPatchId: null,
   };
@@ -209,7 +262,7 @@ export function createDefaultSave(slot: 1 | 2 | 3): SaveData {
   return {
     schemaVersion: 2,
     slot,
-    playerName: "Collector",
+    playerName: "Player",
     stamps: 80,
     currentNodeId: "story.first-run.00",
     clearedNodeIds: [],
@@ -228,6 +281,117 @@ export function createDefaultSave(slot: 1 | 2 | 3): SaveData {
     revealedRivalIds: [],
     updatedAt: new Date(0).toISOString(),
   };
+}
+
+function migrateRosterIds(sourceSave: SaveData): {
+  save: SaveData;
+  changed: boolean;
+} {
+  const save = structuredClone(sourceSave);
+  let changed = false;
+  const characterId = (id: string): string => {
+    const migrated = legacyCharacterIds[id] ?? id;
+    changed ||= migrated !== id;
+    return migrated;
+  };
+  const actionId = (id: string): string => {
+    const migrated = legacyActionIds[id] ?? id;
+    changed ||= migrated !== id;
+    return migrated;
+  };
+  const actionTiers = (
+    tiers: Record<string, ActionTier>,
+  ): Record<string, ActionTier> =>
+    Object.fromEntries(
+      Object.entries(tiers).map(([id, tier]) => [actionId(id), tier]),
+    );
+  const actionPositions = (
+    positions: Partial<Record<string, ActionPosition>>,
+  ): Partial<Record<string, ActionPosition>> =>
+    Object.fromEntries(
+      Object.entries(positions).map(([id, position]) => [
+        actionId(id),
+        position,
+      ]),
+    );
+
+  for (const owned of save.collection) {
+    owned.characterId = characterId(owned.characterId);
+    owned.actionOrder = owned.actionOrder.map(actionId);
+    owned.actionPositions = actionPositions(owned.actionPositions);
+    owned.actionTiers = actionTiers(owned.actionTiers);
+  }
+  save.lossesTo = save.lossesTo.map(characterId);
+  save.revealedRivalIds = save.revealedRivalIds.map(characterId);
+
+  for (const run of [save.tournamentRun, save.standaloneTournamentRun]) {
+    if (!run) {
+      continue;
+    }
+    for (const build of run.caseBuilds) {
+      build.characterId = characterId(build.characterId);
+      build.actionIds = build.actionIds.map(actionId) as [
+        string,
+        string,
+        string,
+      ];
+      build.actionPositions = actionPositions(build.actionPositions ?? {});
+      build.actionTiers = actionTiers(build.actionTiers);
+    }
+    const uniqueCaseBuilds = Array.from(
+      new Map(
+        run.caseBuilds.map((build) => [build.instanceId, build] as const),
+      ).values(),
+    );
+    if (uniqueCaseBuilds.length !== run.caseBuilds.length) {
+      run.caseBuilds = uniqueCaseBuilds;
+      changed = true;
+    }
+    if (run.caseBuilds.length > 6) {
+      run.caseBuilds = run.caseBuilds.slice(0, 6);
+      changed = true;
+    }
+    for (const build of run.caseBuilds) {
+      if (run.healthRatios[build.instanceId] === undefined) {
+        run.healthRatios[build.instanceId] = 1;
+        changed = true;
+      }
+    }
+    const rosterIds = new Set(run.caseBuilds.map((build) => build.instanceId));
+    for (const instanceId of Object.keys(run.healthRatios)) {
+      if (!rosterIds.has(instanceId)) {
+        delete run.healthRatios[instanceId];
+        changed = true;
+      }
+    }
+    const livingIds = run.caseBuilds
+      .filter((build) => (run.healthRatios[build.instanceId] ?? 1) > 0)
+      .map((build) => build.instanceId);
+    const livingIdSet = new Set(livingIds);
+    const validDeployment = Array.from(
+      new Set(
+        run.deployedInstanceIds.filter(
+          (instanceId) =>
+            rosterIds.has(instanceId) && livingIdSet.has(instanceId),
+        ),
+      ),
+    ).slice(0, 3);
+    const deployedInstanceIds =
+      validDeployment.length > 0 ? validDeployment : livingIds.slice(0, 3);
+    if (deployedInstanceIds.join("|") !== run.deployedInstanceIds.join("|")) {
+      run.deployedInstanceIds = deployedInstanceIds;
+      changed = true;
+    }
+    const activeInstanceId = run.activeInstanceId;
+    if (!activeInstanceId || !deployedInstanceIds.includes(activeInstanceId)) {
+      const repairedActiveInstanceId = deployedInstanceIds[0] ?? null;
+      if (repairedActiveInstanceId !== activeInstanceId) {
+        run.activeInstanceId = repairedActiveInstanceId;
+        changed = true;
+      }
+    }
+  }
+  return { save, changed };
 }
 
 function parseJson(value: string): unknown {
@@ -352,7 +516,11 @@ export function loadSave(storage: Storage, slot: 1 | 2 | 3): SaveData {
     ...loaded,
   });
   if (candidate.success && candidate.data.slot === slot) {
-    return candidate.data;
+    const migrated = migrateRosterIds(candidate.data);
+    if (migrated.changed) {
+      storage.setItem(key, JSON.stringify(migrated.save));
+    }
+    return migrated.save;
   }
   preserveCorruptValue(
     storage,
@@ -398,8 +566,9 @@ function migrateLegacySave(
     );
     return null;
   }
-  storage.setItem(slotKey(slot), JSON.stringify(migrated.data));
-  return migrated.data;
+  const rosterMigration = migrateRosterIds(migrated.data);
+  storage.setItem(slotKey(slot), JSON.stringify(rosterMigration.save));
+  return rosterMigration.save;
 }
 
 export function saveSlot(storage: Storage, save: SaveData): SaveData {

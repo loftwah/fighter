@@ -18,9 +18,9 @@ export function renderStartupScreen(model: StartupScreenModel): string {
         <div class="waiting-spinner" aria-hidden="true">
           <span></span><span></span><span></span>
         </div>
-        <p class="eyebrow">Opening the drawer</p>
-        <h1 id="startup-loading-title">Loading Riot Relics</h1>
-        <p>Sorting figures, moves, and unpaid invoices.</p>
+        <p class="eyebrow">Opening the bracket</p>
+        <h1 id="startup-loading-title">Loading the fight</h1>
+        <p>Sorting Characters, Moves, and one unexplained invitation.</p>
       </main>
     `;
   }
@@ -37,7 +37,7 @@ export function renderStartupScreen(model: StartupScreenModel): string {
         ${model.beat.body ? `<p>${escapeHtml(model.beat.body)}</p>` : ""}
         <div class="startup-actions">
           <button class="primary-action" data-command="advance-startup">
-            ${isLastBeat ? "Open the drawer" : "Next print"}
+            ${isLastBeat ? "Open the Main Menu" : "Next"}
           </button>
           <button class="text-button" data-command="skip-startup">Skip intro</button>
         </div>
@@ -53,7 +53,7 @@ export function renderStartupScreen(model: StartupScreenModel): string {
 
 function renderStartupMedia(beat: StartupBeat): string {
   if (beat.kind === "text") {
-    return '<div class="startup-type-field" aria-hidden="true">RR</div>';
+    return '<div class="startup-type-field" aria-hidden="true">VS</div>';
   }
   if (beat.kind === "image") {
     return `

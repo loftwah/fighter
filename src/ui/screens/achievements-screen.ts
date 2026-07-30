@@ -11,7 +11,7 @@ export function renderAchievementsScreen(save: SaveData): string {
     <section class="achievements-sheet" aria-labelledby="achievements-title">
       <div class="section-heading">
         <button class="text-button" data-command="main-menu">← Main Menu</button>
-        <p class="eyebrow">Collector record · ${complete}/${progress.length}</p>
+        <p class="eyebrow">Player record · ${complete}/${progress.length}</p>
         <h1 id="achievements-title">Achievements</h1>
         <p>
           Awards are derived from the selected local profile, so earlier

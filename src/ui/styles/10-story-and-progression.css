@@ -58,7 +58,7 @@
 
 .story-label,
 .node-kind,
-.class-mark,
+.type-mark,
 .speaker-stamp {
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -350,7 +350,7 @@
 }
 
 .synergy-ticket,
-.class-wheel-mini {
+.type-wheel-mini {
   border: 3px dashed var(--ink);
   padding: 0.85rem 1rem;
   background: var(--indigo);
@@ -363,7 +363,7 @@
   gap: 1rem;
 }
 
-.class-wheel-mini {
+.type-wheel-mini {
   display: grid;
   gap: 0.25rem;
 }
@@ -516,7 +516,7 @@
   margin: 0;
 }
 
-.owned-build-ticket > div > span,
+.build-ticket-heading > span,
 .owned-build-ticket label > span {
   font-size: 0.68rem;
   font-weight: 700;
@@ -524,7 +524,7 @@
   text-transform: uppercase;
 }
 
-.owned-build-ticket label {
+.patch-control {
   display: grid;
   gap: 0.25rem;
 }
@@ -538,10 +538,172 @@
   color: var(--ink);
 }
 
-.owned-build-ticket > small {
+.patch-description {
   grid-column: 1 / -1;
   border-top: 2px dashed var(--ink);
   padding-top: 0.4rem;
+}
+
+.stat-editor,
+.move-build-editor {
+  grid-column: 1 / -1;
+  border-top: 3px solid var(--ink);
+  padding-top: 0.75rem;
+}
+
+.build-editor-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.55rem;
+}
+
+.build-editor-heading h4 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.45rem;
+  text-transform: uppercase;
+}
+
+.build-editor-heading span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.stat-allocation-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.stat-stepper {
+  display: grid;
+  grid-template-columns: 2.75rem 1fr 2.75rem;
+  border: 2px solid var(--ink);
+  background: var(--paper-muted);
+}
+
+.stat-stepper > span {
+  grid-column: 1 / -1;
+  border-bottom: 2px solid var(--ink);
+  padding: 0.25rem 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.stat-stepper button,
+.move-order-controls button {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  border: 0;
+  background: var(--indigo);
+  color: var(--chalk);
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.stat-stepper button:disabled,
+.move-order-controls button:disabled,
+.move-enhance-controls button:disabled {
+  background: var(--paper-muted);
+  color: var(--ink-muted);
+}
+
+.stat-stepper output {
+  display: grid;
+  place-items: center;
+  border-right: 2px solid var(--ink);
+  border-left: 2px solid var(--ink);
+  background: var(--yellow);
+  font-family: var(--display);
+  font-size: 1.45rem;
+}
+
+.move-build-editor ol {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.move-build-row {
+  display: grid;
+  grid-template-columns: 2.6rem minmax(9rem, 1fr) auto minmax(15rem, 0.8fr);
+  gap: 0.55rem;
+  align-items: center;
+  border: 2px solid var(--ink);
+  padding: 0.45rem;
+  background: var(--paper-muted);
+}
+
+.move-order-number {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  background: var(--tomato);
+  color: var(--chalk);
+  font-family: var(--display);
+  font-size: 1.5rem;
+}
+
+.move-build-copy {
+  display: grid;
+}
+
+.move-build-copy small {
+  font-size: 0.72rem;
+}
+
+.move-order-controls {
+  display: flex;
+  border: 2px solid var(--ink);
+}
+
+.move-order-controls button + button {
+  border-left: 2px solid var(--ink);
+}
+
+.move-enhance-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.move-enhance-controls > strong {
+  grid-column: 1 / -1;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.move-enhance-controls select,
+.move-enhance-controls button {
+  width: 100%;
+  min-height: 2.75rem;
+  border: 2px solid var(--ink);
+}
+
+.move-enhance-controls select {
+  padding: 0.25rem;
+  background: var(--chalk);
+}
+
+.move-enhance-controls button {
+  padding: 0.35rem 0.55rem;
+  background: var(--yellow);
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.build-editor-note {
+  margin-top: 0.55rem !important;
+  font-size: 0.72rem;
 }
 
 .store-counter {
@@ -879,6 +1041,91 @@
   background: var(--chalk);
   color: var(--ink);
   font-size: 0.72rem;
+}
+
+.cup-roster-selector {
+  margin: 0 0 1rem;
+  border: 4px solid var(--ink);
+  padding: 0.75rem;
+  background: var(--chalk);
+  color: var(--ink);
+}
+
+.cup-roster-selector legend {
+  padding: 0 0.45rem;
+  font-family: var(--display);
+  font-size: 1.25rem;
+  text-transform: uppercase;
+}
+
+.cup-roster-selector > p {
+  margin: 0 0 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.cup-roster-selector > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.cup-roster-ticket {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  gap: 0.35rem;
+  border: 3px solid var(--ink);
+  padding: 0.35rem;
+  background: var(--paper-muted);
+}
+
+.cup-roster-ticket.is-deployed {
+  background: var(--yellow);
+  box-shadow: 0.2rem 0.24rem 0 var(--ink);
+}
+
+.cup-roster-ticket.is-defeated {
+  filter: grayscale(1);
+  opacity: 0.62;
+}
+
+.cup-roster-ticket img {
+  width: 3.2rem;
+  height: 3.2rem;
+  grid-row: 1 / 3;
+  border: 2px solid var(--ink);
+  object-fit: cover;
+}
+
+.cup-roster-ticket > div {
+  display: grid;
+  align-content: center;
+}
+
+.cup-roster-ticket > div span {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.cup-roster-ticket > div strong {
+  line-height: 1;
+}
+
+.cup-roster-ticket label {
+  display: flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.cup-roster-ticket input {
+  width: 1.25rem;
+  height: 1.25rem;
+  accent-color: var(--tomato);
 }
 
 .cup-drops {

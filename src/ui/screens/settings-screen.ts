@@ -12,7 +12,7 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
         <button class="text-button" data-command="main-menu">← Main Menu</button>
         <h1 id="settings-title">Settings</h1>
         <p>
-          These preferences apply to every game type and every Collector
+          These preferences apply to every game type and every Player
           profile. Identity and progression are managed from Profile.
         </p>
       </div>
@@ -50,6 +50,10 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
           ${renderVolumeControl(model.preferences, "sfx", "Sound effects")}
           ${renderVolumeControl(model.preferences, "dialogue", "Dialogue")}
           <p class="settings-note">
+            Music uses one purpose-aware pool: context favours a track without
+            making any song exclusive to one screen.
+          </p>
+          <p class="settings-note">
             SFX and dialogue currently resolve to valid silent placeholders.
             The controls and logical IDs are ready for ElevenLabs output.
           </p>
@@ -57,14 +61,14 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
         <fieldset class="data-settings">
           <legend>Local data</legend>
           <p>
-            Progress is stored in this browser. Export the selected Collector
+            Progress is stored in this browser. Export the selected Player
             profile and global preferences as readable JSON.
           </p>
           <button class="secondary-action" data-command="download-profile-data">
             Export current profile
           </button>
           <button class="text-button" data-route="profile">
-            Manage Collector profiles
+            Manage Player profiles
           </button>
         </fieldset>
       </div>

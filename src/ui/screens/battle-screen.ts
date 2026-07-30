@@ -65,20 +65,49 @@ export function renderBattleScreen(model: BattleScreenModel): string {
               <strong data-enemy-charge-value>0 / 100</strong>
             </div>
             <div
-              class="meter charge-meter enemy-charge-meter"
-              role="meter"
-              aria-label="Enemy Charge"
-              aria-valuemin="0"
-              aria-valuemax="100"
-              aria-valuenow="0"
-              data-enemy-charge-meter
-            >
-              <span data-enemy-charge-fill></span>
+              class="enemy-accessory-readout"
+              data-enemy-accessory
+              aria-label="Opponent Accessory"
+            ></div>
+            <div class="enemy-charge-field">
+              <div
+                class="enemy-action-tray"
+                data-enemy-action-tray
+                aria-label="Opponent Move thresholds"
+              ></div>
+              <div
+                class="meter charge-meter enemy-charge-meter"
+                role="meter"
+                aria-label="Enemy Charge"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                data-enemy-charge-meter
+              >
+                <span data-enemy-charge-fill></span>
+              </div>
             </div>
           </section>
           <div class="arena-canvas" id="battle-canvas" aria-hidden="true"></div>
+          <div
+            class="battle-presentation-state"
+            data-battle-presentation-state
+            role="status"
+            aria-live="assertive"
+            aria-atomic="true"
+            hidden
+          >
+            <strong data-battle-presentation-title>Move in progress</strong>
+            <span>Battle paused during this Move</span>
+          </div>
           <div class="matchup-stamp" data-matchup></div>
           <div class="combat-log" aria-live="polite" data-combat-log></div>
+          <div
+            class="battle-pickup-tray"
+            data-player-pickups
+            aria-label="Available battle pickups"
+            aria-live="polite"
+          ></div>
           <div class="battle-loading" data-battle-loading role="status">
             <div class="waiting-spinner" aria-hidden="true">
               <span></span><span></span><span></span>
@@ -103,6 +132,13 @@ export function renderBattleScreen(model: BattleScreenModel): string {
         </aside>
         <section class="command-deck" aria-label="Moves and player Charge">
           <div class="player-charge-deck">
+            <button
+              class="battle-accessory-control"
+              data-command="battle-accessory"
+              data-side="player"
+              data-player-accessory
+              aria-disabled="true"
+            >Accessory</button>
             <div class="charge-deck-heading">
               <span>Your Charge</span>
               <strong data-player-charge-value>0 / 100</strong>

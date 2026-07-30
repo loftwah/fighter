@@ -5,6 +5,7 @@ import type {
   StatBlock,
 } from "../combat/types";
 import type { OwnedCharacter } from "../persistence/save";
+import { resolvedActionOrder } from "./builds";
 
 export type PatchEffect =
   | { kind: "openingCharge"; amount: number }
@@ -34,13 +35,13 @@ export const patches: PatchDefinition[] = [
   },
   {
     id: "patch.heavy-ink",
-    name: "Heavy Ink",
+    name: "Power Band",
     description: "Add 3 effective Power.",
     effect: { kind: "stat", stat: "power", amount: 3 },
   },
   {
     id: "patch.lucky-misprint",
-    name: "Lucky Misprint",
+    name: "Lucky Charm",
     description: "Add 4 effective Fortune.",
     effect: { kind: "stat", stat: "fortune", amount: 4 },
   },
@@ -48,21 +49,6 @@ export const patches: PatchDefinition[] = [
 
 export function findPatch(patchId: string | null): PatchDefinition | null {
   return patches.find((patch) => patch.id === patchId) ?? null;
-}
-
-function resolvedActionOrder(
-  owned: OwnedCharacter,
-  definition: CharacterDefinition,
-): [string, string, string] {
-  const authored = new Set(definition.actionIds);
-  if (
-    owned.actionOrder.length === 3 &&
-    new Set(owned.actionOrder).size === 3 &&
-    owned.actionOrder.every((actionId) => authored.has(actionId))
-  ) {
-    return owned.actionOrder as [string, string, string];
-  }
-  return definition.actionIds;
 }
 
 export function buildForOwnedCharacter(
@@ -95,6 +81,7 @@ export function buildForOwnedCharacter(
     level: owned.level,
     statBonuses,
     actionIds,
+    actionPositions: { ...owned.actionPositions },
     actionTiers,
     interruptionResistance,
     equippedPatchId: owned.equippedPatchId,
@@ -118,13 +105,13 @@ export function equipPatch(
 ): OwnedCharacter[] {
   const selected = collection.find((entry) => entry.instanceId === instanceId);
   if (!selected) {
-    throw new Error(`Unknown owned Relic: ${instanceId}`);
+    throw new Error(`Unknown owned Character: ${instanceId}`);
   }
   if (selected.level < 5 && patchId) {
-    throw new Error("Patch slots unlock at level 5");
+    throw new Error("Modification slots unlock at level 5");
   }
   if (patchId && !ownedPatchIds.includes(patchId)) {
-    throw new Error(`Patch is not owned: ${patchId}`);
+    throw new Error(`Modification is not owned: ${patchId}`);
   }
   return collection.map((entry) => ({
     ...entry,

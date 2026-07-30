@@ -18,7 +18,7 @@ data-driven, skippable startup sequence and genuine waiting state before opening
 the global launcher. It only constructs a Story, Quick Fight, or Tournament
 view context after an explicit player action. Semantic DOM renders contextual navigation,
 profile/settings surfaces, story copy, roster controls, action buttons, and
-accessibility state. Phaser renders the arena, Kinetic Print imagery, two-frame
+accessibility state. Phaser renders the arena, kinetic panel imagery, two-frame
 swaps, camera motion, particles, impact effects, and cut-ins.
 
 The DOM and Phaser layers share the battle-session controller in `app/App.ts`.
@@ -49,7 +49,7 @@ src/
 ├── game/          Phaser scenes and event presentation
 ├── missions/      generic mission evaluation
 ├── persistence/   preferences, save slots, schema
-├── progression/   XP, levels, allocation, tiers, Patches
+├── progression/   XP, levels, allocation, tiers, Modifications
 ├── story/         authored encounter configuration and node progression
 ├── store/         rotation, purchase, sale
 ├── tournaments/   run state and interstitials
@@ -97,7 +97,7 @@ State has one owner:
 | Audio, difficulty preference, reduced motion           | global Preferences        | all profiles                            |
 | Identity, collection, Story, missions, store, upgrades | selected SaveData profile | persisted profile                       |
 | Quick Fight setup                                      | Quick session             | until leaving/reconfiguring Quick Fight |
-| Tournament Case and carried health                     | tournament run            | persisted until the run resolves/resets |
+| Tournament Roster and carried health                   | tournament run            | persisted until the run resolves/resets |
 | Seeded combat and report                               | battle engine/session     | one match                               |
 | Pause, countdown, presentation lock, open overlays     | battle-session controller | one mounted battle                      |
 
@@ -124,28 +124,50 @@ Profile ──→ Mode Session ──→ Match Configuration ──→ Battle
                                                     mode-owned consequences
 ```
 
-A match configuration owns Lineups, Combatant Builds, difficulty, deterministic
-seed, optional authored rules, and presentation identity. Global Settings supply
-accessibility/audio and a preferred difficulty; the mode may constrain the match
-without copying settings state.
+A match configuration owns Lineups, Combatant Builds, one optional team
+Accessory per side, difficulty, deterministic seed, optional authored rules,
+and presentation identity. Global Settings supply accessibility/audio and a
+preferred difficulty; the mode may constrain the match without copying settings
+state.
 
 `src/combat/standard-build.ts` is the single Standard Build constructor for
 non-Story defaults. Quick Fight and standalone Tournament must call it instead
 of inferring builds from authored character levels or the active Story profile.
 Story encounters continue to use owned builds or explicit loan builds.
 
+`src/progression/builds.ts` owns immutable per-copy build edits: stat
+allocation/reclamation, validated three-Move ordering, independent
+Low/Centre/High selection inside each occupied band, and matching-duplicate Move
+enhancement. UI renderers only emit semantic commands; `App` applies the pure
+transition, enforces the active-Tournament lock, persists the result, and
+rerenders. Existing v2 saves receive an empty `actionPositions` map as an
+explicit additive migration; authored positions remain the fallback.
+
 ## Determinism
 
 - Domain transitions accept explicit `nowMs`, `deltaMs`, and seeded RNG state.
-- The simulation uses fixed logical steps where replay accuracy matters.
-- Random calls are ordered and documented.
-- A battle report records seed, initial content IDs, player decisions, major events, and outcome.
+- Reports record every accepted simulation delta in order. Replay uses those
+  exact deltas rather than inventing a different frame cadence.
+- Random calls are ordered and documented. Combat outcomes and battle drops use
+  separate deterministic streams derived from the explicit match seed so
+  adding or tuning a drop cannot perturb dodge, critical, or status results.
+- A battle report records seed, initial content IDs, accepted human and AI
+  decisions (including forfeits), major events, and outcome.
+- `src/combat/replay.ts` advances the recorded initial snapshot through the
+  original simulation deltas, reapplies each timestamped side-agnostic command,
+  and verifies the same deterministic state/event stream. Pause/resume metadata
+  is harmless because it does not advance simulation time. Reports containing
+  unsupported direct Developer Lab state edits are rejected rather than falsely
+  presented as authoritative replays.
 - Reports also retain exact participant instance IDs, levels, Move order, and
-  equipped Patch IDs so rewards and missions never have to infer a build from
+  equipped Modification IDs so rewards and missions never have to infer a build from
   display names.
 - Difficulty changes made during a live fight are appended to the report with
   elapsed time and both values; the initial difficulty remains immutable.
 - Presentation timing may interpolate but cannot decide gameplay.
+- A pending Move captures stable target instance IDs when it commits. Charge
+  completion resolves those IDs rather than asking the current UI who is active,
+  so switching cannot redirect an already committed Move.
 
 ## Combat API
 
@@ -157,6 +179,7 @@ tickBattle(state, deltaMs): Transition
 requestAction(state, side, actionId): Transition
 requestSwitch(state, side, characterId): Transition
 forfeitBattle(state, side): Transition
+requestAccessory(state, side, content): Transition
 chooseAiCommand(state, difficulty): BattleCommand | null
 ```
 
@@ -170,17 +193,47 @@ deterministic battle state.
 
 Presentation-lock durations are fixed from semantic event types in a pure
 timing module. Phaser consumes the same events and duration but does not decide
-gameplay timing. Reduced motion changes how the interval is rendered, not how
-long the combat controller remains locked.
+gameplay timing. The calibrated baselines are 2.1 seconds for an instant Move,
+1.8 seconds for a charged impact, 1.6 seconds for an Accessory, and 2.6 seconds
+for a defeat, with extra time for multiple hits. Reduced motion changes how the
+interval is rendered, not how long the combat controller remains locked. A
+semantic DOM status names the acting Character and Move throughout the lock.
+The AI decision clock is held at the current frame throughout the lock, so the
+configured reaction delay starts again when presentation releases instead of
+silently elapsing behind the animation.
+
+Periodic health events carry explicit provenance and do not create a new
+presentation lock. This prevents damage-over-time and regeneration from
+silently stretching simulation time, including when the affected Character is on
+the bench. The Phaser layer may show a compact float for an active target
+without influencing input timing. A resulting defeat remains a normal blocking
+presentation event.
+
+Each Move resolution owns a transient, non-persisted FIFO reaction queue.
+Dodge and post-shield damage capture eligible reaction statuses at trigger
+time. The queue drains only after all declared hits and effects complete.
+Reaction damage uses locked instance IDs, is terminal for damage/dodge
+reactions, and can switch either side after deferred defeat emission. This
+ordering prevents retroactive grants, truncated multi-hit Moves, and recursive
+reflection.
 
 Every transition returns a new state plus semantic events. Events include:
 
 ```text
-battleStarted, barChanged, characterSwitched, actionStarted,
+battleStarted, barChanged, accessoryCharged, accessoryActivated,
+pickupDropped, pickupCollected, pickupExpired,
+characterSwitched, actionStarted,
 actionCharged, actionInterrupted, damageApplied, healingApplied,
-statusApplied, statusRemoved, characterDodged, criticalHit,
+reactionTriggered, statusApplied, statusRemoved, characterDodged, criticalHit,
 characterDefeated, battleEnded
 ```
+
+`damageApplied` and `healingApplied` may be marked `periodic`; zero-value
+regeneration is not emitted.
+
+Reaction events use `actionId` for the triggering Move, `reactionId` for the
+Move that granted the reaction status, and `triggerEventId` for the exact
+damage/dodge event that queued it.
 
 ## Content
 
@@ -193,7 +246,37 @@ Adding content should require:
 3. validation;
 4. optionally an authored balance test.
 
-No new Phaser scene is required for a new story, tournament, Relic, or Move.
+No new Phaser scene is required for a new story, tournament, Character, Move,
+or Accessory.
+
+Accessories are stable content definitions composed from reusable effects.
+The launch vocabulary includes fixed Charge movement, timed Charge-rate
+changes, whole-team healing, whole-team shielding, and timed Move-slot blocks.
+Move-slot blocking is a team status keyed by slot index so it follows the
+shared bar layout when the active Character switches; it is never encoded as a
+character-specific branch.
+
+Battle pickups are transient combat state, not progression inventory. A
+successful damaging Move may advance the separate drop RNG and create a
+side-owned, expiring Battery, Repair, or Surge. `requestPickup` is a normal
+side-agnostic battle command used by semantic DOM buttons and AI alike.
+
+`CharacterDefinition` carries one `typeId` and zero to two `traitIds`.
+`CombatType` is a closed matchup vocabulary plus `typeless`; `CharacterTrait`
+is a separate closed team-building vocabulary. Content does not encode
+character-specific synergy branches. The combat rules module derives fractional
+Trait scores and their typed bonus record from the deployed definitions before
+building combatants.
+
+Rights and source metadata do not belong in the pure combat definition.
+`src/content/character-provenance.ts` is the validated external manifest keyed
+by Character ID. Public roster packaging must reject missing records and any
+record not explicitly marked `approved-for-distribution`; the launch prototype
+keeps all six records at `development-review`.
+
+Content validation rejects periodic intervals longer than their status duration
+and hit-gated effects that appear before any damage effect in the same ordered
+Move.
 
 `src/content/startup-content.ts` is an ordered union of text, image, and video
 beats. Media uses logical asset IDs and content validation; arbitrary HTML is
@@ -216,16 +299,28 @@ into rewards, missions, Story, or tournament persistence.
 - Slot keys: `riot-relics.save.v2.<slot>`
 - Legacy `riot-relics.save.v1.<slot>` snapshots migrate once into v2 and
   remain preserved for rollback.
+- Retired launch-roster IDs inside otherwise valid v2 snapshots migrate in
+  place through an explicit content-ID map. Character IDs, Move order/tiers,
+  losses, rival reveals, and locked tournament builds are migrated together.
+  Owned instance IDs remain stable so persisted health-ratio keys still refer
+  to the same copies.
+- Existing v2 Tournament snapshots receive an explicit deployment migration:
+  invalid/missing deployment IDs are removed, an empty deployment defaults to
+  the first three locked builds, and missing reserve Health starts at full.
+  `deployedInstanceIds` then persists independently from the six-build Roster.
 - Preferences and progression are separate.
 - Writes use a complete validated snapshot.
-- Owned Relic entries persist level/XP, stat allocations, Move order/tiers, and
-  one optional equipped Patch ID. Older v2 entries receive compatible defaults
-  during validation.
+- Owned Character entries persist level/XP, stat allocations, Move order,
+  per-Move band positions, Move tiers, and one optional equipped Modification
+  ID. Older v2 entries receive compatible defaults during validation.
 - Save slots persist the active Cheap Seats round, locked instance/build
-  snapshot, exact Case health ratios, ending active instance, selected
+  snapshot, exact Tournament Roster health ratios, ending active instance, selected
   interlude drop, pending opening-Charge bonus, champion badges, and revealed
   rivals. A loss clears the run snapshot so retry starts at Round 1. Older v2
   entries receive empty compatible defaults.
+- Retired eight-entry Tournament snapshots are accepted only for migration and
+  deterministically trimmed to the first six unique registered instances. New
+  Tournament registration rejects more than six.
 - Corrupt data falls back safely and is surfaced to the player; it is not silently overwritten before export/debug information is offered.
 - Accepting safe defaults writes only the affected validated document, retains
   the preserved corrupt backup, and does not repeat the warning on reload.
@@ -238,7 +333,15 @@ Logical IDs resolve through a registry:
 logical ID → approved/custom asset → silent category placeholder
 ```
 
-Music is copied into Vite’s public directory at setup time and registered by stable ID. Browser autoplay rules require the first user gesture before playback. Settings expose independent music, SFX, and dialogue volume/mute.
+Music is synced from `music/` into stable, ASCII-only Vite public paths by
+`mise run assets:music` and registered by logical ID. Runtime selection is a
+pure weighted function of an explicit seed, music context, present Character
+IDs, and the current track; every registered track retains a positive weight in
+every context. The application changes context only at meaningful boundaries
+(global shell, between-fight screens, or battle) and loops the selected track
+inside that context. Browser autoplay rules still require a player gesture.
+Settings expose independent music, SFX, and dialogue volume/mute, and a route
+change never opts a player back into music they turned off.
 
 ## Asset fallback
 
@@ -246,10 +349,31 @@ Music is copied into Vite’s public directory at setup time and registered by s
 approved specific asset
 → character fallback
 → template fallback
-→ generic Kinetic Print placeholder
+→ generic kinetic-panel placeholder
 ```
 
 Missing art must not crash a scene. Approved generated assets are never overwritten silently.
+
+Generated bitmap assets use an **opaque framed-shot contract**:
+
+- source files are complete rectangles or squares; alpha transparency is never
+  required;
+- registry metadata declares the frame class, focal point, safe crop, facing,
+  and intended shot role;
+- character frames may contain simple authored background fields because they
+  are presented as visible panels rather than composited sprites;
+- Phaser/CSS may crop, clip, mask, stack, tint, translate, scale, rotate, or
+  replace complete frames;
+- UI values, labels, controls, status marks, speed lines, flashes, particles,
+  panel borders, and other changing information remain code-native;
+- generated UI text is not relied upon;
+- only the current encounter's required art and near-future presentation frames
+  are preloaded. A large installed roster must not become one initial download
+  or decode burst.
+
+Generation is an offline authoring dependency, not a runtime dependency. The
+game remains playable with registered fallbacks when a specialised reaction or
+Move frame does not exist.
 
 ## Responsive model
 
@@ -268,7 +392,8 @@ Missing art must not crash a scene. Approved generated assets are never overwrit
 
 ## Testing
 
-- Calculation unit tests: costs, multipliers, class wheel, tiers, seeded variance.
+- Calculation unit tests: costs, multipliers, Type wheel, Trait scoring and
+  bonuses, tiers, seeded variance.
 - Reducer tests: bar fill, action execution, switching, interruption, defeat, timeout.
 - AI tests: never selects unavailable actions; difficulty remains valid.
 - Mission/reward/store/save tests.

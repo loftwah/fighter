@@ -7,6 +7,7 @@ import type {
 } from "../persistence/save";
 
 export type CheapSeatsDrop = "front-print-repair" | "case-repair" | "hot-start";
+export const TOURNAMENT_ROSTER_MAX = 6;
 
 export interface CheapSeatsEncounter {
   roundIndex: 0 | 1 | 2;
@@ -17,31 +18,34 @@ export interface CheapSeatsEncounter {
 }
 
 export const cheapSeatsPlayerIds = [
-  "character.mara-vex",
-  "character.zipwire",
-  "character.velvet-hex",
+  "character.viking",
+  "character.tux",
+  "character.moses",
+  "character.ned-kelly",
+  "character.humpty",
+  "character.grim-reaper",
 ] as const;
 
 export const cheapSeatsEncounters: CheapSeatsEncounter[] = [
   {
     roundIndex: 0,
-    title: "House Stock",
-    subtitle: "One showroom print. Suspiciously fresh tape.",
-    enemyCharacterIds: ["character.velvet-hex"],
+    title: "Miracle Warm-Up",
+    subtitle: "Moses has read the rules and found several omissions.",
+    enemyCharacterIds: ["character.moses"],
     seed: 20_260_906,
   },
   {
     roundIndex: 1,
-    title: "Two-Up Trouble",
-    subtitle: "The bracket has discovered multiplication.",
-    enemyCharacterIds: ["character.gutter-grin", "character.scrapjack"],
+    title: "Shell and Scythe",
+    subtitle: "The nursery-rhyme egg has partnered with Death.",
+    enemyCharacterIds: ["character.humpty", "character.grim-reaper"],
     seed: 20_260_907,
   },
   {
     roundIndex: 2,
-    title: "The Ledger Final",
-    subtitle: "Knuckle Tax brought backup and a receipt printer.",
-    enemyCharacterIds: ["character.knuckle-tax", "character.scrapjack"],
+    title: "The Wrong Door Final",
+    subtitle: "Ned Kelly brought armour. Death brought a prior appointment.",
+    enemyCharacterIds: ["character.ned-kelly", "character.grim-reaper"],
     seed: 20_260_908,
   },
 ];
@@ -49,17 +53,104 @@ export const cheapSeatsEncounters: CheapSeatsEncounter[] = [
 export function createCheapSeatsRun(
   caseBuilds: TournamentCaseBuild[] = [],
   origin: "story" | "standalone" = "standalone",
+  deployedInstanceIds: string[] = caseBuilds
+    .slice(0, 3)
+    .map((build) => build.instanceId),
 ): TournamentRunData {
-  return {
+  if (caseBuilds.length > TOURNAMENT_ROSTER_MAX) {
+    throw new Error(
+      `A Tournament Roster accepts at most ${TOURNAMENT_ROSTER_MAX} Characters`,
+    );
+  }
+  return normaliseCheapSeatsRun({
     tournamentId: "tournament.cheap-seats",
     origin,
     roundIndex: 0,
     phase: "ready",
     caseBuilds: structuredClone(caseBuilds),
-    healthRatios: {},
-    activeInstanceId: null,
+    deployedInstanceIds: [...deployedInstanceIds],
+    healthRatios: Object.fromEntries(
+      caseBuilds.map((build) => [build.instanceId, 1]),
+    ),
+    activeInstanceId: deployedInstanceIds[0] ?? null,
     nextRoundChargeBonus: 0,
     selectedDrop: null,
+  });
+}
+
+export function normaliseCheapSeatsRun(
+  sourceRun: TournamentRunData,
+): TournamentRunData {
+  const run = structuredClone(sourceRun);
+  run.caseBuilds = Array.from(
+    new Map(
+      run.caseBuilds.map((build) => [build.instanceId, build] as const),
+    ).values(),
+  ).slice(0, TOURNAMENT_ROSTER_MAX);
+  if (run.caseBuilds.length === 0) {
+    return run;
+  }
+  const rosterIds = new Set(run.caseBuilds.map((build) => build.instanceId));
+  for (const instanceId of Object.keys(run.healthRatios)) {
+    if (!rosterIds.has(instanceId)) {
+      delete run.healthRatios[instanceId];
+    }
+  }
+  for (const build of run.caseBuilds) {
+    run.healthRatios[build.instanceId] ??= 1;
+  }
+  const livingIds = run.caseBuilds
+    .filter((build) => (run.healthRatios[build.instanceId] ?? 1) > 0)
+    .map((build) => build.instanceId);
+  const livingIdSet = new Set(livingIds);
+  run.deployedInstanceIds = Array.from(
+    new Set(
+      run.deployedInstanceIds.filter(
+        (instanceId) =>
+          rosterIds.has(instanceId) && livingIdSet.has(instanceId),
+      ),
+    ),
+  ).slice(0, 3);
+  if (run.deployedInstanceIds.length === 0) {
+    run.deployedInstanceIds = livingIds.slice(0, 3);
+  }
+  if (
+    !run.activeInstanceId ||
+    !run.deployedInstanceIds.includes(run.activeInstanceId)
+  ) {
+    run.activeInstanceId = run.deployedInstanceIds[0] ?? null;
+  }
+  return run;
+}
+
+export function selectCheapSeatsDeployment(
+  sourceRun: TournamentRunData,
+  deployedInstanceIds: string[],
+  activeInstanceId: string | null,
+): TournamentRunData {
+  if (sourceRun.phase !== "ready") {
+    return sourceRun;
+  }
+  const livingIds = new Set(
+    sourceRun.caseBuilds
+      .filter((build) => (sourceRun.healthRatios[build.instanceId] ?? 1) > 0)
+      .map((build) => build.instanceId),
+  );
+  const deployment = Array.from(
+    new Set(
+      deployedInstanceIds.filter((instanceId) => livingIds.has(instanceId)),
+    ),
+  ).slice(0, 3);
+  if (deployment.length === 0) {
+    throw new Error("Deploy at least one living Tournament Character");
+  }
+  return {
+    ...sourceRun,
+    deployedInstanceIds: deployment,
+    activeInstanceId:
+      activeInstanceId && deployment.includes(activeInstanceId)
+        ? activeInstanceId
+        : deployment[0]!,
   };
 }
 
@@ -68,7 +159,12 @@ export function lockCheapSeatsCase(
   caseBuilds: TournamentCaseBuild[],
 ): TournamentRunData {
   if (sourceRun.caseBuilds.length > 0) {
-    return sourceRun;
+    return normaliseCheapSeatsRun(sourceRun);
+  }
+  if (caseBuilds.length > TOURNAMENT_ROSTER_MAX) {
+    throw new Error(
+      `A Tournament Roster accepts at most ${TOURNAMENT_ROSTER_MAX} Characters`,
+    );
   }
   const run = structuredClone(sourceRun);
   run.caseBuilds = structuredClone(caseBuilds);
@@ -109,7 +205,7 @@ export function lockCheapSeatsCase(
         (build) => (run.healthRatios[build.instanceId] ?? 1) > 0,
       )?.instanceId ?? null;
   }
-  return run;
+  return normaliseCheapSeatsRun(run);
 }
 
 export function cheapSeatsEncounter(roundIndex: number): CheapSeatsEncounter {
@@ -163,7 +259,10 @@ export function recordCheapSeatsVictory(
 ):
   | { complete: true; healthRatios: Record<string, number> }
   | { complete: false; run: TournamentRunData } {
-  const healthRatios = captureCaseHealth(state);
+  const healthRatios = {
+    ...run.healthRatios,
+    ...captureCaseHealth(state),
+  };
   const activeInstanceId =
     state.player.squad[state.player.activeIndex]?.instanceId ?? null;
   if (run.roundIndex >= cheapSeatsEncounters.length - 1) {
@@ -171,7 +270,7 @@ export function recordCheapSeatsVictory(
   }
   return {
     complete: false,
-    run: {
+    run: normaliseCheapSeatsRun({
       ...run,
       roundIndex: (run.roundIndex + 1) as 1 | 2,
       phase: "interlude",
@@ -179,7 +278,7 @@ export function recordCheapSeatsVictory(
       activeInstanceId,
       nextRoundChargeBonus: 0,
       selectedDrop: null,
-    },
+    }),
   };
 }
 
@@ -230,11 +329,11 @@ export function applyCheapSeatsDrop(
       }
     }
   }
-  return {
+  return normaliseCheapSeatsRun({
     ...run,
     phase: "ready",
     healthRatios,
     nextRoundChargeBonus: drop === "hot-start" ? 18 : 0,
     selectedDrop: drop,
-  };
+  });
 }

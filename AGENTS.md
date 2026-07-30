@@ -5,8 +5,11 @@
 - `docs/game-design.md` is the product and rules source of truth.
 - `docs/technical-design.md` is the architecture source of truth.
 - `DESIGN.md` is the implemented visual-system source of truth.
+- `docs/specification-alignment.md` records adopted, deferred, and deliberately
+  rejected requirements from the imported comprehensive battler specification.
 - `conversation.txt` and `walkthrough-questions.md` are historical inputs. Do not implement a historical statement that conflicts with the authoritative documents.
 - When a rule changes, update the authoritative document, its tests, and relevant content schema in the same change.
+- Use Australian English in player-facing copy and project documentation.
 
 ## Runtime and commands
 

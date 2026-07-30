@@ -30,6 +30,14 @@ run = "pnpm lint"
 description = "Check source formatting"
 run = "pnpm format"
 
+[tasks."assets:launch-placeholders"]
+description = "Regenerate Phaser-safe opaque launch-roster placeholder PNGs"
+run = "pnpm assets:launch-placeholders"
+
+[tasks."assets:music"]
+description = "Sync supplied music into stable public soundtrack paths"
+run = "pnpm assets:music"
+
 [tasks."content:validate"]
 description = "Validate authored game content"
 run = "pnpm content:validate"

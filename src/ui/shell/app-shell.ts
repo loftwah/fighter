@@ -16,6 +16,7 @@ export interface AppShellModel {
   difficultyOptions: string;
   devToolsEnabled: boolean;
   lockedRoutes: ReadonlySet<Route>;
+  musicTitle: string | null;
 }
 
 export function renderAppHeader(model: AppShellModel): string {
@@ -23,8 +24,8 @@ export function renderAppHeader(model: AppShellModel): string {
   const showPlayTools = showsModeTools(model.route, model.sessionMode);
   return `
     <header class="top-rail">
-      <button class="wordmark" data-command="main-menu" aria-label="Riot Relics Main Menu">
-        <span>RIOT</span><span>RELICS</span>
+      <button class="wordmark" data-command="main-menu" aria-label="Main Menu">
+        <span>FIGHTER</span><span>PROTOTYPE</span>
       </button>
       <nav class="primary-nav ${
         storyNavigation ? "is-story-nav" : "is-global-nav"
@@ -78,8 +79,17 @@ export function renderAppHeader(model: AppShellModel): string {
           data-command="toggle-music"
           aria-label="${
             model.preferences.musicPlaybackEnabled
-              ? "Turn music off"
+              ? `Turn music off${
+                  model.musicTitle
+                    ? `. Playing ${escapeHtml(model.musicTitle)}.`
+                    : ""
+                }`
               : "Turn music on"
+          }"
+          title="${
+            model.preferences.musicPlaybackEnabled && model.musicTitle
+              ? `Playing ${escapeHtml(model.musicTitle)}`
+              : "Music"
           }"
           aria-pressed="${model.preferences.musicPlaybackEnabled}"
         >
@@ -107,7 +117,7 @@ export function renderMobileNavigation(model: AppShellModel): string {
           ? `
             ${renderNavButton(model, "story", "Story", ICONS.story)}
             ${renderNavButton(model, "lineup", "Lineup", ICONS.quick)}
-            ${renderNavButton(model, "collection", "Relics", ICONS.collection)}
+            ${renderNavButton(model, "collection", "Collection", ICONS.collection)}
             ${renderNavButton(model, "store", "Store", ICONS.store)}
             ${renderNavButton(model, "missions", "Missions", ICONS.missions)}
             <button class="nav-control" data-command="main-menu">

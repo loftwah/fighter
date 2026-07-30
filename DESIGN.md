@@ -119,7 +119,7 @@ components:
 
 Riot Relics feels like a pulled-open collector drawer full of underground fight bills, specimen labels, scuffed toys, and hand-stamped results. It is tactile, dense, irreverent, and immediately playable: the interface behaves like a physical archive being sorted under pressure, never like a floating sci-fi HUD.
 
-The visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. The player enters through an explicit three-mode launcher, then sees navigation scoped to the chosen game context. Static rectangular character art becomes kinetic through layered stills, two-frame swaps, panel translation, cut-ins, hit-stop, shake, flashes, and stamped feedback. Story's durable interaction loop is story node → Lineup → Charge Strip → Stamps → next print.
+The visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. The player enters through an explicit three-mode launcher, then sees navigation scoped to the chosen game context. Static opaque character frames become kinetic through metadata-aware cover crops, fixed panel masks, two-layer crossfades, internal pans and zooms, sliding cut-ins, hit-stop, shake, flashes, and stamped feedback. Story's durable interaction loop is story node → Lineup → Charge Strip → Stamps → next print.
 
 **Key Characteristics:**
 
@@ -192,7 +192,7 @@ The palette behaves like a two-ink risograph job printed over indigo board and w
 
 The application opens on a deliberate launcher, never inside a game session. On desktop, Story Mode is the dominant image-and-copy bill while Quick Fight and Tournament form a smaller side stack; each card explains persistence and reward consequences before its explicit start or resume action. The global top rail contains Main Menu, Profile, and Settings. Once Story Mode is active, that rail switches to Story, Lineup, Collection, Store, and Missions, with a separate Exit game action back to the launcher.
 
-General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: a full-viewport specimen arena with compact controls pinned around the action rather than a dashboard wrapped around it. Health stays at the top corners, Lineup portraits hug the side edges, and the lower command field is a large Charge Strip with three circular Move seals physically anchored above their cost positions. The fill travels toward each seal, making readiness spatially obvious; the enemy's independent Charge remains with the enemy readout. The arena art and fighters own the remaining field.
+General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: a full-viewport specimen arena with compact controls pinned around the action rather than a dashboard wrapped around it. Health stays at the top corners, Lineup portraits hug the side edges, and the lower command field is a large Charge Strip with three circular Move seals physically anchored above their cost positions. The fill travels toward each seal, making readiness spatially obvious; the enemy's independent Charge occupies the stable top-centre lane between the narrower health readouts, with the class matchup immediately below it. The arena art and fighters own the remaining field.
 
 Spacing follows a tight print-production rhythm: micro gaps for meter and status internals, compact gaps inside tickets, base gaps between related controls, grouped gaps between modules, and fluid section insets for large surfaces. Thick solid borders establish objects; dashed rules imply perforation, receipts, or separable sections.
 
@@ -278,6 +278,31 @@ The Main Menu presents exactly three explicit session objects: Story Mode, Quick
 - **Checkbox / Range:** Native controls retain visible labels and use tomato as their accent.
 - **Disabled:** Desaturated and translucent, never hidden.
 
+### Collection Build Tickets
+
+Each owned Character copy has one square build ticket beneath the visual
+collection wall. The ticket keeps identity and Modification choice at the top,
+then uses two bordered workbench rows:
+
+- five compact labelled steppers for Vitality, Power, Evasion, Fortune, and
+  Tempo, with the unspent total always visible;
+- three numbered Move rows showing current order, exact Charge cost, tier,
+  earlier/later controls, and an explicit matching-copy enhancement selector.
+
+Build controls stay semantic buttons/selects with touch-safe dimensions. Locked
+level or Tournament states remain visible and explained; they never disappear
+or rely on colour. On narrow screens stat steppers stack and each Move becomes
+a two-column work order without shrinking its controls below the touch target.
+
+### Tournament Roster Tickets
+
+The Cup lobby shows all six locked Roster copies as compact square tickets in a
+three-column workbench. Every ticket includes opaque portrait art, Type, carried
+Health, a visible Deploy checkbox, and a separate Starts radio. Deployed tickets
+turn yellow and gain a hard print shadow; defeated tickets remain visible in
+greyscale. The counter above the grid always states how many of the allowed
+three are deployed.
+
 ### Navigation
 
 Desktop navigation is a chalk top rail with equal-width tabs, dashed dividers, and indigo labels. Hover and active states fill with acid yellow; the active tab also receives a thick tomato underline. The Riot Relics wordmark always returns to the Main Menu. Global context exposes Main Menu, Profile, and Settings; Story context exposes Story, Lineup, Collection, Store, and Missions plus an explicit Exit game control. Compact layouts move the current context to a fixed bottom rail with icon and visible text: three columns globally, six inside Story.
@@ -287,6 +312,11 @@ Desktop navigation is a chalk top rail with equal-width tabs, dashed dividers, a
 The music button is a global on/off intent control with a visible icon, accessible pressed state, and persistent preference. An off choice survives route changes, game-mode changes, profiles, and reloads; no surface turns music back on by itself. Volume and mute remain separate settings.
 
 **The Persistent Intent Rule.** Turning music off is durable user intent, not a temporary state for the current screen.
+
+While music is enabled, meaningful context changes may select a new seeded
+track from the inclusive soundtrack. Main, wandering, battle, and matching
+Character-theme roles alter probability without creating exclusive playlists;
+the battle HUD continues to show the selected title.
 
 ### Lineup Tickets
 
@@ -304,21 +334,74 @@ predicted summary. Unavailable Moves remain focusable and explanatory through
 blocking state such as Stunned. A selected Move becomes a full-width Kinetic
 Print cut-in before returning to the drawer.
 
+The opponent rail repeats the same three threshold locations as compact
+rectangular stamps with visible Move number, cost, and `WAIT`, `READY`, or
+`CAST`. They are read-only telegraphs, not controls. This is tactical
+information and may not be hidden on touch.
+
+Each side also owns one Accessory readout with an independent percentage.
+The player's Accessory is a semantic button embedded over the lower Charge
+Strip; the opponent's is a compact labelled ticket above its rail. Acid green
+and the word `READY` appear together at 100%.
+
 **The Touch Explanation Rule.** Responsive compression may shorten Move output
 to a compact hit/effect summary, but it may not remove the explanation
 entirely.
 
+Reaction Moves keep compact `COUNTER` or `REFLECT` output on narrow screens.
+
+### Battle Pickups
+
+Battle pickups are temporary square print tokens suspended above the player
+Charge field. Battery uses yellow, Repair uses chalk, and Surge uses tomato;
+each also carries a visible name, exact `+N` value, and destination label.
+Tokens are semantic touch-sized buttons, never Phaser-only hit regions. No more
+than two appear for one side, and removing or expiring one must not move the
+Charge Strip or Move seals.
+Active reaction statuses remain visible beside Health as labelled stamps with
+their remaining time and magnitude or trigger count; colour is supplementary.
+
+### Framed Shots
+
+Every Phaser fighter image is a complete opaque plate viewed through a fixed,
+ink-bordered rectangular mask. Registry focal points and safe-crop metadata
+select the cover crop without stretching. A small overscan lets the image pan,
+zoom, recoil, or squash inside the mask without exposing an edge.
+
+The panel owns separate layout and motion roots. Responsive layout changes only
+the outer panel and mask; idle swaps and presentation tweens only touch the
+inner image layer. Idle A/B plates crossfade rather than hard-swap so minor
+generated-background differences read as intentional limited animation.
+Optional 3 × 2 reaction sheets use the same masked source-region path for hurt,
+dodge, stun, KO, victory, and tense beats; a missing sheet retains the idle
+plate and code-native reaction effects.
+Landscape and portrait stages use different asymmetric player/enemy rectangles.
+A Move cut-in creates a temporary masked shot that slides over a procedural
+matte and diagonal slash, then destroys itself before control returns.
+
+**The Honest Rectangle Rule.** Generated art is never treated as a transparent
+sprite. Its rectangle is the shot, and code supplies the panel, crop, movement,
+effects, and dynamic state.
+
 ### Meters
 
-Health and Charge Strips are bordered tracks paired directly with numeric labels. Health uses tomato; player Charge uses battle-only charge green over an indigo track. The opponent owns a separate, clearly labelled tomato Charge rail beneath the top readouts; it fills toward the player so both sides read as a visible race. The player's Charge Strip remains the lower field's dominant object. Each Move is a circular press seal anchored directly above its exact cost on the track, with a compact name, cost, tier, and ready/waiting label. Both fills track exact fractional simulation state through the active animation frame while their accessible numeric labels update in whole Charge.
+Health and Charge Strips are bordered tracks paired directly with numeric labels. Health uses tomato; player Charge uses battle-only charge green over an indigo track. The opponent owns a separate, clearly labelled tomato Charge rail in the top-centre lane between the health readouts; it fills toward the player and exposes all three current Move thresholds so both sides read as a visible race without covering either pending-Move row. The player's Charge Strip remains the lower field's dominant object. Each Move is a circular press seal anchored directly above its exact cost on the track, with a compact name, cost, tier, and ready/waiting label. Both fills track exact fractional simulation state through the active animation frame while their accessible numeric labels update in whole Charge. Accessory percentages remain visually and semantically separate from these normal Charge values.
 
 ### Battle Timing and Motion
 
-Every battle opens with a blocking `3, 2, 1, FIGHT` comic split. Charge, timer, status durations, AI, and player commands remain frozen until `FIGHT` clears. The same complete hold applies whenever a Move resolves: controls read “Stand by”, the action runs as a full-field cut-in plus targeted lunge/impact/float/KO beats, and simulation resumes only after the fixed presentation window.
+Every battle opens with a blocking `3, 2, 1, FIGHT` comic split. Charge, timer, status durations, AI, and player commands remain frozen until `FIGHT` clears. The same complete hold applies whenever a Move resolves: controls read “Resolving”, the action runs as a full-field cut-in plus targeted lunge/impact/float/KO beats, and simulation resumes only after the fixed presentation window. A yellow inked status stamp names the acting Character and Move and states that battle is paused.
 
-The lock duration is gameplay presentation timing, not decorative animation timing. Reduced motion removes travel, zoom, flash, and shake but retains the same lock and state sequence so it cannot alter balance. Ordinary idle motion stays limited to two-frame swaps and a restrained misregistration pulse.
+The lock duration is gameplay presentation timing, not decorative animation timing. Instant Moves hold for about 2.1 seconds, charged impacts for about 1.8 seconds, Accessories for about 1.6 seconds, and defeats for about 2.6 seconds, expanding for multi-hit sequences. These windows are derived far enough past the final staggered impact beat that simulation cannot resume while a damage number is still resolving. Reduced motion removes travel, zoom, flash, and shake but retains the same lock and state sequence so it cannot alter balance. Ordinary idle motion stays limited to short two-frame crossfades and an occasional restrained masked pan.
 
 **The Choose-Then-Watch Rule.** A command is selected before its presentation. No further player or AI decision may be accepted while that presentation owns the stage.
+The opponent's reaction timer restarts only after presentation releases, leaving
+the player a readable active beat before the next AI command.
+
+Reflection and dodge counters do not start a second full-field cut-in. The
+triggering Move keeps ownership of the existing presentation lock; a
+`REFLECT!` or `COUNTER!` word, short reverse lunge, and reaction damage stamp
+play after its authored hits. This preserves timing clarity without turning a
+reaction chain into another long cinematic.
 
 **The Still-Image-Camera Rule.** Static art earns energy through entrance slides, asymmetric framing, scale changes, diagonal panels, cut-ins, hit reactions, damage stamps, and decisive camera resets—not ambient particles or constant wandering.
 

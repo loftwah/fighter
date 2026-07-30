@@ -1,10 +1,12 @@
 # MVP artwork plan
 
-## Approved working composition
+## Historical implemented composition
 
 North-star comp: `.impeccable/mocks/battle-collector-drawer.png`
 
-The composition is an archival collector drawer rendered as an underground risograph fight bill. The wide arena is the dominant specimen window; player and opponent Lineups are pull tabs on opposing rails; team health and Charge are paired inventory strips; three Move labels live in a strict lower tray.
+The composition is an archival collector drawer rendered as an underground
+risograph fight bill. It documents the currently implemented asset batch, but
+the identity has been rejected as the release direction.
 
 The comp is directional. Generated raster text, exact measurements, and tiny decorative controls must not be copied literally.
 
@@ -41,7 +43,8 @@ in `.impeccable/notes/asset-production.md` and
 - Reaction sheet: 3×2, 1536×1024.
 - No generated UI text.
 - No opponent included in reusable character Move cut-ins.
-- No transparency is required for the first renderer.
+- Every generated source is an opaque rectangle or square. Transparency is not
+  part of the renderer contract.
 - Approved assets are not overwritten silently.
 
 ## Placeholder chain

@@ -3,8 +3,12 @@ import { combatContent } from "../../content/initial-content";
 import type { Difficulty } from "../../combat/types";
 import type { SaveData } from "../../persistence/save";
 import { firstRunEncounter } from "../../story/first-run";
-import { renderClassWheel } from "../components/class-wheel";
-import { formatClass } from "../format";
+import {
+  renderCharacterTraits,
+  renderTraitSynergy,
+} from "../components/trait-synergy";
+import { renderTypeWheel } from "../components/type-wheel";
+import { formatLabel } from "../format";
 
 export interface LineupScreenModel {
   save: SaveData;
@@ -14,25 +18,19 @@ export interface LineupScreenModel {
 export function renderLineupScreen(model: LineupScreenModel): string {
   const encounter = firstRunEncounter(model.save.currentNodeId);
   const lineup = encounter.playerCharacterIds;
-  const factionCounts = new Map<string, number>();
-  for (const id of lineup) {
-    const factionId = combatContent.characters[id]!.factionId;
-    factionCounts.set(factionId, (factionCounts.get(factionId) ?? 0) + 1);
-  }
-  const synergyCount = Math.max(...factionCounts.values());
   return `
     <section class="lineup-workbench" aria-labelledby="lineup-title">
       <div class="lineup-heading">
         <button class="text-button" data-route="story">← Back to story</button>
         <h1 id="lineup-title">${
           encounter.nodeId === "story.first-run.05"
-            ? "Two prints. One shared strip."
-            : "Pull three. Print one."
+            ? "Two characters. One shared Strip."
+            : "Build the impossible Lineup."
         }</h1>
         <p>
           ${
             encounter.nodeId === "story.first-run.05"
-              ? "Qualifier rules require two Relics. Zipwire is supplied as a story loan when you do not own a copy."
+              ? "Tux and Humpty activate Icon. Moses and Grim Reaper activate Mythic. Both pairs are supplied as Story loans when needed."
               : "Story loaners are marked in yellow. Your Charge Strip belongs to the Lineup and survives every switch."
           }
         </p>
@@ -51,30 +49,22 @@ export function renderLineupScreen(model: LineupScreenModel): string {
               ),
             )
             .join("")}
-          <div class="synergy-ticket">
-            <span>Free Shelf ×${synergyCount}</span>
-            <strong>${
-              synergyCount >= 3
-                ? "+2 Vitality · +2 Power"
-                : synergyCount >= 2
-                  ? "+2 Vitality"
-                  : "No active synergy"
-            }</strong>
-          </div>
+          ${renderTraitSynergy(lineup)}
         </div>
         <div class="versus-stamp" aria-label="versus">VS</div>
         <div class="lineup-side is-enemy">
-          <h2>The Ledger</h2>
+          <h2>Opposing Lineup</h2>
           ${encounter.enemyCharacterIds
             .map((id) => renderLineupRelic(model.save, id, false))
             .join("")}
-          <div class="class-wheel-mini">${renderClassWheel()}</div>
+          ${renderTraitSynergy(encounter.enemyCharacterIds)}
+          <div class="type-wheel-mini">${renderTypeWheel()}</div>
         </div>
       </div>
       <div class="lineup-footer">
         <div>
           <span>Node ${encounter.index} · ${encounter.title}</span>
-          <strong>${formatClass(model.difficulty)}</strong>
+          <strong>${formatLabel(model.difficulty)}</strong>
         </div>
         <button class="primary-action" data-command="start-battle">
           Tear into battle <span aria-hidden="true">→</span>
@@ -96,13 +86,14 @@ function renderLineupRelic(
   const level = owned?.level ?? character.level;
   return `
     <article class="lineup-ticket">
-      <div class="ticket-portrait is-${character.classId}">
+      <div class="ticket-portrait is-${character.typeId}">
         <img src="${resolveImagePath(character.portraitAssetId)}" data-asset-id="${character.portraitAssetId}" alt="" />
       </div>
       <div>
-        <span class="class-mark">${formatClass(character.classId)}</span>
+        <span class="type-mark">${formatLabel(character.typeId)}</span>
         <h3>${character.name}</h3>
         <p>Level ${level} · ${owned ? "Owned build" : loaned ? "Story loan" : "Ready"}</p>
+        <div class="trait-chip-row">${renderCharacterTraits(character)}</div>
       </div>
       <span class="ticket-notch" aria-hidden="true"></span>
     </article>

@@ -1,0 +1,214 @@
+- generic [ref=e13]:
+  - banner [ref=e14]:
+    - button "Main Menu" [ref=e15] [cursor=pointer]:
+      - generic [ref=e16]: FIGHTER
+      - generic [ref=e17]: PROTOTYPE
+    - navigation "Global" [ref=e18]:
+      - button "Main Menu" [ref=e19] [cursor=pointer]
+      - button "Achievements" [ref=e23] [cursor=pointer]
+      - button "Profile" [ref=e27] [cursor=pointer]
+      - button "Settings" [ref=e31] [cursor=pointer]
+    - generic [ref=e35]:
+      - generic [ref=e36]: Player
+      - generic [ref=e37]:
+        - generic [ref=e38]: Difficulty
+        - combobox "Difficulty" [ref=e39] [cursor=pointer]:
+          - option "Easy"
+          - option "Normal" [selected]
+          - option "Hard"
+          - option "Brutal"
+      - button "DEV LAB" [ref=e40] [cursor=pointer]
+      - button "Turn music on" [ref=e41] [cursor=pointer]
+      - button "Exit game" [ref=e44] [cursor=pointer]
+  - main [ref=e45]:
+    - region [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - button "← Main Menu" [ref=e49] [cursor=pointer]
+          - heading "Developer Lab" [active] [level=1] [ref=e50]
+          - paragraph [ref=e51]: Isolated sandbox. Development fights never change Story, progression, Missions, rewards, or tournament runs.
+        - generic [ref=e52]:
+          - generic [ref=e53]: Environment
+          - strong [ref=e54]: Development
+          - generic [ref=e55]: Local state · deterministic combat
+      - region [ref=e56]:
+        - generic [ref=e57]:
+          - heading "Fight Switchboard" [level=2] [ref=e58]
+          - generic [ref=e59]: One-click scenarios
+        - generic [ref=e60]:
+          - button "Neutral 1v1 A clean stock matchup for checking the base Charge loop. 1v1 · Starts live" [ref=e61] [cursor=pointer]:
+            - strong [ref=e62]: Neutral 1v1
+            - generic [ref=e63]: A clean stock matchup for checking the base Charge loop.
+            - generic [ref=e64]: 1v1 · Starts live
+          - button "Interrupt Window Both sides open charged so wind-up and interruption are immediate. 1v1 · Starts paused" [ref=e65] [cursor=pointer]:
+            - strong [ref=e66]: Interrupt Window
+            - generic [ref=e67]: Both sides open charged so wind-up and interruption are immediate.
+            - generic [ref=e68]: 1v1 · Starts paused
+          - button "Switching 3v3 Full Lineups for switching, defeat order, and shared Charge checks. 3v3 · Starts paused" [ref=e69] [cursor=pointer]:
+            - strong [ref=e70]: Switching 3v3
+            - generic [ref=e71]: Full Lineups for switching, defeat order, and shared Charge checks.
+            - generic [ref=e72]: 3v3 · Starts paused
+          - button "Status Stack Control, shields, healing, and cleanse are available immediately. 2v2 · Starts paused" [ref=e73] [cursor=pointer]:
+            - strong [ref=e74]: Status Stack
+            - generic [ref=e75]: Control, shields, healing, and cleanse are available immediately.
+            - generic [ref=e76]: 2v2 · Starts paused
+          - button "Timeout A five-second near-tie for timeout and result verification. 1v1 · Starts paused" [ref=e77] [cursor=pointer]:
+            - strong [ref=e78]: Timeout
+            - generic [ref=e79]: A five-second near-tie for timeout and result verification.
+            - generic [ref=e80]: 1v1 · Starts paused
+          - button "Cup Round 2 A carried-damage tournament-shaped fight without progression. 3v2 · Starts paused" [ref=e81] [cursor=pointer]:
+            - strong [ref=e82]: Cup Round 2
+            - generic [ref=e83]: A carried-damage tournament-shaped fight without progression.
+            - generic [ref=e84]: 3v2 · Starts paused
+      - generic [ref=e85]:
+        - region [ref=e86]:
+          - generic [ref=e87]:
+            - heading "Custom Fight Composer" [level=2] [ref=e88]
+            - generic [ref=e89]: Build a deterministic sandbox
+          - generic [ref=e90]:
+            - group "Your Lineup" [ref=e91]:
+              - generic [ref=e93]:
+                - generic [ref=e94]: "1"
+                - combobox "Player Character 1" [ref=e95] [cursor=pointer]:
+                  - option "Tux · Tech" [selected]
+                  - option "Humpty Dumpty · Oddball"
+                  - option "Moses · Arcane"
+                  - option "Viking · Brawler"
+                  - option "Ned Kelly · Sharpshooter"
+                  - option "Grim Reaper · Beast"
+              - generic [ref=e96]:
+                - generic [ref=e97]: "2"
+                - combobox "Player Character 2" [ref=e98] [cursor=pointer]:
+                  - option "Empty slot" [selected]
+                  - option "Tux · Tech"
+                  - option "Humpty Dumpty · Oddball"
+                  - option "Moses · Arcane"
+                  - option "Viking · Brawler"
+                  - option "Ned Kelly · Sharpshooter"
+                  - option "Grim Reaper · Beast"
+              - generic [ref=e99]:
+                - generic [ref=e100]: "3"
+                - combobox "Player Character 3" [ref=e101] [cursor=pointer]:
+                  - option "Empty slot" [selected]
+                  - option "Tux · Tech"
+                  - option "Humpty Dumpty · Oddball"
+                  - option "Moses · Arcane"
+                  - option "Viking · Brawler"
+                  - option "Ned Kelly · Sharpshooter"
+                  - option "Grim Reaper · Beast"
+            - generic [ref=e102]: VS
+            - group "Enemy Lineup" [ref=e103]:
+              - generic [ref=e105]:
+                - generic [ref=e106]: "1"
+                - combobox "Enemy Character 1" [ref=e107] [cursor=pointer]:
+                  - option "Tux · Tech" [selected]
+                  - option "Humpty Dumpty · Oddball"
+                  - option "Moses · Arcane"
+                  - option "Viking · Brawler"
+                  - option "Ned Kelly · Sharpshooter"
+                  - option "Grim Reaper · Beast"
+              - generic [ref=e108]:
+                - generic [ref=e109]: "2"
+                - combobox "Enemy Character 2" [ref=e110] [cursor=pointer]:
+                  - option "Empty slot" [selected]
+                  - option "Tux · Tech"
+                  - option "Humpty Dumpty · Oddball"
+                  - option "Moses · Arcane"
+                  - option "Viking · Brawler"
+                  - option "Ned Kelly · Sharpshooter"
+                  - option "Grim Reaper · Beast"
+              - generic [ref=e111]:
+                - generic [ref=e112]: "3"
+                - combobox "Enemy Character 3" [ref=e113] [cursor=pointer]:
+                  - option "Empty slot" [selected]
+                  - option "Tux · Tech"
+                  - option "Humpty Dumpty · Oddball"
+                  - option "Moses · Arcane"
+                  - option "Viking · Brawler"
+                  - option "Ned Kelly · Sharpshooter"
+                  - option "Grim Reaper · Beast"
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - generic [ref=e116]: Player level
+              - spinbutton "Player level" [ref=e117]: "7"
+            - generic [ref=e118]:
+              - generic [ref=e119]: Enemy level
+              - spinbutton "Enemy level" [ref=e120]: "7"
+            - generic [ref=e121]:
+              - generic [ref=e122]: Player Moves
+              - combobox "Player Moves" [ref=e123] [cursor=pointer]:
+                - option "Normal · base outline" [selected]
+                - option "Tier 1 · silver outline"
+                - option "Tier 2 · gold outline"
+            - generic [ref=e124]:
+              - generic [ref=e125]: Enemy Moves
+              - combobox "Enemy Moves" [ref=e126] [cursor=pointer]:
+                - option "Normal · base outline" [selected]
+                - option "Tier 1 · silver outline"
+                - option "Tier 2 · gold outline"
+            - generic [ref=e127]:
+              - generic [ref=e128]: Player Modification
+              - combobox "Player Modification" [ref=e129] [cursor=pointer]:
+                - option "No Modification" [selected]
+                - option "Hot Start · Add 18 opening Charge to the shared Strip."
+                - option "No Flinch · Gain a 50% seeded chance for a charging Move to resist interruption."
+                - option "Power Band · Add 3 effective Power."
+                - option "Lucky Charm · Add 4 effective Fortune."
+            - generic [ref=e130]:
+              - generic [ref=e131]: Enemy Modification
+              - combobox "Enemy Modification" [ref=e132] [cursor=pointer]:
+                - option "No Modification" [selected]
+                - option "Hot Start · Add 18 opening Charge to the shared Strip."
+                - option "No Flinch · Gain a 50% seeded chance for a charging Move to resist interruption."
+                - option "Power Band · Add 3 effective Power."
+                - option "Lucky Charm · Add 4 effective Fortune."
+            - generic [ref=e133]:
+              - generic [ref=e134]: Player Charge
+              - spinbutton "Player Charge" [ref=e135]: "0"
+            - generic [ref=e136]:
+              - generic [ref=e137]: Enemy Charge
+              - spinbutton "Enemy Charge" [ref=e138]: "0"
+            - generic [ref=e139]:
+              - generic [ref=e140]: Player health · %
+              - spinbutton "Player health · %" [ref=e141]: "100"
+            - generic [ref=e142]:
+              - generic [ref=e143]: Enemy health · %
+              - spinbutton "Enemy health · %" [ref=e144]: "100"
+            - generic [ref=e145]:
+              - generic [ref=e146]: Difficulty
+              - combobox "Difficulty" [ref=e147] [cursor=pointer]:
+                - option "Easy"
+                - option "Normal" [selected]
+                - option "Hard"
+                - option "Brutal"
+            - generic [ref=e148]:
+              - generic [ref=e149]: Time limit · seconds
+              - spinbutton "Time limit · seconds" [ref=e150]: "90"
+            - generic [ref=e151]:
+              - generic [ref=e152]: Seed
+              - spinbutton "Seed" [ref=e153]: "20261101"
+          - generic [ref=e154]:
+            - button "Start Paused" [ref=e155] [cursor=pointer]
+            - button "Start Live" [ref=e156] [cursor=pointer]
+        - complementary [ref=e157]:
+          - heading "Diagnostics" [level=2] [ref=e159]
+          - generic [ref=e160]:
+            - generic [ref=e161]:
+              - term [ref=e162]: Profile
+              - definition [ref=e163]: Player · slot 1
+            - generic [ref=e164]:
+              - term [ref=e165]: Content
+              - definition [ref=e166]: 6 Characters · 18 Moves
+            - generic [ref=e167]:
+              - term [ref=e168]: Recent reports
+              - definition [ref=e169]: 0 this session
+            - generic [ref=e170]:
+              - term [ref=e171]: Last fight
+              - definition [ref=e172]: Run a fight to generate a report
+          - generic [ref=e173]:
+            - heading "Convenience" [level=3] [ref=e174]
+            - button "Grant all Characters + Modifications" [ref=e175] [cursor=pointer]
+            - button "Add 500 Stamps" [ref=e176] [cursor=pointer]
+            - button "Unlock First Run views" [ref=e177] [cursor=pointer]
+            - button "Export profile JSON" [ref=e178] [cursor=pointer]
+            - button "Export last battle report" [disabled] [ref=e179]

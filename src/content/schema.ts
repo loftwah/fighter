@@ -22,46 +22,153 @@ const effectSchema = z.discriminatedUnion("kind", [
     target,
     power: z.number().positive(),
     hits: z.number().int().positive().optional(),
+    undodgeable: z.boolean().optional(),
+    shieldPiercing: z.boolean().optional(),
+    lifeStealRatio: z.number().min(0).max(1).optional(),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("heal"),
     target,
     power: z.number().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("damageOverTime"),
+    target,
+    power: z.number().positive(),
+    durationMs: z.number().int().positive(),
+    intervalMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("healOverTime"),
+    target,
+    power: z.number().positive(),
+    durationMs: z.number().int().positive(),
+    intervalMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("stun"),
     target,
     durationMs: z.number().int().positive(),
     chance: z.number().min(0).max(1),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("modifyAttack"),
     target,
     magnitude: z.number(),
     durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("modifyDefence"),
     target,
     magnitude: z.number(),
     durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("modifyEvasion"),
+    target,
+    magnitude: z.number(),
+    durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("modifyFortune"),
+    target,
+    magnitude: z.number(),
+    durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("switchLock"),
+    target,
+    durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("reflectDamage"),
+    target,
+    ratio: z.number().positive().max(1),
+    durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("counterOnDodge"),
+    target,
+    power: z.number().positive(),
+    durationMs: z.number().int().positive(),
+    uses: z.number().int().positive().max(9).optional(),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("bar"),
     target: z.enum(["allies", "enemies"]),
     amount: z.number(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("modifyChargeRate"),
+    target: z.enum(["allies", "enemies"]),
+    multiplier: z.number().min(0).max(3),
+    durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("shield"),
     target,
     amount: z.number().positive(),
     durationMs: z.number().int().positive(),
+    requiresHit: z.boolean().optional(),
   }),
   z.object({
     kind: z.literal("cleanse"),
     target,
+    requiresHit: z.boolean().optional(),
   }),
 ]);
+
+const accessoryEffectSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("bar"),
+    target: z.enum(["allies", "enemies"]),
+    amount: z.number(),
+  }),
+  z.object({
+    kind: z.literal("modifyChargeRate"),
+    target: z.enum(["allies", "enemies"]),
+    multiplier: z.number().min(0).max(3),
+    durationMs: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("heal"),
+    target: z.literal("allies"),
+    amount: z.number().positive(),
+  }),
+  z.object({
+    kind: z.literal("shield"),
+    target: z.literal("allies"),
+    amount: z.number().positive(),
+    durationMs: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("blockMove"),
+    target: z.literal("enemies"),
+    slotIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
+    durationMs: z.number().int().positive(),
+  }),
+]);
+
+export const accessorySchema = z.object({
+  id,
+  name: z.string().min(2),
+  description: z.string().min(4),
+  effects: z.array(accessoryEffectSchema).min(1),
+});
 
 export const actionSchema = z.object({
   id,
@@ -78,16 +185,21 @@ export const characterSchema = z.object({
   id,
   name: z.string().min(2),
   lore: z.string().min(12),
-  classId: z.enum([
-    "impact",
-    "feral",
-    "guile",
-    "circuit",
-    "hex",
-    "guard",
-    "neutral",
+  typeId: z.enum([
+    "brawler",
+    "sharpshooter",
+    "arcane",
+    "tech",
+    "beast",
+    "oddball",
+    "typeless",
   ]),
-  factionId: id,
+  traitIds: z
+    .array(z.enum(["hero", "villain", "monster", "mythic", "historic", "icon"]))
+    .max(2)
+    .refine((traits) => new Set(traits).size === traits.length, {
+      message: "Character traits must be unique",
+    }),
   level: z.number().int().min(1).max(25),
   baseStats: z.object({
     health: z.number().positive(),
@@ -96,10 +208,34 @@ export const characterSchema = z.object({
     fortune: z.number().nonnegative(),
     tempo: z.number().nonnegative(),
   }),
-  actionIds: z.tuple([id, id, id]),
+  actionIds: z
+    .tuple([id, id, id])
+    .refine((actionIds) => new Set(actionIds).size === actionIds.length, {
+      message: "Character Moves must be unique",
+    }),
   portraitAssetId: id,
   idleAssetIds: z.tuple([id, id]),
+  reactionAssetId: id.optional(),
   musicId: id,
+});
+
+export const characterProvenanceSchema = z.object({
+  characterId: id,
+  sourceKind: z.enum([
+    "public-domain-fiction",
+    "historical-figure",
+    "historical-archetype",
+    "religious-mythological",
+    "open-source-culture",
+    "parody",
+    "original",
+  ]),
+  rightsStatus: z.enum([
+    "development-review",
+    "approved-for-distribution",
+    "private-only",
+  ]),
+  rightsNote: z.string().min(24),
 });
 
 const startupBeatBase = {
@@ -151,10 +287,15 @@ export function validateStartupContent(beats: unknown[]): void {
 export function validateContent(
   actions: unknown[],
   characters: unknown[],
+  accessories: unknown[] = [],
 ): void {
   const parsedActions = z.array(actionSchema).parse(actions);
   const parsedCharacters = z.array(characterSchema).parse(characters);
+  const parsedAccessories = z.array(accessorySchema).parse(accessories);
   const actionIds = new Set(parsedActions.map((action) => action.id));
+  const actionById = new Map(
+    parsedActions.map((action) => [action.id, action]),
+  );
   const musicIds = new Set(musicTracks.map((track) => track.id));
   const duplicateActions = parsedActions.filter(
     (action, index) =>
@@ -164,7 +305,33 @@ export function validateContent(
   if (duplicateActions.length > 0) {
     throw new Error(`Duplicate action ID: ${duplicateActions[0]?.id}`);
   }
+  const accessoryIds = new Set<string>();
+  for (const accessory of parsedAccessories) {
+    if (accessoryIds.has(accessory.id)) {
+      throw new Error(`Duplicate Accessory ID: ${accessory.id}`);
+    }
+    accessoryIds.add(accessory.id);
+  }
   for (const action of parsedActions) {
+    let hasPrecedingDamage = false;
+    for (const effect of action.effects) {
+      if (
+        (effect.kind === "damageOverTime" || effect.kind === "healOverTime") &&
+        effect.intervalMs > effect.durationMs
+      ) {
+        throw new Error(
+          `${action.id} has a periodic interval longer than its duration`,
+        );
+      }
+      if (effect.requiresHit && !hasPrecedingDamage) {
+        throw new Error(
+          `${action.id} has a hit-gated effect before any damage effect`,
+        );
+      }
+      if (effect.kind === "damage") {
+        hasPrecedingDamage = true;
+      }
+    }
     if (!presentationAssets[action.presentationId]) {
       throw new Error(
         `${action.id} references missing ${action.presentationId}`,
@@ -186,10 +353,25 @@ export function validateContent(
         throw new Error(`${character.id} references missing ${actionId}`);
       }
     }
+    if (
+      !character.actionIds.some((actionId) =>
+        actionById
+          .get(actionId)
+          ?.effects.some((effect) => effect.kind === "damage"),
+      )
+    ) {
+      throw new Error(
+        `${character.id} needs at least one damaging Move for solo battles`,
+      );
+    }
     for (const assetId of [
       character.portraitAssetId,
       ...character.idleAssetIds,
+      character.reactionAssetId,
     ]) {
+      if (!assetId) {
+        continue;
+      }
       if (!imageAssets[assetId]) {
         throw new Error(`${character.id} references missing ${assetId}`);
       }

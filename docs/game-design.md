@@ -1,12 +1,19 @@
-# Riot Relics — game design document
+# Untitled collectible battler — game design document
 
 Status: authoritative for the current prototype  
-Working title: **Riot Relics** (proposed, replaceable)  
-Last design consolidation: 2026-07-30
+Development codename: **Riot Relics** (rejected as a release identity; retained
+only where migration-safe technical identifiers still use it)
+Last design consolidation: 2026-07-31
 
 ## 1. Product statement
 
-Riot Relics is a collectible squad battler about scrappy toy figures that come alive inside illicit printed fight cards. The player is a Collector building a Lineup, exploiting class matchups, upgrading three Moves per Relic, and returning to old opponents powerful enough to flatten them.
+The game is a collectible squad battler about an extensible roster of
+characters drawn from public-domain fiction, history, mythology, religion,
+open-source culture, parody, and original creations. Every source is translated
+through one coherent combat and presentation language. The player builds a
+Lineup, exploits Combat Type matchups and Team Trait synergies, upgrades three
+Moves per Character, and returns to old opponents powerful enough to flatten
+them.
 
 The compact loop is:
 
@@ -18,45 +25,60 @@ Story, dialogue, shops, missions, rewards, choices, and tournaments are authored
 
 ## 2. Working language
 
-These names are strong working proposals. Stable IDs must outlive display-name changes.
+Use plain functional names until the final product vocabulary is approved.
+Stable IDs must outlive display-name changes. `Relic`, `Collector`, `Case`, and
+`Kinetic Print` survive only in migration-safe identifiers and historical
+documents; they are not release terminology.
 
-| Design concept                 | Working term  |
-| ------------------------------ | ------------- |
-| Collectible character          | Relic         |
-| Player                         | Collector     |
-| Deployed battle team           | Lineup        |
-| Tournament roster              | Case          |
-| Action                         | Move          |
-| Battle resource                | Charge Strip  |
-| Modification                   | Patch         |
-| Currency                       | Stamps        |
-| Random battle pickup           | Drop          |
-| Rectangular animation language | Kinetic Print |
+| Design concept                 | Current term                |
+| ------------------------------ | --------------------------- |
+| Collectible combatant          | Character                   |
+| Human using a profile          | Player                      |
+| Deployed battle team           | Lineup                      |
+| Locked tournament roster       | Tournament Roster           |
+| Character action               | Move                        |
+| Battle resource                | Charge Strip                |
+| Character modification         | Modification                |
+| Currency                       | Stamps                      |
+| Random battle pickup           | Drop                        |
+| Rectangular animation language | Kinetic Panel Motion        |
+| Matchup category               | Combat Type (or Type in UI) |
+| Team-building category         | Team Trait (or Trait in UI) |
 
 ## 3. World and first cast
 
-Rare figures are supposedly misprints. The corporate tournament circuit calls them defects; underground Collectors know the “errors” are what wake a Relic up. The canonical first story follows a small print-shop crew entering a rigged qualifier after **The Ledger** begins confiscating unofficial figures.
+The world is deliberately absurd and permissive: a Linux mascot, a nursery-rhyme
+egg, a religious figure, a Viking, an Australian folk figure, and the
+personification of death can plausibly meet in the same tournament. The game
+does not require one corporate-print-shop fiction to justify that roster.
+Individual stories may provide their own premise and tone while using the same
+Characters and battle rules.
 
-Initial factions:
+Accepted launch roster:
 
-- **Free Shelf** — collectors, bootleg printers, and figures who refuse official ownership.
-- **The Ledger** — licensed enforcers who price, grade, and repossess everything.
-- **House Stock** — independent fighters who care more about the match than either side.
+| Stable ID               | Name          | Combat Type  | Team Traits     | Battle identity                         |
+| ----------------------- | ------------- | ------------ | --------------- | --------------------------------------- |
+| `character.tux`         | Tux           | Tech         | Icon            | Charge manipulation and system pressure |
+| `character.humpty`      | Humpty Dumpty | Oddball      | Icon            | Evasion, reflection, and risky control  |
+| `character.moses`       | Moses         | Arcane       | Hero, Mythic    | Healing, cleansing, and safe passage    |
+| `character.viking`      | Viking        | Brawler      | Historic        | Direct damage, stun, and multi-hit      |
+| `character.ned-kelly`   | Ned Kelly     | Sharpshooter | Hero, Historic  | Reliable shots, armour, and lockdown    |
+| `character.grim-reaper` | Grim Reaper   | Beast        | Monster, Mythic | Debuffs, team pressure, and lifesteal   |
 
-Initial cast:
+The six launch Characters cover all six Combat Types. Five of the six Team
+Traits are represented; Villain is intentionally available to the system but
+not forced onto a launch Character it does not honestly describe. The first
+appropriate antagonist can introduce it.
 
-| ID                      | Name        | Class   | Faction     | Role                                    |
-| ----------------------- | ----------- | ------- | ----------- | --------------------------------------- |
-| `character.mara-vex`    | Mara Vex    | Impact  | Free Shelf  | Starter; direct damage and interruption |
-| `character.knuckle-tax` | Knuckle Tax | Guard   | The Ledger  | First rival; defence and taunt          |
-| `character.zipwire`     | Zipwire     | Circuit | Free Shelf  | Fast bar control                        |
-| `character.velvet-hex`  | Velvet Hex  | Hex     | House Stock | Status and cleanse                      |
-| `character.gutter-grin` | Gutter Grin | Guile   | House Stock | Dodge and critical play                 |
-| `character.scrapjack`   | Scrapjack   | Feral   | The Ledger  | Team damage and pressure                |
+Every public release must record the source and rights status of each Character
+interpretation. Characters based on protected marks, recognisable modern
+designs, living cultures, or religious figures require explicit review. The art
+pipeline creates a house interpretation and never treats a familiar source
+image as reusable production art.
 
 ## 4. Modes
 
-Riot Relics opens on a Main Menu. The player explicitly starts or resumes Story
+The application opens on a Main Menu. The player explicitly starts or resumes Story
 Mode, Quick Fight, or Tournament Mode; launching the application never drops
 the player into an active game. Global navigation contains Main Menu, Profile,
 and Settings only.
@@ -83,9 +105,9 @@ session by itself.
 
 - Quick Fight defaults to the progression-neutral **Standard Build**: Level 10,
   nine equally budgeted allocation points (`2 Vitality / 2 Power / 2 Evasion /
-2 Fortune / 1 Tempo`), Stock Moves, and no Patch.
-- All Relics and opponents are available without ownership. Supported custom
-  rules may override levels, allocations, Move order/tiers, Patches, music, and
+2 Fortune / 1 Tempo`), Stock Moves, and no Modification.
+- All Characters and opponents are available without ownership. Supported custom
+  rules may override levels, allocations, Move order/tiers, Modifications, music, and
   encounter rules, but the setup and result must be labelled `Custom`.
 - It is a sandbox and does not require ownership.
 - Quick Fight never changes Story progress, Stamps, XP, Missions, ownership, or
@@ -93,20 +115,23 @@ session by itself.
 
 ### Tournament Mode
 
-- The player selects a Case of up to eight Relics before entry.
-- Up to three living Case members enter each fight.
-- Health, defeat state, and equipped Patches persist between rounds.
-- Patches cannot be changed during the tournament.
-- Interstitial nodes can heal, heal the Case, revive, grant starting Charge, stun the next enemy, open a store, or give a reward.
+- The player selects a Tournament Roster of up to six Characters before entry.
+- Up to three living Tournament Roster members enter each fight.
+- The launch Wrong Door Cup locks all six launch Characters, lets the player
+  deploy one to three living members before each ready round, and explicitly
+  choose which deployed Character starts.
+- Health, defeat state, and equipped Modifications persist between rounds.
+- Modifications cannot be changed during the tournament.
+- Interstitial nodes can heal, heal the Tournament Roster, revive, grant starting Charge, stun the next enemy, open a store, or give a reward.
 - Losing a fight ends the run. A tournament can be restarted and replayed indefinitely.
 - Standalone tournaments can be customised; Story tournaments are authored.
 - A standalone tournament uses Standard Builds unless its authored or Custom
-  rules explicitly provide another locked Case build. A Story tournament uses
+  rules explicitly provide another locked Tournament Roster build. A Story tournament uses
   owned or authored-loan builds.
 
 ### Achievements
 
-- Achievements belong to the selected Collector profile and remain available
+- Achievements belong to the selected Player profile and remain available
   from the global shell.
 - Achievement state is derived from durable profile facts wherever possible, so
   an award added in a later build can unlock retroactively.
@@ -121,9 +146,9 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 
 - Development builds expose a Developer Lab from the Main Menu and from the
   pause menu during every battle.
-- The Lab launches validated, named scenarios or a custom one-to-three-Relic
+- The Lab launches validated, named scenarios or a custom one-to-three-Character
   matchup without requiring Story progress, ownership, or setup navigation.
-- Scenario controls include Lineups, levels, Move presentation tiers, Patches,
+- Scenario controls include Lineups, levels, Move presentation tiers, Modifications,
   seed, difficulty, starting health and Charge, time limit, and whether the
   fight opens paused.
 - Development battles and their in-battle debug actions never grant rewards,
@@ -141,14 +166,19 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 ### 5.1 Format
 
 - Two sides only: player and opponent.
-- Each side deploys one to three Relics and has exactly one active Relic.
+- Each side deploys one to three Characters and has exactly one active Character.
 - Every side has an explicit controller assignment. The current player-facing
   modes assign the player side to one local human and the opponent to AI; the
   command boundary remains side-agnostic so a second local human controller can
   be added without changing combat rules.
-- A battle ends when every Relic on a side is defeated or that side forfeits.
-- Standard time limit: 90 seconds, content-configurable.
+- A battle ends when every Character on a side is defeated or that side forfeits.
+- Leaving or restarting an active tournament round is a forfeit and closes the
+  current Tournament Roster; it cannot restore the pre-round snapshot.
+- Quick Fight uses a 90-second baseline. Normal Story and Tournament fights use
+  120 seconds; boss and custom content can override the limit.
 - At timeout, the side with the greater surviving-health percentage wins; exact ties favour the player on Easy/Normal and the opponent on Hard/Brutal.
+- If a deferred reaction or simultaneous periodic step defeats both complete
+  Lineups, the same difficulty tie rule applies explicitly.
 - Once both sides' art and controls are ready, every player-facing fight runs an
   explicit `3 → 2 → 1 → FIGHT` countdown. Elapsed time, Charge, statuses,
   pending Moves, and AI decisions remain frozen until `FIGHT` clears.
@@ -160,80 +190,151 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 ### 5.2 Charge Strips
 
 - Each team owns an independent Charge Strip from 0 to 100.
-- A Strip fills continuously and belongs to the team, not the active Relic.
+- A Strip fills continuously and belongs to the team, not the active Character.
 - Switching never resets it.
-- Both sides begin at 0 Charge unless an authored encounter, Patch, or
+- Both sides begin at 0 Charge unless an authored encounter, Modification, or
   tournament Drop supplies an explicit opening bonus.
-- Base fill speed is `6 + Tempo × 0.3` Charge per second. A three-copy Echo
+- Base fill speed is `8 + Tempo × 0.4` Charge per second. A three-copy Echo
   Lineup multiplies that result by `1.08`. The current Tempo range therefore
-  fills a complete Strip in roughly 11–14 seconds before other effects. A
-  middle-Tempo Relic reaches a 25-cost Move in about 3.3 seconds, a 50-cost Move
-  in about 6.7 seconds, and an 82-cost Move in about 10.9 seconds.
+  fills a complete Strip in roughly 8.6–10.4 seconds before other effects. A
+  middle-Tempo Character reaches a 25-cost Move in about 2.5 seconds, a 50-cost
+  Move in about 5 seconds, and a 95-cost Move in about 9.5 seconds.
 - The local player's Charge Strip is the primary combat control. It is large,
   persistent, and visually dominant beneath the arena.
-- The active Relic's three Move controls are circular nodes anchored directly
+- The active Character's three Move controls are circular nodes anchored directly
   above their cost positions on the Strip. A node becomes explicitly ready
   when the fill reaches it; readiness never relies on colour alone.
 - Player-facing Move tiers are Normal, Tier 1, and Tier 2. Persisted
   `stock`/`gold`/`platinum` identifiers remain compatible: Normal has the base
   outline, Tier 1 has a silver outline, and Tier 2 has a gold outline.
-- Tempo, statuses, Patches, scenario rules, and Moves may change fill speed, add Charge, drain Charge, or freeze the Strip.
-- Default Move costs are 25, 50, and 75. Reordering uses the nine positions `1L`, `1`, `1H`, `2L`, `2`, `2H`, `3L`, `3`, `3H`.
+- Tempo, statuses, Modifications, scenario rules, and Moves may change fill speed, add Charge, drain Charge, or freeze the Strip.
+- Default centre Move costs are 25, 50, and 82. Reordering uses the nine
+  positions `1L`, `1`, `1H`, `2L`, `2`, `2H`, `3L`, `3`, `3H`.
+- Reordering changes the Move's Charge band and output multiplier. A Move keeps
+  its configured Low, Standard, or High offset when it moves to slot 1, 2, or 3. At level 10 the player can also select that offset independently within
+  each occupied band.
 - Moving a Move earlier reduces its output; moving it later increases output.
 
 Initial position model:
 
 | Position | Cost | Output multiplier |
 | -------- | ---: | ----------------: |
-| `1L`     |   18 |              0.72 |
-| `1`      |   25 |              0.82 |
-| `1H`     |   32 |              0.92 |
-| `2L`     |   43 |              0.94 |
-| `2`      |   50 |              1.00 |
-| `2H`     |   57 |              1.08 |
-| `3L`     |   68 |              1.12 |
-| `3`      |   75 |              1.22 |
-| `3H`     |   82 |              1.34 |
+| `1L`     |   18 |              0.70 |
+| `1`      |   25 |              0.80 |
+| `1H`     |   32 |              0.90 |
+| `2L`     |   40 |              1.00 |
+| `2`      |   50 |              1.15 |
+| `2H`     |   60 |              1.30 |
+| `3L`     |   70 |              1.50 |
+| `3`      |   82 |              1.75 |
+| `3H`     |   95 |              2.00 |
 
 ### 5.3 Moves
 
-- Every combat-ready Relic has three Move definitions.
+- Every combat-ready Character has three Move definitions.
 - A Move is flavour, audiovisual references, a timing model, targeting, and an ordered list of reusable effects.
-- Minimum effects are damage, healing, stun, attack modification, defence modification, Charge gain/drain, cleanse, shield, multi-hit, and charge-up.
+- Minimum effects are damage, healing, stun, attack, defence, Evasion, and
+  Fortune modification, damage-over-time, healing-over-time, lifesteal,
+  Charge gain/drain, timed Charge-rate modification, cleanse, consumable
+  shields, switch lock, timed reflection, counter-on-dodge, multi-hit,
+  undodgeable and shield-piercing damage, and charge-up.
 - Targets are separate from effect types: self, active ally, all allies, active enemy, or all enemies.
 - A Move may contain multiple effects. The engine resolves them in declared order.
+- Attached effects may declare `requiresHit`; those effects are skipped when
+  the relevant damage was dodged. Enemy-targeted follow-ups require that
+  specific enemy to have been hit; self- and ally-targeted follow-ups require
+  any earlier hit in the Move. Content authors choose this explicitly rather
+  than relying on effect order to imply it.
+- Damage effects may explicitly be undodgeable, pierce shields, or return a
+  declared fraction of damage actually dealt as health. These properties remain
+  reusable Move data rather than character-specific rules.
+- A shield is a timed pool. Incoming non-piercing damage consumes the oldest
+  active pool before health; a depleted pool is removed immediately.
+- Reflection returns an authored fraction of post-shield health damage. An
+  ordinary timed reflector must survive the triggering hit. Counter-on-dodge
+  stores authored response damage and may declare a limited number of triggers.
+- Reaction eligibility is captured when the dodge or damage occurs, and a
+  limited trigger is spent immediately. Responses wait in deterministic FIFO
+  order until every hit and ordered effect in the triggering Move has
+  completed. A later effect cannot react retroactively to an earlier hit.
+- Reaction damage is terminal for reflection and counter triggers: it may
+  interrupt or defeat its target, but it cannot create reflection ping-pong or
+  another dodge counter. Defeats are emitted once after the reaction queue
+  drains, then both sides select a living active Character.
 - Predicted non-random base output is visible before selection. Critical hits, dodge, and variance can change the final result.
 
 Resolution order:
 
 ```text
-validate → spend Charge → start/charge → lock target → resolve hits
+validate → lock target → spend Charge → start/charge → resolve hits
 → apply ordered effects → reactions/passives → defeats → semantic events
 ```
 
 ### 5.4 Charge-up and interruption
 
 - Some Moves fire instantly. Others require an uninterrupted charge duration after spending Charge.
-- Damage or stun interrupts a charging Relic by default.
+- Damage or stun interrupts a charging Character by default.
 - Dodge avoids the hit and therefore does not interrupt.
-- A Patch or effect may grant interruption resistance.
+- A Modification or effect may grant interruption resistance.
 - Starting, resolving, dodging, interrupting, and reacting to a Move creates a
-  short presentation lock. During that lock the player cannot issue a Move or
+  readable presentation lock. An instant Move receives about 2.1 seconds, a
+  charged Move's impact about 1.8 seconds, and a defeat about 2.6 seconds,
+  extended for additional hits. During that lock the player cannot issue a Move or
   switch, the AI cannot decide, and elapsed time, Charge, statuses, and pending
   Moves do not advance. Automatic outcomes already decided by the deterministic
   transition—such as dodge, critical, status, damage, or defeat—play out before
   control returns.
+- The arena names the acting Character and Move and explicitly states that the
+  battle is paused while it resolves. Readability is part of the combat rule,
+  not optional decorative timing.
+- The opponent's normal reaction delay restarts after presentation releases. It
+  cannot spend the hidden pause preparing a command and act on the first active
+  frame.
+- Periodic damage and regeneration ticks update health and semantic output
+  with a compact non-blocking arena float instead of creating another
+  attack-presentation lock. A defeat caused by a periodic tick still receives
+  the normal defeat presentation.
 
 ### 5.5 Switching
 
 - Switching is immediate and free unless a status or scenario prevents it.
-- A stunned or switch-locked active Relic cannot switch.
-- Switching cannot dodge an already targeted Move; the target is locked when resolution begins.
-- Individual health and statuses remain on benched Relics.
+- A stunned or switch-locked active Character cannot switch.
+- Stun also pauses that side's shared Charge fill until the active Character
+  recovers.
+- Switching cannot dodge an already committed Move; its target or target set is
+  captured when the Move commits. A defeated single target causes the Move to
+  fizzle unless the Move explicitly defines another retarget policy.
+- Individual health and statuses remain on benched Characters.
 - Status durations continue to tick while benched.
-- Benched Relics do not regenerate unless an explicit effect allows it.
+- A status remains effective through the complete simulation slice in which its
+  timer reaches zero, then expires. This prevents a one-second stun or
+  Charge-rate effect from losing the final fixed step of its authored duration.
+- Benched Characters do not regenerate unless an explicit effect allows it.
 
-### 5.6 Core calculations
+### 5.6 Team Accessories
+
+- Each side may bring one team Accessory in addition to its three Moves per
+  Character.
+- An Accessory has its own 0–100 charge state. Spending the normal Charge Strip
+  never spends Accessory charge.
+- Starting a Move adds Accessory charge based on that Move's Charge cost.
+- At 100, the Accessory may be activated while the side is otherwise able to
+  act. Activation resets only Accessory charge and creates a presentation lock.
+- Player and AI use the same Accessory legality and effects.
+- The initial catalogue includes an allied Charge burst, opposing Charge-rate
+  freeze, whole-team healing, whole-team shields, and a temporary opposing
+  Move-slot block.
+- Successful damaging Moves use a separate seeded drop stream and may create
+  one of three seven-second battle pickups for the acting side: Battery adds 28
+  Accessory charge, Repair restores 16 Health to the active Character, and
+  Surge adds 18 normal Charge. At most two pickups per side may coexist.
+- Drops are semantic buttons for a local player and legal deterministic commands
+  for AI. They expire during simulation time, pause with presentation, and never
+  require Phaser hit testing.
+- Accessories do not use passive cooldowns: combat participation and Battery
+  pickups are their charge sources.
+
+### 5.7 Core calculations
 
 Combat is seeded. The same initial state, seed, time steps, and decisions must produce the same report.
 
@@ -244,38 +345,61 @@ nominal = movePower × slotMultiplier
 growth = 1 + (level - 1) × 0.035
 power = 1 + allocatedPower × 0.035
 temporary = attackMultiplier × targetDefenceMultiplier
-class = 1.20 advantage | 0.82 disadvantage | 1 neutral
+type = 1.25 advantage | 0.80 disadvantage | 1 neutral
 tier = 1.00 stock | 1.16 gold | 1.34 platinum
 variance = seeded 0.94…1.06
 critical = 1.55 when triggered
-final = max(1, round(nominal × growth × power × temporary × class × tier × variance × critical))
+final = max(1, round(nominal × growth × power × temporary × type × tier × variance × critical))
 ```
 
 Team-damage and team-healing Moves distribute their authored pool across living targets, preserving roughly the same total value as a stronger single-target Move.
 
 Dodge normally prevents an entire hit. Multi-hit Moves roll dodge and critical independently per hit.
 
-## 6. Classes and synergy
+## 6. Combat Types and Team Traits
 
-The six-class wheel is:
+Combat Type controls only matchup effectiveness. The six-Type wheel is:
 
 ```text
-Impact → Feral → Guile → Circuit → Hex → Guard → Impact
+Brawler → Beast → Oddball → Arcane → Sharpshooter → Tech → Brawler
 ```
 
-An arrow means “strong against.” A class is weak to the class pointing at it. Neutral Relics ignore the wheel. Moves inherit the acting Relic’s class and never carry a separate class.
+An arrow means “strong against.” The mnemonic is: training controls a Beast;
+instinct catches an Oddball; nonsense disrupts Arcane; tricks outwit a
+Sharpshooter; range disables Tech; and Tech keeps a Brawler out. This is the
+functional Teeny Titans 2 class cycle with original product-facing labels:
+Brawler maps to Martial Arts, Beast to Beast, Oddball to Cute, Arcane to Dark
+Arts, Sharpshooter to Super, and Tech to Tech. A Type is weak to the Type
+pointing at it. Typeless Characters are uncommon and ignore the wheel. Moves
+inherit the acting Character’s Type and never carry a separate Type.
 
-Class effectiveness and Lineup synergy are different systems:
+Team Traits are independent from Combat Types. A Character has zero, one, or
+two Traits from Hero, Villain, Monster, Mythic, Historic, and Icon. Every
+fractional point contributes continuously:
 
-- Class effectiveness comes from the wheel.
-- Faction synergy starts with two matching faction members.
-- Two matching members grant `+2` effective Vitality to the Lineup.
-- Three matching members grant `+2` effective Vitality and `+2` effective Power.
-- Exact duplicate Relics are allowed. A three-copy “Echo Lineup” gains 8% faster Charge fill as an authored synergy.
+| Trait    | Bonus per Trait point                           |
+| -------- | ----------------------------------------------- |
+| Hero     | +3 maximum Health to each selected Character    |
+| Villain  | +1 effective Power to each selected Character   |
+| Monster  | 2.5% team damage resistance                     |
+| Mythic   | +4% team Charge speed                           |
+| Historic | +5 opening Charge, capped at +20                |
+| Icon     | +2 effective Fortune to each selected Character |
+
+Trait scoring is deterministic:
+
+- A single-Trait Character contributes `1` to that Trait.
+- A dual-Trait Character contributes `0.5` to each Trait.
+- Fractional scores produce fractional bonuses rather than waiting for a hidden
+  activation threshold.
+- A Character never contributes more than `1` total Trait point.
+
+Exact duplicate Characters are allowed. A three-copy “Echo Lineup” gains 8%
+faster Charge fill as a separate authored synergy.
 
 All synergies are shown before battle and never rely on colour alone.
 
-## 7. Relic progression
+## 7. Character progression
 
 ### 7.1 Stats
 
@@ -294,30 +418,46 @@ Defence is a temporary combat modifier, not a sixth allocated stat. Defence Down
 - Level cap: 25.
 - Leveling grants automatic baseline growth and one freely reallocatable stat point.
 - Stat points can be moved freely outside active battles and tournaments.
-- Only Relics selected for the fight receive full XP; other members of a tournament Case may receive 20% support XP.
+- Only Characters selected for the fight share the full battle XP pool. Owned
+  reserve members of a Tournament Roster share a separate support pool equal to
+  20% of that battle XP.
 - Defeated participants receive XP.
-- Smaller Lineups split the same fight XP across fewer Relics.
+- Smaller Lineups split the same fight XP across fewer Characters.
 
 ### 7.3 Move tiers
 
-- Every owned Relic copy owns its own Move tiers.
+- Every owned Character copy owns its own Move tiers.
 - Tiers are Stock, Gold, and Platinum.
+- Tier multipliers improve every applicable numeric Move effect, including
+  damage, healing, periodic effects, shields, Charge changes, timed Charge-rate
+  effects, buff/debuff magnitude, switch locks, and stun duration. Cleanse and
+  boolean hit properties remain binary.
 - Reordering and upgrading unlock at level 10.
 - Upgrades never make a Move worse, are previewed exactly, and are permanent for that owned copy.
+- Advancing one Move by one tier consumes one explicitly selected duplicate of
+  the same Character. This is the launch adaptation of the reference game's
+  figure-fed enhancement system: it keeps duplicate collecting meaningful
+  without inventing an invisible enhancement currency.
+- Stat allocation, Move order, Move enhancement, and Modifications are edited
+  from Collection. All build editing is locked while either Story or standalone
+  Tournament Roster is active.
 
-### 7.4 Patches
+### 7.4 Modifications
 
-- One Patch slot per Relic, unlocked at level 5.
-- Patches are reusable, freely removable outside tournaments, and can be equipped by only one owned Relic at a time.
-- Some Patches are class-restricted.
-- Patches do not level or expire.
+- One Modification slot per Character, unlocked at level 5.
+- Modifications are reusable, freely removable outside tournaments, and can be
+  equipped by only one owned Character at a time.
+- Some Modifications are Combat-Type-restricted.
+- Modifications do not level or expire. Existing `patch.*` stable IDs and
+  internal types remain migration-compatible until a schema migration is
+  warranted.
 
-Initial Patches:
+Initial Modifications:
 
 - **Hot Start** — add 18 opening Charge to the shared Strip.
 - **No Flinch** — 50% seeded chance for a charge-up Move to resist interruption.
-- **Heavy Ink** — +3 effective Power.
-- **Lucky Misprint** — +4 effective Fortune.
+- **Power Band** — +3 effective Power.
+- **Lucky Charm** — +4 effective Fortune.
 
 ## 8. Economy, store, and rewards
 
@@ -327,11 +467,15 @@ Initial Patches:
 - Easy and Normal grant identical rewards. Hard and Brutal do not multiply progression; their reward is challenge, optional commentary, and records.
 - Repeat clears normally keep full base rewards.
 - Store inventory rotates deterministically, supports specials, and is gated by story/tournament/mission progress.
-- Favourited revealed Relics remain findable even when the featured rotation changes.
+- Favourited revealed Characters remain findable even when the featured
+  rotation changes.
 - Locked stock is hidden or shown as a silhouette until revealed.
-- Owned Relics and Patches can be sold for their current full listed value in the prototype.
-- Purchased Relics are usually level 2–10; specific offers declare the level.
-- Duplicates are allowed and keep independent levels, tiers, allocations, and Patches.
+- Owned Characters and Modifications can be sold for their current full listed
+  value in the prototype.
+- Purchased Characters are usually level 2–10; specific offers declare the
+  level.
+- Duplicates are allowed and keep independent levels, tiers, allocations, and
+  Modifications.
 
 ## 9. Missions
 
@@ -339,34 +483,34 @@ Requirements are generic content blocks evaluated from semantic game reports.
 
 Initial missions:
 
-- **Fresh Ink** — add a second distinct Relic to the collection.
-- **Invoice Denied** — defeat Knuckle Tax once.
-- **Print It Personal** — after losing to a named opponent, return and defeat that opponent.
+- **Unexpected Company** — own two distinct Characters.
+- **History Settled** — defeat Ned Kelly once.
+- **Run It Back** — after losing to a named opponent, return and defeat that
+  opponent.
 
 Mission progress can count on a loss when the objective describes an action actually completed, such as dealing damage. Win objectives never count on a loss.
 
 ## 10. Initial story: “First Run”
 
-| Node | Type       | Title                 | Purpose                               |
-| ---- | ---------- | --------------------- | ------------------------------------- |
-| `00` | dialogue   | Wet Ink               | Introduce the print shop and Mara Vex |
-| `01` | reward     | Shelf Space           | Lend and then grant Mara              |
-| `02` | battle     | Tax Due               | Tutorial fight against Knuckle Tax    |
-| `03` | store      | Backroom Counter      | Reveal rotating stock and Patches     |
-| `04` | mission    | Read the Fine Print   | Unlock the three initial missions     |
-| `05` | battle     | Qualifier Stamp       | Two-Relic rules introduction          |
-| `06` | tournament | The Cheap Seats Cup   | Three-round tournament                |
-| `07` | reward     | Officially Unofficial | Currency, rival reveal, ending panel  |
+| Node | Type       | Title                  | Purpose                              |
+| ---- | ---------- | ---------------------- | ------------------------------------ |
+| `00` | dialogue   | Wrong Door             | Introduce the impossible invitation  |
+| `01` | reward     | Axe First              | Lend and then grant Viking           |
+| `02` | battle     | History Disagrees      | Tutorial fight against Ned Kelly     |
+| `03` | store      | Lost Property          | Reveal rotating stock and equipment  |
+| `04` | mission    | Side Quests Happened   | Unlock the three initial missions    |
+| `05` | battle     | Open Source Backup     | Teach two-Character shared Charge    |
+| `06` | tournament | The Wrong Door Cup     | Three-round launch-roster tournament |
+| `07` | reward     | This Explained Nothing | Currency, rival reveal, ending panel |
 
-The first implementation may ship nodes `00`–`02` as the fully interactive vertical slice while representing later nodes in the path as locked previews.
+## 11. Initial tournament: “The Wrong Door Cup”
 
-## 11. Initial tournament: “The Cheap Seats Cup”
-
-1. Fixed fight against a House Stock Relic.
-2. Interstitial: choose one of heal active, heal Case, or start next round with +18 Charge.
-3. Fixed fight against a two-Relic Lineup.
+1. Fixed fight against Moses.
+2. Interstitial: choose one of heal active, heal the Tournament Roster, or start
+   the next round with +18 Charge.
+3. Fixed fight against Humpty Dumpty and Grim Reaper.
 4. Interstitial store or revive offer when applicable.
-5. Final against Knuckle Tax and Scrapjack.
+5. Final against Ned Kelly and Grim Reaper.
 
 Rewards are a tournament badge, Stamps, XP, and a chance to reveal a rare store offer.
 The champion badge is unique. Replays remain a progression activity: a completed
@@ -374,7 +518,8 @@ replay pays its authored Stamp purse and battle XP again.
 
 ## 12. Presentation
 
-Kinetic Print uses static rectangular and square art as its animation grammar:
+Kinetic Panel Motion uses static rectangular and square art as its animation
+grammar:
 
 - two-frame idle swaps;
 - panel slides, wipes, stack reveals, and hard cuts;
@@ -384,12 +529,40 @@ Kinetic Print uses static rectangular and square art as its animation grammar:
 - character art never needs to include the opponent;
 - status conditions usually use overlays instead of new character renders.
 
-The working visual world is an underground risograph fight bill crossed with a collectible archive drawer. It uses indigo, tomato red, acid yellow, and chalk white spot inks; halftone portraits; torn seams; sticker seals; and rectangular pull tabs. It is proposed until approved but is the implementation target for this stage.
+Generated bitmap sources are opaque rectangles or squares with their own baked
+background fields. Transparency is not part of the required asset contract.
+Rather than pretending these frames are sprites, the renderer presents them as
+visible shots: fighter windows, comic panels, reaction inserts, full-field
+cut-ins, and collection art. Code may crop or procedurally mask a frame, but the
+registered source remains a complete rectangle or square.
+
+Changing or exact information—Health, Charge, timers, costs, type state,
+statuses, target state, action names, damage values, countdowns, focus, and
+availability—always remains code-native and semantic. It is never baked into
+generated artwork.
+
+The current implementation uses an underground risograph fight bill crossed
+with a collectible archive drawer. That identity and the Riot Relics name have
+been rejected as release direction. `DESIGN.md` continues to document what is
+implemented until a replacement is selected, built, verified, and documented;
+`docs/art-direction-discovery.md` records the preference discovery, and
+`docs/visual-direction-v2.md` records the accepted replacement target.
 
 ## 13. Audio
 
-- All seven supplied tracks form one manually curated pool.
-- Characters, stories, tournaments, battles, and menu surfaces may reference any track by stable ID.
+- All eighteen supplied tracks form one inclusive, manually curated pool.
+- Main, wandering, battle, character-theme, and general roles influence seeded
+  selection weights; they are not exclusive playlists. Every track remains
+  eligible in every context.
+- The main theme is favoured on global screens, `Wandering Around` is favoured
+  between fights, and the three short battle tracks are favoured in combat.
+- A Character theme receives an additional battle weight when that Character
+  is in either Lineup. It is a lucky presentation moment, not a guaranteed
+  override.
+- Selection uses an explicit seed and avoids immediately repeating the current
+  track. A selected track loops until the application changes music context.
+- Characters, stories, tournaments, battles, and menu surfaces reference tracks
+  by stable ID rather than filenames.
 - The player can replace associations, choose music in sandbox modes, mute music, and set volume.
 - Music, SFX, and dialogue settings are independent.
 - Music playback intent persists separately from volume/mute state. A player who
@@ -399,23 +572,27 @@ The working visual world is an underground risograph fight bill crossed with a c
 
 ## 14. Profiles, saves, and accessibility
 
-- The prototype supports three local Collector profiles. Slot-shaped storage is
+- The prototype supports three local Player profiles. Slot-shaped storage is
   an implementation detail; the player manages identity and progression from
   Profile, not Settings.
 - Autosave after battles, purchases, upgrades, and story progress.
 - Preferences are separate from progression and survive progression wipes.
 - Settings owns accessibility, audio, difficulty, and local-data management.
 - Save export/import is deferred until the schema stabilises.
-- Reduced motion, keyboard navigation, touch targets, subtitles, volume categories, readable contrast, and redundant class/status labels are required.
+- Reduced motion, keyboard navigation, touch targets, subtitles, volume
+  categories, readable contrast, and redundant Type/Trait/status labels are
+  required.
 
 ## 15. Current MVP
 
 The current build should prove:
 
 - story node to squad confirmation to playable battle to reward;
-- Mara Vex and Knuckle Tax with three Moves each;
+- the accepted six-Character launch roster with three Moves each;
 - one-to-three-character data structures and switching;
-- two Charge Strips, class effectiveness, seeded damage/crit/dodge, basic statuses, charge-up interruption, AI, timer, win/loss, retry, and four difficulties;
+- two Charge Strips, Type effectiveness, Trait bonuses, seeded
+  damage/crit/dodge, basic statuses, charge-up interruption, AI, timer,
+  win/loss, retry, and four difficulties;
 - currency, XP, first-clear reward, a tiny store, collection, missions, and local saves;
 - hybrid Phaser art renderer plus semantic DOM controls;
 - real generated art, existing music, and silent SFX/dialogue fallbacks;
@@ -426,7 +603,9 @@ It does not include the full campaign, final balance, backend, multiplayer, mone
 ## 16. Explicitly open decisions
 
 - Final product name and permanent terminology.
-- Final class names, bonuses, and wheel balance.
+- Final product-specific names for Character, Lineup, Move, Modification, and
+  currency.
+- Final Combat Type and Team Trait numeric balance after playtesting.
 - Long-term mobile orientation.
 - Final story-path topology and whether hidden nodes exist.
 - Exact Quick Fight progression rewards.

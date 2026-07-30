@@ -1,0 +1,169 @@
+- main [ref=e181]:
+  - generic:
+    - button "Pause fight" [ref=e182] [cursor=pointer]:
+      - generic [ref=e183]: Ⅱ
+      - generic [ref=e184]: Pause
+    - generic [ref=e185]: DEV LAB · INTERRUPT WINDOW
+    - timer "Time remaining" [ref=e186]:
+      - generic [ref=e187]: TIME
+      - strong [ref=e188]: "45"
+    - generic [ref=e189]:
+      - generic [ref=e190]:
+        - generic [ref=e191]: Difficulty
+        - combobox "Difficulty" [ref=e192] [cursor=pointer]:
+          - option "Easy"
+          - option "Normal"
+          - option "Hard" [selected]
+          - option "Brutal"
+      - button "Turn music on" [ref=e193] [cursor=pointer]
+      - button "DEV" [ref=e196] [cursor=pointer]
+  - region "Battle" [ref=e197]:
+    - complementary "Your Lineup" [ref=e198]:
+      - heading "Your Lineup" [level=2] [ref=e199]
+      - button "Switch to Viking, 147 health" [disabled] [ref=e201]: ACTIVE
+    - generic [ref=e203]:
+      - generic [ref=e204]:
+        - generic [ref=e205]:
+          - generic [ref=e206]:
+            - generic [ref=e207]: Active Character
+            - strong [ref=e208]: Viking
+          - generic [ref=e209]: Brawler
+        - generic [ref=e210]:
+          - generic [ref=e211]: Health
+          - strong [ref=e212]: 147/147
+        - meter "Viking health" [ref=e213]
+        - generic "Your active Team Traits" [ref=e215]: Historic · +5 opening Charge
+      - generic [ref=e217]:
+        - generic [ref=e218]:
+          - generic [ref=e219]:
+            - generic [ref=e220]: Target Character
+            - strong [ref=e221]: Ned Kelly
+          - generic [ref=e222]: Sharpshooter
+        - generic [ref=e223]:
+          - generic [ref=e224]: Health
+          - strong [ref=e225]: 144/144
+        - meter "Ned Kelly health" [ref=e226]
+        - generic "Opponent active Team Traits" [ref=e228]:
+          - generic [ref=e229]: Hero · +1.5 maximum Health
+          - generic [ref=e230]: Historic · +2.5 opening Charge
+      - region "Opponent Charge" [ref=e231]:
+        - generic [ref=e232]:
+          - generic [ref=e233]: Opponent Charge
+          - strong [ref=e234]: 100 / 100
+        - generic "Dead Air. 0 percent charged. Blank the opposing Charge Strip for 2.4 seconds without removing its progress." [ref=e235]:
+          - generic [ref=e236]: Dead Air
+          - strong [ref=e237]: 0%
+          - generic [ref=e238]: Accessory
+        - generic [ref=e239]:
+          - generic "Opponent Move thresholds":
+            - generic "Opponent Move 1, Warning Shot, costs 25 Charge, Ready":
+              - generic: "1"
+              - strong: "25"
+              - emphasis: READY
+            - generic "Opponent Move 2, Iron Outlaw, costs 40 Charge, Ready":
+              - generic: "2"
+              - strong: "40"
+              - emphasis: READY
+            - generic "Opponent Move 3, Last Stand, costs 82 Charge, Ready":
+              - generic: "3"
+              - strong: "82"
+              - emphasis: READY
+          - meter "Enemy Charge" [ref=e240]
+      - generic [ref=e244]:
+        - generic [ref=e245]: Type matchup
+        - strong [ref=e246]: Brawler ↔ Sharpshooter · Neutral
+      - generic "Available battle pickups"
+    - complementary "Enemy Lineup" [ref=e248]:
+      - heading "Enemy Lineup" [level=2] [ref=e249]
+      - generic [ref=e250]: ACTIVE
+    - region "Moves and player Charge" [ref=e253]:
+      - generic [ref=e254]:
+        - button "Second Wind. 0 percent charged. Trigger a fully charged boost to add 30 Charge to your team's Strip." [disabled] [ref=e255]:
+          - generic [ref=e256]: Second Wind
+          - strong [ref=e257]: 0%
+          - generic [ref=e258]: Accessory
+        - generic:
+          - generic: Your Charge
+          - strong: 65 / 100
+        - generic [ref=e259]:
+          - region "Moves integrated with Charge":
+            - button "Axe First. Paused. Costs 25 Charge. Hit 23." [disabled] [ref=e260] [cursor=pointer]:
+              - generic [ref=e261]:
+                - generic [ref=e262]: "1"
+                - strong [ref=e263]: "25"
+                - generic [ref=e264]: Charge
+              - generic [ref=e265]: Axe First
+              - generic [ref=e266]: Paused
+              - generic [ref=e267]: Normal
+              - generic [ref=e268]: Hit 23
+            - button "Shield Bash. Paused. Costs 50 Charge. Hit 29 + Stun." [disabled] [ref=e269] [cursor=pointer]:
+              - generic [ref=e270]:
+                - generic [ref=e271]: "2"
+                - strong [ref=e272]: "50"
+                - generic [ref=e273]: Charge
+              - generic [ref=e274]: Shield Bash
+              - generic [ref=e275]: Paused
+              - generic [ref=e276]: Normal
+              - generic [ref=e277]: Hit 29 + Stun
+            - button "Berserker Oath. Paused. Costs 95 Charge. Hit 115 + Power." [disabled] [ref=e278] [cursor=pointer]:
+              - generic [ref=e279]:
+                - generic [ref=e280]: "3"
+                - strong [ref=e281]: "95"
+                - generic [ref=e282]: Charge
+              - generic [ref=e283]: Berserker Oath
+              - generic [ref=e284]: Paused
+              - generic [ref=e285]: Normal
+              - generic [ref=e286]: Hit 115 + Power
+          - meter "Player Charge" [ref=e287]
+          - generic [ref=e289]:
+            - generic [ref=e290]: Charge
+            - generic [ref=e291]: Full
+  - dialog [ref=e292]:
+    - generic [ref=e293]:
+      - generic [ref=e294]:
+        - generic [ref=e295]:
+          - text: Development inspector
+          - heading "Battle paused." [level=2] [ref=e296]
+        - button "Back to pause" [active] [ref=e297] [cursor=pointer]
+      - generic [ref=e298]:
+        - button "Open Developer Lab" [ref=e299] [cursor=pointer]
+        - button "Copy state" [ref=e300] [cursor=pointer]
+        - button "Export report" [ref=e301] [cursor=pointer]
+        - button "Resume fight" [ref=e302] [cursor=pointer]
+      - generic [ref=e303]:
+        - generic [ref=e304]:
+          - heading "Simulation" [level=3] [ref=e305]
+          - generic [ref=e306]:
+            - generic [ref=e307]:
+              - term [ref=e308]: Scenario
+              - definition [ref=e309]: dev.interrupt-window
+            - generic [ref=e310]:
+              - term [ref=e311]: Seed
+              - definition [ref=e312]: "20261102"
+            - generic [ref=e313]:
+              - term [ref=e314]: Elapsed
+              - definition [ref=e315]: 0 ms
+            - generic [ref=e316]:
+              - term [ref=e317]: RNG state
+              - definition [ref=e318]: "20261102"
+            - generic [ref=e319]:
+              - term [ref=e320]: Player Charge
+              - definition [ref=e321]: "65"
+            - generic [ref=e322]:
+              - term [ref=e323]: Enemy Charge
+              - definition [ref=e324]: "100"
+          - generic [ref=e325]:
+            - button "Step 100 ms" [ref=e326] [cursor=pointer]
+            - button "Step 1 second" [ref=e327] [cursor=pointer]
+            - button "Player +25 Charge" [ref=e328] [cursor=pointer]
+            - button "Enemy +25 Charge" [ref=e329] [cursor=pointer]
+        - generic [ref=e330]:
+          - heading "Recent semantic events" [level=3] [ref=e331]
+          - list [ref=e332]:
+            - listitem [ref=e333]:
+              - strong [ref=e334]: "0"
+              - generic [ref=e335]: battleStarted
+        - generic [ref=e337]:
+          - heading "Raw state" [level=3] [ref=e338]
+          - generic [ref=e339]: "{ \"seed\": 20261102, \"rngState\": 20261102, \"dropRngState\": 2667729239, \"elapsedMs\": 0, \"timeLimitMs\": 45000, \"outcome\": \"active\", \"difficulty\": \"hard\", \"player\": { \"side\": \"player\", \"bar\": 65, \"activeIndex\": 0, \"squad\": [ { \"instanceId\": \"dev.dev.interrupt-window.player.0.character.viking\", \"side\": \"player\", \"characterId\": \"character.viking\", \"level\": 10, \"stats\": { \"health\": 112, \"power\": 6, \"evasion\": 3, \"fortune\": 5, \"tempo\": 5 }, \"currentHealth\": 147, \"maxHealth\": 147, \"statuses\": [], \"actionIds\": [ \"action.viking.axe-first\", \"action.viking.shield-bash\", \"action.viking.berserker-oath\" ], \"actionPositions\": {}, \"actionTiers\": { \"action.viking.axe-first\": \"stock\", \"action.viking.shield-bash\": \"stock\", \"action.viking.berserker-oath\": \"stock\" }, \"interruptionResistance\": 0, \"equippedPatchId\": null } ], \"traitScores\": { \"hero\": 0, \"villain\": 0, \"monster\": 0, \"mythic\": 0, \"historic\": 1, \"icon\": 0 }, \"traitBonuses\": { \"hero\": 0, \"villain\": 0, \"monster\": 0, \"mythic\": 0, \"historic\": 5, \"icon\": 0 }, \"echoChargeBonus\": false, \"statuses\": [], \"accessory\": { \"accessoryId\": \"accessory.press-pass\", \"charge\": 0, \"activations\": 0 } }, \"enemy\": { \"side\": \"enemy\", \"bar\": 100, \"activeIndex\": 0, \"squad\": [ { \"instanceId\": \"dev.dev.interrupt-window.enemy.0.character.ned-kelly\", \"side\": \"enemy\", \"characterId\": \"character.ned-kelly\", \"level\": 10, \"stats\": { \"health\": 109.5, \"power\": 6, \"evasion\": 4, \"fortune\": 6, \"tempo\": 4 }, \"currentHealth\": 144, \"maxHealth\": 144, \"statuses\": [], \"actionIds\": [ \"action.ned-kelly.warning-shot\", \"action.ned-kelly.iron-outlaw\", \"action.ned-kelly.last-stand\" ], \"actionPositions\": {}, \"actionTiers\": { \"action.ned-kelly.warning-shot\": \"stock\", \"action.ned-kelly.iron-outlaw\": \"stock\", \"action.ned-kelly.last-stand\": \"stock\" }, \"interruptionResistance\": 0, \"equippedPatchId\": null } ], \"traitScores\": { \"hero\": 0.5, \"villain\": 0, \"monster\": 0, \"mythic\": 0, \"historic\": 0.5, \"icon\": 0 }, \"traitBonuses\": { \"hero\": 1.5, \"villain\": 0, \"monster\": 0, \"mythic\": 0, \"historic\": 2.5, \"icon\": 0 }, \"echoChargeBonus\": false, \"statuses\": [], \"accessory\": { \"accessoryId\": \"accessory.dead-air\", \"charge\": 0, \"activations\": 0 } }, \"pickups\": [], \"pickupSequence\": 0, \"pendingActions\": {}, \"eventSequence\": 1 }"
+  - generic [ref=e340]: Fight.

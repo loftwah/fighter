@@ -17,21 +17,21 @@ export const achievements: AchievementDefinition[] = [
   {
     id: "achievement.first-print",
     name: "First Print",
-    description: "Add the first Relic to a Collection.",
+    description: "Add the first Character to a Collection.",
     target: 1,
     progress: (save) => save.collection.length,
   },
   {
     id: "achievement.drawer-space",
     name: "Drawer Space",
-    description: "Own three Relics in one Collector profile.",
+    description: "Own three Characters in one Player profile.",
     target: 3,
     progress: (save) => save.collection.length,
   },
   {
     id: "achievement.invoice-denied",
-    name: "Invoice Denied",
-    description: "Clear the Tax Due story fight.",
+    name: "History Settled",
+    description: "Clear the History Disagrees story fight.",
     target: 1,
     progress: (save) =>
       save.clearedNodeIds.includes("story.first-run.02") ? 1 : 0,
@@ -45,14 +45,14 @@ export const achievements: AchievementDefinition[] = [
   },
   {
     id: "achievement.cheap-seat",
-    name: "Best Cheap Seat",
+    name: "Wrong Door Champion",
     description: "Win a Tournament badge.",
     target: 1,
     progress: (save) => save.tournamentBadges.length,
   },
   {
     id: "achievement.first-run",
-    name: "Officially Unofficial",
+    name: "This Explained Nothing",
     description: "Complete the First Run story.",
     target: 1,
     progress: (save) =>

@@ -1,0 +1,10 @@
+- main [ref=e3]:
+  - img "Six incompatible fighters called to the same tournament." [ref=e4]
+  - generic [ref=e5]:
+    - paragraph [ref=e6]: An impossible crossover
+    - heading "Everybody got the same invitation." [level=1] [ref=e7]
+    - paragraph [ref=e8]: Build a Lineup. Pick a fight. Do not ask how any of this works.
+    - generic [ref=e9]:
+      - button "Open the Main Menu" [ref=e10] [cursor=pointer]
+      - button "Skip intro" [ref=e11] [cursor=pointer]
+  - paragraph [ref=e12]: 01 / 01

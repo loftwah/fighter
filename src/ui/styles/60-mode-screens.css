@@ -260,6 +260,27 @@
   grid-column: 1 / -1;
 }
 
+.quick-accessory {
+  display: grid;
+  grid-column: 1 / -1;
+  gap: 0.25rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.quick-accessory select {
+  width: 100%;
+}
+
+.quick-accessory small {
+  overflow: hidden;
+  font-size: 0.68rem;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+}
+
 .quick-pick select {
   min-height: 3rem;
   border: 3px solid var(--ink);

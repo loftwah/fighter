@@ -9,6 +9,8 @@ export default tseslint.config(
       "dist",
       "coverage",
       "node_modules",
+      ".playwright-cli",
+      "output",
       "public/assets/generated",
       "eslint.config.js",
     ],
@@ -38,6 +40,15 @@ export default tseslint.config(
       globals: {
         ...globals.node,
         ...globals.vitest,
+      },
+    },
+  },
+  {
+    ...tseslint.configs.disableTypeChecked,
+    files: ["scripts/**/*.mjs"],
+    languageOptions: {
+      globals: {
+        ...globals.node,
       },
     },
   },

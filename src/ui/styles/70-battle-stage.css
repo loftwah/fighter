@@ -332,6 +332,11 @@
     height: 14rem;
   }
 
+  .quick-pick > strong,
+  .quick-pick > small {
+    grid-column: 1 / -1;
+  }
+
   .profile-record dl {
     grid-template-columns: 1fr;
   }
@@ -642,11 +647,45 @@
   height: 100% !important;
 }
 
+.battle-stage .battle-presentation-state {
+  position: absolute;
+  z-index: 26;
+  top: clamp(10.5rem, 32vh, 14.5rem);
+  left: 50%;
+  display: grid;
+  justify-items: center;
+  border: 4px solid var(--ink);
+  padding: 0.35rem 1.1rem 0.45rem;
+  background: var(--yellow);
+  box-shadow: 0.35rem 0.4rem 0 var(--ink);
+  color: var(--ink);
+  pointer-events: none;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%) rotate(-1deg);
+}
+
+.battle-stage .battle-presentation-state[hidden] {
+  display: none;
+}
+
+.battle-stage .battle-presentation-state strong {
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 2.8vw, 2.25rem);
+  line-height: 0.9;
+}
+
+.battle-stage .battle-presentation-state span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
 .battle-stage .fighter-readout {
   position: absolute;
   z-index: 18;
   top: 5.4rem;
-  width: min(28rem, 34vw);
+  width: min(24rem, 29vw);
   border: 4px solid var(--ink);
   padding: 0.5rem 0.65rem 0.6rem;
   background: var(--indigo-deep);
@@ -706,11 +745,13 @@
 .battle-stage .enemy-charge-deck {
   position: absolute;
   z-index: 21;
-  top: 11.1rem;
-  right: 7.4rem;
+  top: 5.55rem;
+  right: auto;
+  left: 50%;
   display: grid;
-  width: min(28rem, 34vw);
+  width: min(18rem, 24vw);
   gap: 0.28rem;
+  transform: translateX(-50%);
 }
 
 .battle-stage .enemy-charge-heading {
@@ -737,6 +778,99 @@
   line-height: 0.9;
   letter-spacing: 0;
   text-shadow: none;
+}
+
+.battle-stage .enemy-accessory-readout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 1.25rem;
+  border: 2px solid var(--ink);
+  padding: 0.12rem 0.35rem;
+  background: var(--yellow);
+  color: var(--ink);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.battle-stage .enemy-accessory-readout strong {
+  font-family: var(--display);
+  font-size: 0.9rem;
+  font-weight: 400;
+}
+
+.battle-stage .enemy-accessory-readout small {
+  font-size: 0.48rem;
+}
+
+.battle-stage .enemy-accessory-readout.is-ready {
+  background: var(--charge-green);
+  box-shadow: 0.16rem 0.18rem 0 var(--ink);
+}
+
+.battle-stage .enemy-charge-field {
+  position: relative;
+  padding-top: 2.35rem;
+}
+
+.battle-stage .enemy-action-tray {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 2.4rem;
+  pointer-events: none;
+}
+
+.battle-stage .enemy-charge-node {
+  position: absolute;
+  bottom: 0;
+  left: var(--enemy-action-threshold);
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  min-width: 2.65rem;
+  border: 3px solid var(--ink);
+  padding: 0.12rem 0.2rem;
+  transform: translateX(-50%) rotate(-2deg);
+  background: var(--battle-steel);
+  box-shadow: 0.18rem 0.2rem 0 var(--ink);
+  color: var(--ink);
+  font-family: var(--display);
+  line-height: 0.85;
+  text-align: center;
+}
+
+.battle-stage .enemy-charge-node small {
+  font: 800 0.58rem/1 var(--body);
+}
+
+.battle-stage .enemy-charge-node strong {
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.battle-stage .enemy-charge-node em {
+  grid-column: 1 / -1;
+  margin-top: 0.08rem;
+  font: 900 0.48rem/1 var(--body);
+  font-style: normal;
+  letter-spacing: 0.06em;
+}
+
+.battle-stage .enemy-charge-node.is-ready {
+  background: var(--charge-green);
+  box-shadow:
+    0.18rem 0.2rem 0 var(--ink),
+    0 0 0 0.15rem var(--chalk);
+}
+
+.battle-stage .enemy-charge-node.is-charging {
+  background: var(--yellow);
 }
 
 .battle-stage .enemy-charge-meter {
@@ -775,6 +909,27 @@
   margin-top: 0.3rem;
 }
 
+.battle-stage .team-trait-row {
+  display: none;
+  gap: 0.2rem;
+  margin-top: 0.28rem;
+  font-size: 0.55rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.battle-stage .team-trait-row.is-active {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.battle-stage .team-trait-row span {
+  border: 1px solid var(--chalk);
+  padding: 0.08rem 0.24rem;
+  background: var(--yellow);
+  color: var(--ink);
+}
+
 .battle-stage .pending-move:not(.is-active),
 .battle-stage .status-row:not(.is-active) {
   display: none;
@@ -788,7 +943,7 @@
 
 .battle-stage .matchup-stamp {
   z-index: 19;
-  top: 5.45rem;
+  top: 10.15rem;
   width: 8.5rem;
   border: 3px solid var(--ink);
   background: var(--yellow);
@@ -928,6 +1083,58 @@
   font-weight: 700;
 }
 
+.battle-stage .battle-pickup-tray {
+  position: absolute;
+  z-index: 24;
+  bottom: 10.8rem;
+  left: 50%;
+  display: flex;
+  gap: 0.7rem;
+  transform: translateX(-50%);
+}
+
+.battle-stage .battle-pickup {
+  display: grid;
+  min-width: 6.2rem;
+  min-height: 4.8rem;
+  place-items: center;
+  border: 4px solid var(--ink);
+  padding: 0.35rem 0.6rem;
+  background: var(--yellow);
+  color: var(--ink);
+  box-shadow:
+    0.3rem 0.35rem 0 var(--ink),
+    var(--shadow);
+  text-transform: uppercase;
+}
+
+.battle-stage .battle-pickup.is-repair {
+  background: var(--chalk);
+}
+
+.battle-stage .battle-pickup.is-surge {
+  background: var(--tomato);
+  color: var(--chalk);
+}
+
+.battle-stage .battle-pickup span,
+.battle-stage .battle-pickup small {
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.battle-stage .battle-pickup strong {
+  font-family: var(--display);
+  font-size: 1.7rem;
+  line-height: 0.85;
+}
+
+.battle-stage .battle-pickup:focus-visible {
+  outline: 4px solid var(--cyan);
+  outline-offset: 4px;
+}
+
 .battle-stage .command-deck {
   position: absolute;
   z-index: 28;
@@ -951,6 +1158,58 @@
   background: transparent;
   color: var(--chalk);
   box-shadow: none;
+}
+
+.battle-stage .battle-accessory-control {
+  position: absolute;
+  z-index: 12;
+  bottom: 0.28rem;
+  left: 50%;
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  min-width: 8.4rem;
+  min-height: 2.5rem;
+  border: 3px solid var(--ink);
+  padding: 0.2rem 0.45rem;
+  transform: translateX(-50%) rotate(-1deg);
+  background: var(--yellow);
+  box-shadow: 0.22rem 0.25rem 0 var(--ink);
+  color: var(--ink);
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.battle-stage .battle-accessory-control span {
+  max-width: 5.2rem;
+  overflow: hidden;
+  font-size: 0.58rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.battle-stage .battle-accessory-control strong {
+  font-family: var(--display);
+  font-size: 1.2rem;
+  font-weight: 400;
+}
+
+.battle-stage .battle-accessory-control small {
+  grid-column: 1 / -1;
+  font-size: 0.46rem;
+  letter-spacing: 0.08em;
+}
+
+.battle-stage .battle-accessory-control.is-ready {
+  background: var(--charge-green);
+  box-shadow:
+    0.22rem 0.25rem 0 var(--ink),
+    0 0 0 0.16rem var(--chalk);
+  transform: translateX(-50%) rotate(-1deg) scale(1.05);
+}
+
+.battle-stage .battle-accessory-control[aria-disabled="true"] {
+  cursor: default;
 }
 
 .battle-stage .charge-deck-heading {
@@ -995,7 +1254,7 @@
 
 .battle-stage .charge-move {
   bottom: 0.7rem;
-  width: 8.2rem;
+  width: 9.4rem;
   min-height: 6.2rem;
   color: var(--chalk);
 }
@@ -1071,6 +1330,10 @@
   border: 1px solid var(--chalk);
   background: var(--indigo-deep);
   color: var(--chalk);
+}
+
+.battle-stage .charge-move-output {
+  font-size: 0.52rem;
 }
 
 .battle-stage .charge-move-tier {
@@ -1322,18 +1585,21 @@
   }
 
   .battle-stage .enemy-charge-deck {
-    top: 10.35rem;
-    right: 6rem;
-    width: min(24rem, 38vw);
+    top: 4.95rem;
+    right: auto;
+    left: 50%;
+    width: min(13rem, 20vw);
+    transform: translateX(-50%);
   }
 
   .battle-stage .fighter-readout {
     top: 4.8rem;
-    width: min(24rem, 38vw);
+    width: min(20rem, 28vw);
   }
 
   .battle-stage .matchup-stamp {
-    top: 4.85rem;
+    top: 9.15rem;
+    bottom: auto;
     width: 7.4rem;
   }
 
@@ -1384,7 +1650,7 @@
   }
 
   .battle-stage .battle-rail {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto 1fr;
   }
 
   .battle-stage .battle-pause-control {
@@ -1418,8 +1684,7 @@
   }
 
   .battle-stage .battle-rail-tools {
-    min-height: 3rem;
-    border-width: 2px;
+    display: none;
   }
 
   .battle-stage .dev-battle-button {
@@ -1447,6 +1712,7 @@
     right: 4.6rem;
     left: 4.6rem;
     width: auto;
+    transform: none;
   }
 
   .battle-stage .enemy-charge-heading {
@@ -1457,9 +1723,36 @@
     font-size: 1.05rem;
   }
 
+  .battle-stage .enemy-accessory-readout {
+    min-height: 1rem;
+    font-size: 0.48rem;
+  }
+
+  .battle-stage .enemy-accessory-readout strong {
+    font-size: 0.75rem;
+  }
+
   .battle-stage .enemy-charge-meter {
     height: 1.55rem;
     border-width: 0.24rem;
+  }
+
+  .battle-stage .enemy-charge-field {
+    padding-top: 1.95rem;
+  }
+
+  .battle-stage .enemy-charge-node {
+    min-width: 2.15rem;
+    border-width: 2px;
+    padding: 0.08rem 0.12rem;
+  }
+
+  .battle-stage .enemy-charge-node strong {
+    font-size: 0.85rem;
+  }
+
+  .battle-stage .enemy-charge-node em {
+    font-size: 0.4rem;
   }
 
   .battle-stage .readout-heading strong {
@@ -1468,9 +1761,30 @@
 
   .battle-stage .readout-heading > div > span,
   .battle-stage .readout-heading > span,
-  .battle-stage .fighter-readout .meter-label,
-  .battle-stage .status-row {
+  .battle-stage .fighter-readout .meter-label {
     display: none;
+  }
+
+  .battle-stage .status-row.is-active {
+    position: absolute;
+    top: 100%;
+    display: flex;
+    max-width: 100%;
+    margin-top: 0.12rem;
+    gap: 0.12rem;
+    overflow: visible;
+  }
+
+  .battle-stage .enemy-readout .status-row.is-active {
+    right: 0;
+    justify-content: flex-end;
+  }
+
+  .battle-stage .status-row span {
+    padding: 0.02rem 0.18rem;
+    font-size: 0.42rem;
+    line-height: 1.2;
+    white-space: nowrap;
   }
 
   .battle-stage .fighter-readout .meter {
@@ -1480,7 +1794,35 @@
   }
 
   .battle-stage .matchup-stamp {
-    display: none;
+    top: 11rem;
+    display: grid;
+    width: 8rem;
+    padding: 0.18rem 0.28rem;
+    font-size: 0.5rem;
+    line-height: 1.05;
+  }
+
+  .battle-stage .matchup-stamp strong {
+    font-size: 0.55rem;
+  }
+
+  .battle-stage .battle-pickup-tray {
+    bottom: 9.2rem;
+    gap: 0.35rem;
+  }
+
+  .battle-stage .battle-pickup {
+    min-width: 5.2rem;
+    min-height: 3.8rem;
+    border-width: 3px;
+  }
+
+  .battle-stage .team-trait-row {
+    font-size: 0.38rem;
+  }
+
+  .battle-stage .team-trait-row span {
+    padding: 0.02rem 0.12rem;
   }
 
   .battle-stage .bench-rail {
@@ -1521,6 +1863,22 @@
     left: auto;
     width: calc(100% - 4.8rem);
     transform: none;
+  }
+
+  .battle-stage .battle-accessory-control {
+    bottom: 0.18rem;
+    min-width: 6.7rem;
+    min-height: 2.1rem;
+    padding: 0.12rem 0.25rem;
+  }
+
+  .battle-stage .battle-accessory-control span {
+    max-width: 4rem;
+    font-size: 0.48rem;
+  }
+
+  .battle-stage .battle-accessory-control strong {
+    font-size: 0.95rem;
   }
 
   .battle-stage .charge-control-field {
@@ -1570,6 +1928,16 @@
   .battle-stage .charge-move-tier,
   .battle-stage .charge-move-output {
     display: none;
+  }
+
+  .battle-stage .charge-move.has-reaction .charge-move-output {
+    display: block;
+    max-width: 5rem;
+    overflow: hidden;
+    font-size: 0.42rem;
+    line-height: 1;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .battle-stage .command-deck .command-charge-meter {

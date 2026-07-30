@@ -37,11 +37,11 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
 - Story Mode contains replayable, skippable authored nodes and a canonical main story, while independent stories can be added from content data.
 - Quick Fight exposes all characters and begins with a progression-neutral
   Standard Build; explicitly labelled Custom rules can expose supported levels,
-  actions, tiers, Patches, and encounter overrides.
+  Moves, tiers, Modifications, and encounter overrides.
 - Tournament Mode runs a self-contained sequence in one sitting, with a locked tournament roster and persistent health/defeat state between rounds.
 - Store and Missions are Story Mode surfaces and never appear in the global
   Main Menu.
-- Profile owns Collector identity and progression selection. Settings separately
+- Profile owns Player identity and progression selection. Settings separately
   owns preferences, accessibility, audio, and local-data controls.
 - Achievements are profile-specific and retroactively derived from durable
   progression facts.
@@ -55,9 +55,13 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
 - One active character per side; each deployed team contains one to three characters.
 - Three reorderable actions per character, composed from reusable effects and positioned from `1L` through `3H`.
 - Seeded randomness, visible predicted action values, switching, charge-up actions, interruption, critical hits, dodge, statuses, team targeting, type advantage, and squad synergy.
-- Six character classes plus optional neutral characters. Character class determines effectiveness; actions do not have independent classes.
+- Six Combat Types plus uncommon Typeless Characters. A Character's Type
+  determines matchup effectiveness; Moves do not have independent Types.
+- Six independent Team Traits use visible fractional Lineup scoring and bonuses
+  at scores two and three. A Character has at most two Traits and contributes at
+  most one total Trait point.
 - Character cap 25; modifications unlock at level 5; action reordering and upgrades unlock at level 10; action tiers are stock, gold, and platinum.
-- Local-first settings and multiple local Collector profiles, with progression separate from preferences.
+- Local-first settings and multiple local Player profiles, with progression separate from preferences.
 - Easy, Normal, Hard, and Brutal difficulty; changing difficulty never blocks story progress.
 - Existing music under `music/` is the current soundtrack pool.
 - Dialogue and sound effects use silent placeholder files until a later ElevenLabs integration.
@@ -66,17 +70,42 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
 
 ## Brand Commitments
 
-- The world may be funny, stylish, dramatic, strange, irreverent, anime-inspired, toy-like, and sincere or absurd depending on the moment.
+- Battles should feel bright, playful, and kinetic without becoming frustrating,
+  overwhelming, complicated, muddy, cluttered, or generic.
+- The primary audience is nostalgic adults, with enough clarity and collectible
+  appeal to remain enjoyable beside younger family members.
+- The tone combines a cute, collectible exterior with character-specific,
+  fandom-literate adult comedy. Sharpness comes from character, social behaviour,
+  and escalation rather than generic profanity or copied catchphrases.
 - Characters and mechanics must use distinctive names rather than generic implementation labels.
-- Rectangular and square image panels are the presentation language, not a temporary compromise.
-- Characters and individual stories may have their own visual and musical flavour while still satisfying consistent asset templates.
-- Any initial title, cast, terminology, factions, and visual world invented during this stage are working proposals and remain replaceable through content and design records.
+- Opaque rectangular and square image panels are the presentation language, not
+  a temporary compromise. Generated fighter art is never required to provide
+  transparency; code may crop, clip, mask, stack, tint, move, and replace the
+  complete frames.
+- Characters and individual stories may have their own visual and musical flavour
+  while still satisfying a strict house translation, asset manifest, and
+  presentation grammar.
+- The roster may mix genres, body types, people, animals, robots, monsters,
+  magical beings, and objects. Variety in content must not create bespoke combat
+  branches or incompatible rendering rules.
+- Heavy silhouettes, character-dependent chibi/vinyl proportions, and aggressive
+  limited-animation choreography are preferred hypotheses to prove through style
+  frames.
+- Any initial title, cast, terminology, factions, palette, and visual world
+  invented during this stage are working proposals and remain replaceable through
+  content and design records. The Riot Relics name and current risograph/archive
+  direction are not approved brand commitments.
+- Public releases use original, commissioned, licensed, or otherwise approved
+  character material. Private or local content packs remain clearly separated
+  from distributable presets.
 
 ## Evidence on Hand
 
 - `walkthrough-questions.md` contains the consolidated walkthrough and 190 product answers.
 - `conversation.txt` and the supplied pasted-text attachment are byte-identical historical source material.
-- Seven manually curated MP3 tracks exist in `music/`.
+- `docs/art-direction-discovery.md` records the accepted first-round art-direction
+  answers and the proposed character/art package pipeline.
+- Eighteen manually curated MP3 tracks exist in `music/`.
 - No incumbent application code, approved logo, approved character reference art, customer claims, analytics data, or production backend exists yet.
 
 ## Product Principles

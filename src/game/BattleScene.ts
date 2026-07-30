@@ -1,45 +1,95 @@
 import Phaser from "phaser";
-import { presentationAssets, resolveImagePath } from "../assets/registry";
-import { sideForInstance } from "../combat/rules";
+import {
+  presentationAssets,
+  resolveImagePath,
+  type NormalizedRect,
+} from "../assets/registry";
 import type { BattleEvent, BattleState, Side } from "../combat/types";
 import { combatContent } from "../content/initial-content";
+import { FramedShot } from "./presentation/FramedShot";
+import { calculateBattleLayout } from "./presentation/framing";
+import {
+  CHARGED_MOVE_IMPACT_DELAY_MS,
+  DAMAGE_STAGGER_MS,
+  IMPACT_VISUAL_MS,
+  INSTANT_MOVE_IMPACT_DELAY_MS,
+  REACTION_IMPACT_DELAY_MS,
+} from "./presentation-timing";
+import {
+  activeSideForPresentationTarget,
+  presentationActionSide,
+} from "./presentation/targeting";
+
+type ReactionKind =
+  "hurt" | "dodge" | "stunned" | "defeated" | "victory" | "tense";
+
+const REACTION_REGIONS: Record<ReactionKind, NormalizedRect> = {
+  hurt: { x: 0, y: 0, width: 1 / 3, height: 1 / 2 },
+  dodge: { x: 1 / 3, y: 0, width: 1 / 3, height: 1 / 2 },
+  stunned: { x: 2 / 3, y: 0, width: 1 / 3, height: 1 / 2 },
+  defeated: { x: 0, y: 1 / 2, width: 1 / 3, height: 1 / 2 },
+  victory: { x: 1 / 3, y: 1 / 2, width: 1 / 3, height: 1 / 2 },
+  tense: { x: 2 / 3, y: 1 / 2, width: 1 / 3, height: 1 / 2 },
+};
 
 export class BattleScene extends Phaser.Scene {
+  readonly #initialSnapshot: BattleState | null;
   #snapshot: BattleState | null = null;
   #background?: Phaser.GameObjects.Image;
-  #playerEcho?: Phaser.GameObjects.Image;
-  #enemyEcho?: Phaser.GameObjects.Image;
-  #playerArt?: Phaser.GameObjects.Image;
-  #enemyArt?: Phaser.GameObjects.Image;
-  #playerFallback?: Phaser.GameObjects.Container;
-  #enemyFallback?: Phaser.GameObjects.Container;
+  #playerShot?: FramedShot;
+  #enemyShot?: FramedShot;
   #idleFrame = 0;
   #reducedMotion = false;
+  #presentationActive = false;
+  #presentationRun = 0;
   #snapshotArtSignature = "";
   #onReady: (scene: BattleScene) => void;
 
-  constructor(onReady: (scene: BattleScene) => void) {
+  constructor(
+    onReady: (scene: BattleScene) => void,
+    initialSnapshot: BattleState | null = null,
+  ) {
     super("battle");
     this.#onReady = onReady;
+    this.#initialSnapshot = initialSnapshot;
   }
 
   preload(): void {
     this.load.image("arena-bg", "/assets/generated/arena-bg.png");
-    const idleIds = new Set(
-      Object.values(combatContent.characters).flatMap(
-        (character) => character.idleAssetIds,
-      ),
+    const encounterCharacterIds = this.#initialSnapshot
+      ? new Set(
+          (["player", "enemy"] as const).flatMap((side) =>
+            this.#initialSnapshot![side].squad.map(
+              (combatant) => combatant.characterId,
+            ),
+          ),
+        )
+      : new Set(Object.keys(combatContent.characters));
+    const encounterCharacters = [...encounterCharacterIds]
+      .map((id) => combatContent.characters[id])
+      .filter((character) => character !== undefined);
+    const imageIds = new Set(
+      encounterCharacters.flatMap((character) => {
+        const ids = [...character.idleAssetIds, character.portraitAssetId];
+        if (character.reactionAssetId) {
+          ids.push(character.reactionAssetId);
+        }
+        return ids;
+      }),
     );
-    const portraitIds = new Set(
-      Object.values(combatContent.characters).map(
-        (character) => character.portraitAssetId,
-      ),
-    );
-    for (const id of new Set([...idleIds, ...portraitIds])) {
+    for (const id of imageIds) {
       this.load.image(id, resolveImagePath(id));
     }
-    for (const presentation of Object.values(presentationAssets)) {
-      if (presentation.path) {
+    const presentationIds = new Set(
+      encounterCharacters.flatMap((character) =>
+        character.actionIds
+          .map((actionId) => combatContent.actions[actionId]?.presentationId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    );
+    for (const id of presentationIds) {
+      const presentation = presentationAssets[id];
+      if (presentation?.path) {
         this.load.image(presentation.id, presentation.path);
       }
     }
@@ -48,36 +98,35 @@ export class BattleScene extends Phaser.Scene {
   create(): void {
     this.cameras.main.setBackgroundColor("#111f46");
     this.#background = this.add.image(0, 0, "arena-bg").setOrigin(0.5);
-    this.#playerEcho = this.add
-      .image(0, 0, "image.mara-vex.idle.a")
-      .setOrigin(0.5, 1)
-      .setDepth(2)
-      .setAlpha(0.22);
-    this.#enemyEcho = this.add
-      .image(0, 0, "image.knuckle-tax.idle.a")
-      .setOrigin(0.5, 1)
-      .setFlipX(true)
-      .setDepth(2)
-      .setAlpha(0.22);
-    this.#playerArt = this.add
-      .image(0, 0, "image.mara-vex.idle.a")
-      .setOrigin(0.5, 1)
-      .setDepth(4);
-    this.#enemyArt = this.add
-      .image(0, 0, "image.knuckle-tax.idle.a")
-      .setOrigin(0.5, 1)
-      .setFlipX(true)
-      .setDepth(4);
-    this.#playerFallback = this.createFallback("player");
-    this.#enemyFallback = this.createFallback("enemy");
+    const initialTexture = (
+      side: Side,
+      fallback: "image.viking.idle.a" | "image.ned-kelly.idle.a",
+    ): string => {
+      const team = this.#initialSnapshot?.[side];
+      const combatant = team?.squad[team.activeIndex];
+      return combatant
+        ? (combatContent.characters[combatant.characterId]?.idleAssetIds[0] ??
+            fallback)
+        : fallback;
+    };
+    this.#playerShot = new FramedShot(this, {
+      side: "player",
+      textureKey: initialTexture("player", "image.viking.idle.a"),
+      depth: 5,
+    });
+    this.#enemyShot = new FramedShot(this, {
+      side: "enemy",
+      textureKey: initialTexture("enemy", "image.ned-kelly.idle.a"),
+      depth: 4,
+    });
     this.scale.on("resize", () => this.layout());
     this.time.addEvent({
       delay: 620,
       loop: true,
       callback: () => {
-        if (!this.#reducedMotion) {
+        if (!this.#reducedMotion && !this.#presentationActive) {
           this.#idleFrame = this.#idleFrame === 0 ? 1 : 0;
-          this.syncArt();
+          this.swapIdleTextures();
         }
       },
     });
@@ -94,6 +143,8 @@ export class BattleScene extends Phaser.Scene {
     this.#reducedMotion = reduced;
     if (reduced) {
       this.#idleFrame = 0;
+      this.#playerShot?.resetMotion();
+      this.#enemyShot?.resetMotion();
       this.syncArt();
     }
   }
@@ -119,31 +170,74 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  present(events: BattleEvent[], durationMs = 0): void {
+  presentPeriodic(events: BattleEvent[], snapshot: BattleState): void {
+    this.setSnapshot(snapshot);
+    for (const event of events) {
+      if (!event.periodic) {
+        continue;
+      }
+      if (event.type === "damageApplied") {
+        this.presentFloat(event, `-${event.amount ?? 0}`, "#f2d742");
+      }
+      if (event.type === "healingApplied") {
+        this.presentFloat(event, `+${event.amount ?? 0}`, "#8de1ff");
+      }
+    }
+  }
+
+  present(
+    events: BattleEvent[],
+    durationMs = 0,
+    beforeSnapshot: BattleState | null = this.#snapshot,
+    afterSnapshot: BattleState | null = this.#snapshot,
+  ): void {
+    const run = ++this.#presentationRun;
+    this.#presentationActive = durationMs > 0;
+    this.#playerShot?.resetMotion();
+    this.#enemyShot?.resetMotion();
+    if (beforeSnapshot) {
+      this.#snapshot = beforeSnapshot;
+    }
     const types = new Set(events.map((event) => event.type));
     const started = events.find(
       (event) => event.type === "actionStarted" && event.actionId,
     );
     const resolved = types.has("actionCharged");
-    const actionSide =
-      started?.side ?? events.find((event) => event.side)?.side;
+    const actionSide = presentationActionSide(events);
     let impactDelay = 0;
 
     if (started?.actionId) {
       this.presentCutIn(started.actionId, started.side ?? "player");
-      impactDelay = resolved ? 330 : 0;
+      impactDelay = resolved ? INSTANT_MOVE_IMPACT_DELAY_MS : 0;
       if (resolved) {
-        this.presentLunge(started.side ?? "player", 250);
+        this.presentLunge(
+          started.side ?? "player",
+          INSTANT_MOVE_IMPACT_DELAY_MS - 140,
+        );
       }
     } else if (resolved && actionSide) {
-      this.presentLunge(actionSide, 80);
-      impactDelay = 190;
+      this.presentLunge(actionSide, CHARGED_MOVE_IMPACT_DELAY_MS - 140);
+      impactDelay = CHARGED_MOVE_IMPACT_DELAY_MS;
+    } else if (actionSide) {
+      impactDelay = REACTION_IMPACT_DELAY_MS;
     }
 
     let damageIndex = 0;
     for (const event of events) {
+      if (event.periodic) {
+        if (event.type === "damageApplied") {
+          this.presentFloat(event, `-${event.amount ?? 0}`, "#f2d742");
+        }
+        if (event.type === "healingApplied") {
+          this.presentFloat(event, `+${event.amount ?? 0}`, "#8de1ff");
+        }
+        continue;
+      }
       if (event.type === "damageApplied") {
-        this.presentDamage(event, impactDelay + damageIndex * 105);
+        this.presentDamage(
+          event,
+          impactDelay + damageIndex * DAMAGE_STAGGER_MS,
+        );
         damageIndex += 1;
       }
       if (event.type === "healingApplied") {
@@ -166,82 +260,114 @@ export class BattleScene extends Phaser.Scene {
       if (event.type === "interruptionResisted") {
         this.presentImpactWord("NO FLINCH!", "#8de1ff", impactDelay);
       }
+      if (event.type === "reactionTriggered") {
+        const reactionDelay = impactDelay + damageIndex * DAMAGE_STAGGER_MS;
+        this.presentImpactWord(
+          event.reactionKind === "counter" ? "COUNTER!" : "REFLECT!",
+          event.reactionKind === "counter" ? "#8de1ff" : "#f2d742",
+          reactionDelay,
+        );
+        if (event.side) {
+          this.presentLunge(event.side, reactionDelay + 55);
+        }
+      }
+      if (event.type === "accessoryActivated") {
+        this.presentImpactWord("ACCESSORY!", "#8eef5d", 0);
+      }
       if (event.type === "statusApplied" && event.message === "stun") {
+        this.time.delayedCall(impactDelay + 80, () =>
+          this.presentReaction(event.targetId, "stunned"),
+        );
         this.presentImpactWord("STUNNED!", "#f2d742", impactDelay + 80);
       }
       if (event.type === "characterSwitched") {
-        this.syncArt();
-        this.presentEntrance(event.side ?? "player");
+        continue;
       }
       if (event.type === "characterDefeated") {
         this.presentDefeat(event, impactDelay + damageIndex * 105);
       }
     }
 
+    const switchedSide = events.find(
+      (event) => event.type === "characterSwitched",
+    )?.side;
+    let committed = false;
+    if (durationMs > 0 && switchedSide && afterSnapshot) {
+      this.time.delayedCall(Math.max(0, durationMs - 240), () => {
+        if (run !== this.#presentationRun) {
+          return;
+        }
+        committed = true;
+        this.setSnapshot(afterSnapshot);
+        this.presentEntrance(switchedSide);
+      });
+    }
+
     if (durationMs > 0) {
       this.time.delayedCall(durationMs, () => {
+        if (run !== this.#presentationRun) {
+          return;
+        }
+        if (!committed && afterSnapshot) {
+          this.setSnapshot(afterSnapshot);
+        }
+        this.syncArt();
+        this.#presentationActive = false;
+        this.#playerShot?.resetMotion();
+        this.#enemyShot?.resetMotion();
         this.cameras.main.setZoom(1);
         this.cameras.main.centerOn(this.scale.width / 2, this.scale.height / 2);
         this.layout();
       });
+    } else {
+      if (afterSnapshot) {
+        this.setSnapshot(afterSnapshot);
+      }
+      this.#presentationActive = false;
     }
   }
 
   presentCountdownBeat(label: "3" | "2" | "1" | "FIGHT"): void {
     if (this.#reducedMotion) {
-      this.#playerArt?.setAlpha(1);
-      this.#enemyArt?.setAlpha(1);
+      this.#playerShot?.setOpacity(1);
+      this.#enemyShot?.setOpacity(1);
       return;
     }
     if (label === "3") {
       this.presentEntrance("player", 58);
-      this.#enemyArt?.setAlpha(0.48);
+      this.#enemyShot?.setOpacity(0.48);
       return;
     }
     if (label === "2") {
-      this.#playerArt?.setAlpha(0.58);
-      this.#enemyArt?.setAlpha(1);
+      this.#playerShot?.setOpacity(0.58);
+      this.#enemyShot?.setOpacity(1);
       this.presentEntrance("enemy", 58);
       return;
     }
     if (label === "1") {
-      this.#playerArt?.setAlpha(1);
-      this.#enemyArt?.setAlpha(1);
+      this.#playerShot?.setOpacity(1);
+      this.#enemyShot?.setOpacity(1);
       this.tweens.add({
-        targets: [this.#playerArt, this.#enemyArt].filter(Boolean),
-        scaleX: (target: Phaser.GameObjects.Image) => target.scaleX * 1.06,
-        scaleY: (target: Phaser.GameObjects.Image) => target.scaleY * 1.06,
+        targets: [
+          this.#playerShot?.motionRoot,
+          this.#enemyShot?.motionRoot,
+        ].filter(Boolean),
+        scaleX: 1.06,
+        scaleY: 1.06,
         duration: 180,
         ease: "Expo.easeOut",
         yoyo: true,
       });
       return;
     }
-    this.#playerArt?.setAlpha(1);
-    this.#enemyArt?.setAlpha(1);
+    this.#playerShot?.setOpacity(1);
+    this.#enemyShot?.setOpacity(1);
     this.cameras.main.flash(90, 242, 215, 66, false);
     this.cameras.main.shake(120, 0.005);
   }
 
-  private createFallback(side: Side): Phaser.GameObjects.Container {
-    const color = side === "player" ? 0xef4d39 : 0xf2d742;
-    const shape = this.add.rectangle(0, 0, 190, 250, color);
-    const mark = this.add
-      .star(0, -18, 8, 46, 86, 0x111f46)
-      .setAngle(side === "player" ? -9 : 9);
-    const name = this.add
-      .text(0, 78, "UNPRINTED", {
-        fontFamily: "sans-serif",
-        fontSize: "22px",
-        fontStyle: "bold",
-        color: side === "player" ? "#f7f0dd" : "#111f46",
-      })
-      .setOrigin(0.5);
-    return this.add.container(0, 0, [shape, mark, name]).setVisible(false);
-  }
-
   private syncArt(): void {
-    if (!this.#snapshot || !this.#playerArt || !this.#enemyArt) {
+    if (!this.#snapshot || !this.#playerShot || !this.#enemyShot) {
       return;
     }
     const player =
@@ -250,40 +376,36 @@ export class BattleScene extends Phaser.Scene {
     if (!player || !enemy) {
       return;
     }
-    this.setCharacterArt(
-      this.#playerArt,
-      this.#playerFallback,
-      player.characterId,
-    );
-    this.setCharacterArt(
-      this.#enemyArt,
-      this.#enemyFallback,
-      enemy.characterId,
-    );
-    if (this.#playerEcho && this.#playerArt.visible) {
-      this.#playerEcho
-        .setTexture(this.#playerArt.texture.key)
-        .setVisible(true)
-        .setAlpha(0.22);
-    } else {
-      this.#playerEcho?.setVisible(false);
-    }
-    if (this.#enemyEcho && this.#enemyArt.visible) {
-      this.#enemyEcho
-        .setTexture(this.#enemyArt.texture.key)
-        .setVisible(true)
-        .setAlpha(0.22);
-    } else {
-      this.#enemyEcho?.setVisible(false);
-    }
+    this.setCharacterShot(this.#playerShot, player.characterId);
+    this.setCharacterShot(this.#enemyShot, enemy.characterId);
     this.layout();
   }
 
-  private setCharacterArt(
-    art: Phaser.GameObjects.Image,
-    fallback: Phaser.GameObjects.Container | undefined,
-    characterId: string,
-  ): void {
+  private swapIdleTextures(): void {
+    if (!this.#snapshot || !this.#playerShot || !this.#enemyShot) {
+      return;
+    }
+    for (const [side, shot] of [
+      ["player", this.#playerShot],
+      ["enemy", this.#enemyShot],
+    ] as const) {
+      const team = this.#snapshot[side];
+      const combatant = team.squad[team.activeIndex];
+      const keys = combatant
+        ? combatContent.characters[combatant.characterId]?.idleAssetIds
+        : undefined;
+      const textureKey = keys?.[this.#idleFrame] ?? keys?.[0];
+      if (!textureKey || !this.textures.exists(textureKey)) {
+        continue;
+      }
+      shot.setTexture(textureKey, {
+        crossfade: true,
+        reducedMotion: this.#reducedMotion,
+      });
+    }
+  }
+
+  private setCharacterShot(shot: FramedShot, characterId: string): void {
     const character = combatContent.characters[characterId];
     const keys = character?.idleAssetIds;
     const textureKey = keys?.[this.#idleFrame] ?? keys?.[0];
@@ -295,25 +417,25 @@ export class BattleScene extends Phaser.Scene {
           ? character.portraitAssetId
           : null;
     if (!resolvedTextureKey) {
-      art.setVisible(false);
-      fallback?.setVisible(true);
-      const label = fallback?.getAt<Phaser.GameObjects.Text>(2);
-      if (label) {
-        label.setText(
-          combatContent.characters[characterId]?.name ?? "UNPRINTED",
-        );
-      }
+      shot.showFallback(
+        true,
+        combatContent.characters[characterId]?.name ?? "UNPRINTED",
+      );
       return;
     }
-    art.setTexture(resolvedTextureKey);
-    art.setVisible(true).setAlpha(1).setAngle(0);
-    fallback?.setVisible(false);
+    shot
+      .setTexture(resolvedTextureKey, {
+        crossfade: false,
+        reducedMotion: this.#reducedMotion,
+      })
+      .showFallback(false)
+      .setOpacity(1)
+      .resetMotion();
   }
 
   private layout(): void {
     const width = this.scale.width;
     const height = this.scale.height;
-    const isPortrait = height > width * 1.2;
     if (this.#background) {
       const texture = this.#background.texture.getSourceImage() as {
         width: number;
@@ -326,88 +448,63 @@ export class BattleScene extends Phaser.Scene {
         .setAlpha(0.88);
     }
 
-    const characterHeight = isPortrait
-      ? Math.min(height * 0.66, width * 1.36)
-      : Math.min(height * 0.96, width * 0.46);
-    const position = (side: Side): { x: number; y: number } => ({
-      x: width * (side === "player" ? (isPortrait ? 0.27 : 0.25) : 0.75),
-      y: height * (isPortrait ? (side === "player" ? 1.04 : 0.7) : 1.01),
-    });
-    for (const [side, art, fallback] of [
-      ["player", this.#playerArt, this.#playerFallback],
-      ["enemy", this.#enemyArt, this.#enemyFallback],
-    ] as const) {
-      const point = position(side);
-      if (art) {
-        const source = art.texture.getSourceImage() as {
-          width: number;
-          height: number;
-        };
-        art
-          .setPosition(point.x, point.y)
-          .setScale(characterHeight / source.height)
-          .setDepth(isPortrait && side === "player" ? 5 : 4);
-      }
-      fallback?.setPosition(point.x, point.y - characterHeight * 0.42);
-    }
-    for (const [side, echo] of [
-      ["player", this.#playerEcho],
-      ["enemy", this.#enemyEcho],
-    ] as const) {
-      if (!echo?.visible) {
-        continue;
-      }
-      const source = echo.texture.getSourceImage() as {
-        width: number;
-        height: number;
-      };
-      echo
-        .setPosition(
-          width * (side === "player" ? 0.12 : 0.88),
-          height * (isPortrait ? (side === "player" ? 1.08 : 0.73) : 1.1),
-        )
-        .setScale((characterHeight * (isPortrait ? 1.12 : 1.5)) / source.height)
-        .setAngle(side === "player" ? -7 : 7);
-    }
+    const panelLayout = calculateBattleLayout(width, height);
+    this.#playerShot
+      ?.setFrame(panelLayout.playerFrame)
+      .setDepth(panelLayout.orientation === "portrait" ? 5 : 4);
+    this.#enemyShot?.setFrame(panelLayout.enemyFrame).setDepth(5);
   }
 
   private pulsePrintLayers(): void {
-    if (this.#reducedMotion) {
+    if (this.#reducedMotion || this.#presentationActive) {
       return;
     }
-    for (const [side, echo] of [
-      ["player", this.#playerEcho],
-      ["enemy", this.#enemyEcho],
-    ] as const) {
-      if (!echo?.visible) {
-        continue;
-      }
-      const originX = echo.x;
-      this.tweens.add({
-        targets: echo,
-        x: originX + (side === "player" ? 22 : -22),
-        alpha: 0.32,
-        scaleX: echo.scaleX * 1.035,
-        scaleY: echo.scaleY * 1.035,
-        duration: 420,
-        ease: "Expo.easeOut",
-        hold: 170,
-        yoyo: true,
-      });
-    }
+    this.#playerShot?.pulse(1);
+    this.#enemyShot?.pulse(-1);
   }
 
   private targetFor(instanceId: string | undefined): {
-    target: Phaser.GameObjects.Image | Phaser.GameObjects.Container;
+    shot: FramedShot;
     isPlayer: boolean;
   } | null {
-    const isPlayer =
-      this.#snapshot &&
-      sideForInstance(this.#snapshot, instanceId) === "player";
-    const art = isPlayer ? this.#playerArt : this.#enemyArt;
-    const fallback = isPlayer ? this.#playerFallback : this.#enemyFallback;
-    const target = art?.visible ? art : fallback;
-    return target ? { target, isPlayer: Boolean(isPlayer) } : null;
+    if (!this.#snapshot) {
+      return null;
+    }
+    const side = activeSideForPresentationTarget(this.#snapshot, instanceId);
+    if (!side) {
+      return null;
+    }
+    const shot = side === "player" ? this.#playerShot : this.#enemyShot;
+    return shot ? { shot, isPlayer: side === "player" } : null;
+  }
+
+  private presentReaction(
+    instanceId: string | undefined,
+    kind: ReactionKind,
+  ): void {
+    if (!this.#snapshot) {
+      return;
+    }
+    const side = activeSideForPresentationTarget(this.#snapshot, instanceId);
+    if (!side) {
+      return;
+    }
+    const team = this.#snapshot[side];
+    const combatant = team.squad[team.activeIndex];
+    const character = combatant
+      ? combatContent.characters[combatant.characterId]
+      : undefined;
+    const reactionAssetId = character?.reactionAssetId;
+    const shot = side === "player" ? this.#playerShot : this.#enemyShot;
+    if (!reactionAssetId || !shot || !this.textures.exists(reactionAssetId)) {
+      return;
+    }
+    shot.setTexture(reactionAssetId, {
+      crossfade: true,
+      reducedMotion: this.#reducedMotion,
+      sourceRegion: REACTION_REGIONS[kind],
+      facingOverride: "right",
+    });
   }
 
   private presentDamage(event: BattleEvent, delayMs = 0): void {
@@ -416,11 +513,13 @@ export class BattleScene extends Phaser.Scene {
       if (!resolved) {
         return;
       }
-      const { target, isPlayer } = resolved;
+      const { shot, isPlayer } = resolved;
+      const center = shot.worldCenter;
+      this.presentReaction(event.targetId, "hurt");
       const amount = this.add
         .text(
-          target.x,
-          target.y - target.displayHeight * 0.72,
+          center.x,
+          shot.frame.y + shot.displayHeight * 0.18,
           `-${event.amount ?? 0}`,
           {
             fontFamily: "sans-serif",
@@ -439,9 +538,10 @@ export class BattleScene extends Phaser.Scene {
       }
       this.cameras.main.shake(110, 0.009);
       this.cameras.main.flash(80, 247, 240, 221, false);
+      this.presentImpactBurst(center.x, center.y, isPlayer ? -1 : 1);
       this.tweens.add({
-        targets: target,
-        x: target.x + (isPlayer ? -34 : 34),
+        targets: shot.motionRoot,
+        x: isPlayer ? -34 : 34,
         angle: isPlayer ? -3 : 3,
         yoyo: true,
         duration: 85,
@@ -453,7 +553,7 @@ export class BattleScene extends Phaser.Scene {
         scaleX: 1.2,
         scaleY: 1.2,
         alpha: 0,
-        duration: 620,
+        duration: IMPACT_VISUAL_MS,
         ease: "Cubic.easeOut",
         onComplete: () => amount.destroy(),
       });
@@ -471,10 +571,11 @@ export class BattleScene extends Phaser.Scene {
       if (!resolved) {
         return;
       }
+      const center = resolved.shot.worldCenter;
       const text = this.add
         .text(
-          resolved.target.x,
-          resolved.target.y - resolved.target.displayHeight * 0.72,
+          center.x,
+          resolved.shot.frame.y + resolved.shot.displayHeight * 0.18,
           label,
           {
             fontFamily: "sans-serif",
@@ -491,7 +592,7 @@ export class BattleScene extends Phaser.Scene {
         targets: text,
         y: text.y - (this.#reducedMotion ? 0 : 72),
         alpha: 0,
-        duration: 620,
+        duration: IMPACT_VISUAL_MS,
         ease: "Cubic.easeOut",
         onComplete: () => text.destroy(),
       });
@@ -504,13 +605,14 @@ export class BattleScene extends Phaser.Scene {
       if (!resolved) {
         return;
       }
+      this.presentReaction(event.targetId, "dodge");
       this.presentImpactWord("DODGE!", "#8de1ff", 0);
       if (this.#reducedMotion) {
         return;
       }
       this.tweens.add({
-        targets: resolved.target,
-        x: resolved.target.x + (resolved.isPlayer ? -86 : 86),
+        targets: resolved.shot.motionRoot,
+        x: resolved.isPlayer ? -86 : 86,
         duration: 110,
         ease: "Expo.easeOut",
         hold: 120,
@@ -543,24 +645,23 @@ export class BattleScene extends Phaser.Scene {
         scaleX: 1,
         scaleY: 1,
         alpha: { from: 1, to: 0 },
-        duration: this.#reducedMotion ? 460 : 620,
+        duration: this.#reducedMotion ? 620 : IMPACT_VISUAL_MS,
         ease: "Expo.easeOut",
-        hold: 120,
+        hold: 160,
         onComplete: () => text.destroy(),
       });
     });
   }
 
   private presentEntrance(side: Side, distance = 44): void {
-    const target = side === "player" ? this.#playerArt : this.#enemyArt;
-    if (!target?.visible || this.#reducedMotion) {
+    const shot = side === "player" ? this.#playerShot : this.#enemyShot;
+    if (!shot?.visible || this.#reducedMotion) {
       return;
     }
-    const destination = target.x;
-    target.x = destination + (side === "player" ? -distance : distance);
+    shot.motionRoot.x = side === "player" ? -distance : distance;
     this.tweens.add({
-      targets: target,
-      x: destination,
+      targets: shot.motionRoot,
+      x: 0,
       duration: 240,
       ease: "Expo.easeOut",
     });
@@ -568,16 +669,18 @@ export class BattleScene extends Phaser.Scene {
 
   private presentLunge(side: Side, delayMs = 0): void {
     this.time.delayedCall(delayMs, () => {
-      const target = side === "player" ? this.#playerArt : this.#enemyArt;
-      if (!target?.visible || this.#reducedMotion) {
+      const shot = side === "player" ? this.#playerShot : this.#enemyShot;
+      if (!shot?.visible || this.#reducedMotion) {
         return;
       }
-      this.cameras.main.zoomTo(1.08, 150, "Expo.easeOut");
+      const focus = shot.worldCenter;
+      this.cameras.main.zoomTo(1.11, 150, "Expo.easeOut");
+      this.cameras.main.pan(focus.x, focus.y, 150, "Expo.easeOut");
       this.tweens.add({
-        targets: target,
-        x: target.x + (side === "player" ? 78 : -78),
-        scaleX: target.scaleX * 1.08,
-        scaleY: target.scaleY * 1.08,
+        targets: shot.motionRoot,
+        x: side === "player" ? 78 : -78,
+        scaleX: 1.1,
+        scaleY: 1.1,
         duration: 130,
         ease: "Expo.easeOut",
         hold: 90,
@@ -588,15 +691,17 @@ export class BattleScene extends Phaser.Scene {
 
   private presentDefeat(event: BattleEvent, delayMs = 0): void {
     this.time.delayedCall(delayMs, () => {
-      const art = event.side === "player" ? this.#playerArt : this.#enemyArt;
-      if (!art) {
+      const resolved = this.targetFor(event.targetId);
+      if (!resolved) {
         return;
       }
+      const { shot, isPlayer } = resolved;
+      this.presentReaction(event.targetId, "defeated");
       this.presentImpactWord("K.O.", "#ef4d39", 0);
       this.tweens.add({
-        targets: art,
-        y: art.y + (this.#reducedMotion ? 0 : 70),
-        angle: event.side === "player" ? -9 : 9,
+        targets: shot.motionRoot,
+        y: this.#reducedMotion ? 0 : 70,
+        angle: isPlayer ? -9 : 9,
         alpha: 0.42,
         duration: this.#reducedMotion ? 0 : 320,
         ease: "Cubic.easeIn",
@@ -604,137 +709,132 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  private presentImpactBurst(x: number, y: number, direction: -1 | 1): void {
+    const burst = this.add.graphics().setDepth(29);
+    burst.fillStyle(0xf2d742, 0.95);
+    burst.fillCircle(0, 0, 30);
+    burst.lineStyle(8, 0xf7f0dd, 0.95);
+    for (let index = 0; index < 12; index += 1) {
+      const angle = (Math.PI * 2 * index) / 12;
+      const inner = 48 + (index % 2) * 12;
+      const outer = 112 + (index % 3) * 18;
+      burst.lineBetween(
+        Math.cos(angle) * inner,
+        Math.sin(angle) * inner,
+        Math.cos(angle) * outer,
+        Math.sin(angle) * outer,
+      );
+    }
+    burst
+      .setPosition(x + direction * 12, y)
+      .setScale(this.#reducedMotion ? 0.72 : 0.2)
+      .setAngle(direction * 9);
+    this.tweens.add({
+      targets: burst,
+      scaleX: this.#reducedMotion ? 0.72 : 1.15,
+      scaleY: this.#reducedMotion ? 0.72 : 1.15,
+      alpha: 0,
+      duration: this.#reducedMotion ? 380 : 460,
+      ease: "Expo.easeOut",
+      onComplete: () => burst.destroy(),
+    });
+  }
+
   private presentCutIn(actionId: string, side: Side): void {
     const action = combatContent.actions[actionId];
-    const key = action?.presentationId;
+    const activeShot = side === "player" ? this.#playerShot : this.#enemyShot;
+    const presentationKey = action?.presentationId;
+    const key =
+      presentationKey && this.textures.exists(presentationKey)
+        ? presentationKey
+        : activeShot?.textureKey;
     const width = this.scale.width;
     const height = this.scale.height;
-    if (key && this.textures.exists(key)) {
-      const cutIn = this.add
-        .image(width / 2, height / 2, key)
-        .setDepth(25)
-        .setDisplaySize(width * 1.08, height * 1.08)
-        .setFlipX(side === "enemy")
-        .setAlpha(0.98);
-      const title = this.add
-        .text(
-          side === "player" ? width * 0.08 : width * 0.92,
-          height * 0.82,
-          action.name.toUpperCase(),
-          {
-            fontFamily: "sans-serif",
-            fontSize: `${Math.max(34, width * 0.055)}px`,
-            fontStyle: "bold",
-            color: "#f7f0dd",
-            stroke: "#091128",
-            strokeThickness: 12,
-          },
-        )
-        .setOrigin(side === "player" ? 0 : 1, 0.5)
-        .setDepth(27);
-      if (this.#reducedMotion) {
-        this.time.delayedCall(500, () => {
-          cutIn.destroy();
-          title.destroy();
-        });
-        return;
-      }
-      const destination = width / 2;
-      cutIn.setX(side === "player" ? -width * 0.55 : width * 1.55);
-      title.setAlpha(0);
-      this.tweens.add({
-        targets: cutIn,
-        x: destination,
-        duration: 170,
-        ease: "Expo.easeOut",
-        hold: 250,
-        yoyo: true,
-        onComplete: () => cutIn.destroy(),
-      });
-      this.tweens.add({
-        targets: title,
-        alpha: 1,
-        duration: 100,
-        hold: 300,
-        yoyo: true,
-        onComplete: () => title.destroy(),
-      });
-      return;
-    }
-
-    const art = side === "player" ? this.#playerArt : this.#enemyArt;
-    if (!art?.visible || !action) {
+    if (!key || !action || !this.textures.exists(key)) {
       this.presentLunge(side);
       return;
     }
-    const panelWidth = width * 0.66;
-    const panel = this.add.graphics();
-    panel.fillStyle(side === "player" ? 0xef4d39 : 0xf2d742, 0.97);
-    panel.fillPoints(
-      side === "player"
-        ? [
-            new Phaser.Geom.Point(0, 0),
-            new Phaser.Geom.Point(panelWidth, 0),
-            new Phaser.Geom.Point(panelWidth - width * 0.13, height),
-            new Phaser.Geom.Point(0, height),
-          ]
-        : [
-            new Phaser.Geom.Point(width - panelWidth, 0),
-            new Phaser.Geom.Point(width, 0),
-            new Phaser.Geom.Point(width, height),
-            new Phaser.Geom.Point(width - panelWidth + width * 0.13, height),
-          ],
+
+    const layout = calculateBattleLayout(width, height);
+    const matte = this.add
+      .rectangle(
+        width / 2,
+        height / 2,
+        width,
+        height,
+        side === "player" ? 0xef4d39 : 0xf2d742,
+        0.5,
+      )
+      .setDepth(23);
+    const slash = this.add.graphics().setDepth(24);
+    slash.fillStyle(0x091128, 0.92);
+    slash.fillPoints(
+      [
+        new Phaser.Geom.Point(width * 0.07, height),
+        new Phaser.Geom.Point(width * 0.2, height),
+        new Phaser.Geom.Point(width * 0.93, 0),
+        new Phaser.Geom.Point(width * 0.8, 0),
+      ],
       true,
     );
-    const source = art.texture.getSourceImage() as {
-      width: number;
-      height: number;
-    };
-    const portrait = this.add
-      .image(
-        side === "player" ? width * 0.28 : width * 0.72,
-        height * 1.04,
-        art.texture.key,
-      )
-      .setOrigin(0.5, 1)
-      .setFlipX(side === "enemy")
-      .setScale((height * 1.18) / source.height);
+    const cutIn = new FramedShot(this, {
+      side,
+      textureKey: key,
+      depth: 25,
+    });
+    cutIn.setFrame(layout.cutInFrame);
     const title = this.add
       .text(
-        side === "player" ? width * 0.05 : width * 0.95,
-        height * 0.16,
+        side === "player"
+          ? layout.cutInFrame.x + width * 0.02
+          : layout.cutInFrame.x + layout.cutInFrame.width - width * 0.02,
+        layout.cutInFrame.y + layout.cutInFrame.height * 0.86,
         action.name.toUpperCase(),
         {
           fontFamily: "sans-serif",
-          fontSize: `${Math.max(34, width * 0.058)}px`,
+          fontSize: `${Math.max(34, width * 0.052)}px`,
           fontStyle: "bold",
-          color: side === "player" ? "#f7f0dd" : "#091128",
-          stroke: side === "player" ? "#091128" : "#f7f0dd",
-          strokeThickness: 8,
+          color: "#f7f0dd",
+          stroke: "#091128",
+          strokeThickness: 12,
           align: side === "player" ? "left" : "right",
         },
       )
-      .setOrigin(side === "player" ? 0 : 1, 0.5);
-    const cutIn = this.add
-      .container(side === "player" ? -width : width, 0, [
-        panel,
-        portrait,
-        title,
-      ])
-      .setDepth(25);
+      .setOrigin(side === "player" ? 0 : 1, 0.5)
+      .setDepth(27);
+    const destroy = (): void => {
+      matte.destroy();
+      slash.destroy();
+      title.destroy();
+      cutIn.destroy();
+    };
+
     if (this.#reducedMotion) {
-      cutIn.setX(0);
-      this.time.delayedCall(500, () => cutIn.destroy(true));
+      this.time.delayedCall(760, destroy);
       return;
     }
+
+    const travel = { x: side === "player" ? -width : width };
+    cutIn.setPanelOffset(travel.x, 0);
+    matte.setAlpha(0);
+    slash.setAlpha(0);
+    title.setAlpha(0);
     this.tweens.add({
-      targets: cutIn,
+      targets: travel,
       x: 0,
-      duration: 170,
+      duration: 220,
       ease: "Expo.easeOut",
-      hold: 250,
+      hold: 380,
       yoyo: true,
-      onComplete: () => cutIn.destroy(true),
+      onUpdate: () => cutIn.setPanelOffset(travel.x, 0),
+      onComplete: destroy,
+    });
+    this.tweens.add({
+      targets: [matte, slash, title],
+      alpha: 1,
+      duration: 150,
+      hold: 520,
+      yoyo: true,
     });
   }
 }

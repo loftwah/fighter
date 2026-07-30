@@ -11,16 +11,16 @@ export function renderStoryScreen(save: SaveData): string {
   const progress =
     save.currentNodeId === "story.first-run.07" && firstRunComplete
       ? {
-          title: "First Run: archived.",
-          copy: "The shop survives, the champion badge is in the drawer, and Knuckle Tax is now filed as a revealed rival.",
-          speaker: "MARA",
-          line: "Official enough for me.",
+          title: "First Run: complete.",
+          copy: "The impossible bracket is finished, the champion badge is recorded, and Ned Kelly remains available as a rival.",
+          speaker: "VIKING",
+          line: "Good tournament. Still no idea who invited us.",
           action: "First Run complete",
         }
       : baseProgress;
   return `
     <section class="story-board" aria-labelledby="story-title">
-      <div class="story-art" role="img" aria-label="The Free Shelf print shop at night"></div>
+      <div class="story-art" role="img" aria-label="An impossible tournament invitation"></div>
       <div class="story-copy">
         <p class="story-label">Main story · First Run</p>
         <h1 id="story-title">${escapeHtml(progress.title)}</h1>
@@ -51,8 +51,8 @@ export function renderStoryScreen(save: SaveData): string {
             <span>${firstRunComplete ? "ARCHIVED" : "ENDING REWARD"}</span>
             <div>
               <strong>★ ${FIRST_RUN_ENDING_REWARD} Stamps</strong>
-              <strong>Rival file · Knuckle Tax</strong>
-              <strong>Badge · Cheap Seats Champion</strong>
+              <strong>Rival file · Ned Kelly</strong>
+              <strong>Badge · Wrong Door Champion</strong>
             </div>
           </aside>
         `
@@ -60,8 +60,8 @@ export function renderStoryScreen(save: SaveData): string {
     }
     <section class="node-strip" aria-labelledby="path-title">
       <div class="section-heading">
-        <h2 id="path-title">Eight prints. One very bad invoice.</h2>
-        <p>Cleared prints stay stamped. Locked prints preview what comes next.</p>
+        <h2 id="path-title">Eight stops through one impossible bracket.</h2>
+        <p>Cleared nodes remain replayable. Locked nodes preview what comes next.</p>
       </div>
       <ol class="story-path">
         ${storyNodes

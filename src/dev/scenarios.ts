@@ -24,6 +24,8 @@ export interface DevBattleScenario {
   enemyTier: DevMoveTier;
   playerPatchId: string | null;
   enemyPatchId: string | null;
+  playerAccessoryId?: string | null;
+  enemyAccessoryId?: string | null;
   playerStartingBar: number;
   enemyStartingBar: number;
   playerHealthRatio: number;
@@ -39,15 +41,23 @@ const characterIdSchema = z
   .string()
   .min(1)
   .refine((id) => Boolean(combatContent.characters[id]), {
-    message: "Unknown Relic ID",
+    message: "Unknown Character ID",
   });
 const patchIdSchema = z
   .string()
   .min(1)
   .refine((id) => patches.some((patch) => patch.id === id), {
-    message: "Unknown Patch ID",
+    message: "Unknown Modification ID",
   })
   .nullable();
+const accessoryIdSchema = z
+  .string()
+  .min(1)
+  .refine((id) => Boolean(combatContent.accessories[id]), {
+    message: "Unknown Accessory ID",
+  })
+  .nullable()
+  .optional();
 
 export const devBattleScenarioSchema = z.object({
   id: z.string().min(1),
@@ -61,6 +71,8 @@ export const devBattleScenarioSchema = z.object({
   enemyTier: z.enum(["normal", "tier1", "tier2"]),
   playerPatchId: patchIdSchema,
   enemyPatchId: patchIdSchema,
+  playerAccessoryId: accessoryIdSchema,
+  enemyAccessoryId: accessoryIdSchema,
   playerStartingBar: z.number().min(0).max(100),
   enemyStartingBar: z.number().min(0).max(100),
   playerHealthRatio: z.number().min(0.01).max(1),
@@ -83,15 +95,17 @@ export const devBattleScenarios = [
     id: "dev.neutral-1v1",
     name: "Neutral 1v1",
     description: "A clean stock matchup for checking the base Charge loop.",
-    playerCharacterIds: ["character.mara-vex"],
-    enemyCharacterIds: ["character.zipwire"],
+    playerCharacterIds: ["character.tux"],
+    enemyCharacterIds: ["character.tux"],
     playerLevel: 7,
     enemyLevel: 7,
     playerTier: "normal",
     enemyTier: "normal",
     playerPatchId: null,
     enemyPatchId: null,
-    playerStartingBar: 22,
+    playerAccessoryId: null,
+    enemyAccessoryId: null,
+    playerStartingBar: 0,
     enemyStartingBar: 0,
     playerHealthRatio: 1,
     enemyHealthRatio: 1,
@@ -106,8 +120,8 @@ export const devBattleScenarios = [
     name: "Interrupt Window",
     description:
       "Both sides open charged so wind-up and interruption are immediate.",
-    playerCharacterIds: ["character.mara-vex"],
-    enemyCharacterIds: ["character.knuckle-tax"],
+    playerCharacterIds: ["character.viking"],
+    enemyCharacterIds: ["character.ned-kelly"],
     playerLevel: 10,
     enemyLevel: 10,
     playerTier: "normal",
@@ -130,14 +144,14 @@ export const devBattleScenarios = [
     description:
       "Full Lineups for switching, defeat order, and shared Charge checks.",
     playerCharacterIds: [
-      "character.mara-vex",
-      "character.zipwire",
-      "character.velvet-hex",
+      "character.viking",
+      "character.tux",
+      "character.moses",
     ],
     enemyCharacterIds: [
-      "character.knuckle-tax",
-      "character.scrapjack",
-      "character.gutter-grin",
+      "character.ned-kelly",
+      "character.grim-reaper",
+      "character.humpty",
     ],
     playerLevel: 10,
     enemyLevel: 10,
@@ -160,8 +174,8 @@ export const devBattleScenarios = [
     name: "Status Stack",
     description:
       "Control, shields, healing, and cleanse are available immediately.",
-    playerCharacterIds: ["character.velvet-hex", "character.mara-vex"],
-    enemyCharacterIds: ["character.knuckle-tax", "character.scrapjack"],
+    playerCharacterIds: ["character.moses", "character.viking"],
+    enemyCharacterIds: ["character.ned-kelly", "character.grim-reaper"],
     playerLevel: 10,
     enemyLevel: 10,
     playerTier: "tier1",
@@ -182,8 +196,8 @@ export const devBattleScenarios = [
     id: "dev.timeout",
     name: "Timeout",
     description: "A five-second near-tie for timeout and result verification.",
-    playerCharacterIds: ["character.mara-vex"],
-    enemyCharacterIds: ["character.zipwire"],
+    playerCharacterIds: ["character.viking"],
+    enemyCharacterIds: ["character.tux"],
     playerLevel: 7,
     enemyLevel: 7,
     playerTier: "normal",
@@ -206,11 +220,11 @@ export const devBattleScenarios = [
     description:
       "A carried-damage tournament-shaped fight without progression.",
     playerCharacterIds: [
-      "character.mara-vex",
-      "character.zipwire",
-      "character.velvet-hex",
+      "character.viking",
+      "character.tux",
+      "character.moses",
     ],
-    enemyCharacterIds: ["character.gutter-grin", "character.scrapjack"],
+    enemyCharacterIds: ["character.humpty", "character.grim-reaper"],
     playerLevel: 9,
     enemyLevel: 9,
     playerTier: "tier1",
@@ -275,7 +289,7 @@ export function devBuildsForSide(
   return characterIds.map((characterId, index) => {
     const definition = combatContent.characters[characterId];
     if (!definition) {
-      throw new Error(`Missing development Relic: ${characterId}`);
+      throw new Error(`Missing development Character: ${characterId}`);
     }
     return {
       instanceId: `dev.${scenarioDefinition.id}.${side}.${index}.${characterId}`,

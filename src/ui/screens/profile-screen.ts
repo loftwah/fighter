@@ -12,7 +12,7 @@ export function renderProfileScreen(save: SaveData): string {
     <section class="profile-sheet" aria-labelledby="profile-title">
       <div class="section-heading">
         <button class="text-button" data-command="main-menu">← Main Menu</button>
-        <h1 id="profile-title">Collector Profile</h1>
+        <h1 id="profile-title">Player Profile</h1>
         <p>
           Identity and progression live here. Audio, accessibility, and local
           data controls live separately in Settings.
@@ -22,7 +22,7 @@ export function renderProfileScreen(save: SaveData): string {
         <fieldset class="profile-identity">
           <legend>Identity</legend>
           <label>
-            <span>Collector name</span>
+            <span>Player name</span>
             <input name="playerName" value="${escapeHtml(save.playerName)}" />
           </label>
           <label>
@@ -33,7 +33,7 @@ export function renderProfileScreen(save: SaveData): string {
                   (slot) =>
                     `<option value="${slot}" ${
                       save.slot === slot ? "selected" : ""
-                    }>Collector profile ${slot}</option>`,
+                    }>Player profile ${slot}</option>`,
                 )
                 .join("")}
             </select>
@@ -44,10 +44,10 @@ export function renderProfileScreen(save: SaveData): string {
           </small>
         </fieldset>
         <section class="profile-record" aria-labelledby="profile-record-title">
-          <h2 id="profile-record-title">${escapeHtml(save.playerName)}'s drawer</h2>
+          <h2 id="profile-record-title">${escapeHtml(save.playerName)}'s progress</h2>
           <dl>
-            <div><dt>Story prints cleared</dt><dd>${storyClears}/8</dd></div>
-            <div><dt>Owned Relics</dt><dd>${save.collection.length}</dd></div>
+            <div><dt>Story nodes cleared</dt><dd>${storyClears}/8</dd></div>
+            <div><dt>Owned Characters</dt><dd>${save.collection.length}</dd></div>
             <div><dt>Stamps</dt><dd>${save.stamps}</dd></div>
             <div><dt>Tournament badges</dt><dd>${save.tournamentBadges.length}</dd></div>
             <div><dt>Achievements</dt><dd>${completedAchievements}/${achievementProgress.length}</dd></div>

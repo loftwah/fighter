@@ -1,0 +1,119 @@
+- main [ref=e421]:
+  - generic:
+    - button "Pause fight" [disabled] [ref=e422]:
+      - generic [ref=e423]: Ⅱ
+      - generic [ref=e424]: Pause
+    - generic [ref=e425]: DEV LAB · NEUTRAL 1V1
+    - timer "Time remaining" [ref=e426]:
+      - generic [ref=e427]: TIME
+      - strong [ref=e428]: "90"
+    - generic [ref=e429]:
+      - generic [ref=e430]:
+        - generic [ref=e431]: Difficulty
+        - combobox "Difficulty" [ref=e432] [cursor=pointer]:
+          - option "Easy"
+          - option "Normal" [selected]
+          - option "Hard"
+          - option "Brutal"
+      - button "Turn music on" [ref=e433] [cursor=pointer]
+      - button "DEV" [ref=e436] [cursor=pointer]
+  - region "Battle" [ref=e437]:
+    - complementary "Your Lineup" [ref=e438]:
+      - heading "Your Lineup" [level=2] [ref=e439]
+      - button "Switch to Tux, 111 health" [disabled] [ref=e441]: ACTIVE
+    - generic [ref=e443]:
+      - generic [ref=e444]:
+        - generic [ref=e445]:
+          - generic [ref=e446]:
+            - generic [ref=e447]: Active Character
+            - strong [ref=e448]: Tux
+          - generic [ref=e449]: Tech
+        - generic [ref=e450]:
+          - generic [ref=e451]: Health
+          - strong [ref=e452]: 111/111
+        - meter "Tux health" [ref=e453]
+        - generic "Your active Team Traits" [ref=e455]: Icon · +2 Fortune
+      - generic [ref=e457]:
+        - generic [ref=e458]:
+          - generic [ref=e459]:
+            - generic [ref=e460]: Target Character
+            - strong [ref=e461]: Tux
+          - generic [ref=e462]: Tech
+        - generic [ref=e463]:
+          - generic [ref=e464]: Health
+          - strong [ref=e465]: 111/111
+        - meter "Tux health" [ref=e466]
+        - generic "Opponent active Team Traits" [ref=e468]: Icon · +2 Fortune
+      - region "Opponent Charge" [ref=e470]:
+        - generic [ref=e471]:
+          - generic [ref=e472]: Opponent Charge
+          - strong [ref=e473]: 0 / 100
+        - generic "Opponent Accessory" [ref=e474]: No Accessory
+        - generic [ref=e475]:
+          - generic "Opponent Move thresholds":
+            - generic "Opponent Move 1, Ping, costs 32 Charge, 32 to go":
+              - generic: "1"
+              - strong: "32"
+              - emphasis: WAIT
+            - generic "Opponent Move 2, Root Access, costs 50 Charge, 50 to go":
+              - generic: "2"
+              - strong: "50"
+              - emphasis: WAIT
+            - generic "Opponent Move 3, Kernel Panic, costs 82 Charge, 82 to go":
+              - generic: "3"
+              - strong: "82"
+              - emphasis: WAIT
+          - meter "Enemy Charge" [ref=e476]
+      - generic [ref=e479]:
+        - generic [ref=e480]: Type matchup
+        - strong [ref=e481]: Tech ↔ Tech · Neutral
+      - generic "Available battle pickups"
+      - status [ref=e483]:
+        - strong [ref=e484]: "2"
+        - generic [ref=e485]: Stand by
+    - complementary "Enemy Lineup" [ref=e486]:
+      - heading "Enemy Lineup" [level=2] [ref=e487]
+      - generic [ref=e488]: ACTIVE
+    - region "Moves and player Charge" [ref=e491]:
+      - generic [ref=e492]:
+        - button "No Accessory" [disabled] [ref=e493]
+        - generic:
+          - generic: Your Charge
+          - strong: 0 / 100
+        - generic [ref=e494]:
+          - region "Moves integrated with Charge":
+            - button "Ping. Stand by. Costs 32 Charge. Hit 19 + Charge." [disabled] [ref=e495] [cursor=pointer]:
+              - generic [ref=e496]:
+                - generic [ref=e497]: "1"
+                - strong [ref=e498]: "32"
+                - generic [ref=e499]: Charge
+              - generic [ref=e500]: Ping
+              - generic [ref=e501]: Stand by
+              - generic [ref=e502]: Normal
+              - generic [ref=e503]: Hit 19 + Charge
+              - tooltip "Ping A quick packet that lands a hit and returns team Charge. Cost 32 · predicted hit 19 · instant" [ref=e504]:
+                - strong [ref=e505]: Ping
+                - generic [ref=e506]: A quick packet that lands a hit and returns team Charge.
+                - generic [ref=e507]: Cost 32 · predicted hit 19 · instant
+            - button "Root Access. Stand by. Costs 50 Charge. Hit 29 + Charge + Charge rate." [disabled] [ref=e508] [cursor=pointer]:
+              - generic [ref=e509]:
+                - generic [ref=e510]: "2"
+                - strong [ref=e511]: "50"
+                - generic [ref=e512]: Charge
+              - generic [ref=e513]: Root Access
+              - generic [ref=e514]: Stand by
+              - generic [ref=e515]: Normal
+              - generic [ref=e516]: Hit 29 + Charge + Charge rate
+            - button "Kernel Panic. Stand by. Costs 82 Charge. Hit 31." [disabled] [ref=e517] [cursor=pointer]:
+              - generic [ref=e518]:
+                - generic [ref=e519]: "3"
+                - strong [ref=e520]: "82"
+                - generic [ref=e521]: Charge
+              - generic [ref=e522]: Kernel Panic
+              - generic [ref=e523]: Stand by
+              - generic [ref=e524]: Normal
+              - generic [ref=e525]: Hit 31
+          - meter "Player Charge" [ref=e526]
+          - generic [ref=e527]:
+            - generic [ref=e528]: Charge
+            - generic [ref=e529]: Full

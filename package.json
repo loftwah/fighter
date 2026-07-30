@@ -16,6 +16,8 @@
     "lint": "eslint .",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
+    "assets:launch-placeholders": "node scripts/generate-launch-placeholders.mjs",
+    "assets:music": "node scripts/sync-music.mjs",
     "content:validate": "vitest run src/content/content.test.ts",
     "preview": "vite preview"
   },

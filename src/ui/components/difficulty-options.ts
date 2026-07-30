@@ -1,5 +1,5 @@
 import type { Difficulty } from "../../combat/types";
-import { formatClass } from "../format";
+import { formatLabel } from "../format";
 
 const difficultyDescriptions: Record<Difficulty, string> = {
   easy: "Easy — mostly here for the posters",
@@ -18,7 +18,7 @@ export function renderDifficultyOptions(
         `<option value="${difficulty}" ${
           selectedDifficulty === difficulty ? "selected" : ""
         }>${
-          compact ? formatClass(difficulty) : difficultyDescriptions[difficulty]
+          compact ? formatLabel(difficulty) : difficultyDescriptions[difficulty]
         }</option>`,
     )
     .join("");

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createBattle } from "../combat/engine";
+import { chargePerSecond, typeMultiplier } from "../combat/rules";
 import { combatContent } from "../content/initial-content";
 import {
   actionTierForDevTier,
@@ -22,6 +23,44 @@ describe("development battle scenarios", () => {
       expect(ids.has(scenario.id)).toBe(false);
       ids.add(scenario.id);
     }
+  });
+
+  it("keeps Neutral 1v1 genuinely neutral and starts from the base Charge loop", () => {
+    const neutral = devBattleScenarios.find(
+      (scenario) => scenario.id === "dev.neutral-1v1",
+    )!;
+    const player = combatContent.characters[neutral.playerCharacterIds[0]!]!;
+    const enemy = combatContent.characters[neutral.enemyCharacterIds[0]!]!;
+
+    const state = createBattle(
+      {
+        playerCharacterIds: neutral.playerCharacterIds,
+        playerBuilds: devBuildsForSide(neutral, "player"),
+        enemyCharacterIds: neutral.enemyCharacterIds,
+        enemyBuilds: devBuildsForSide(neutral, "enemy"),
+        playerStartingBar: neutral.playerStartingBar,
+        enemyStartingBar: neutral.enemyStartingBar,
+        playerAccessoryId: neutral.playerAccessoryId ?? undefined,
+        enemyAccessoryId: neutral.enemyAccessoryId ?? undefined,
+        seed: neutral.seed,
+        difficulty: neutral.difficulty,
+      },
+      combatContent,
+    ).state;
+
+    expect(neutral.playerCharacterIds).toEqual(neutral.enemyCharacterIds);
+    expect(typeMultiplier(player.typeId, enemy.typeId)).toBe(1);
+    expect(typeMultiplier(enemy.typeId, player.typeId)).toBe(1);
+    expect(neutral.playerStartingBar).toBe(0);
+    expect(neutral.enemyStartingBar).toBe(0);
+    expect(state.player.bar).toBe(0);
+    expect(state.enemy.bar).toBe(0);
+    expect(state.player.squad[0]!.stats).toEqual(state.enemy.squad[0]!.stats);
+    expect(chargePerSecond(state.player.squad[0]!.stats.tempo)).toBe(
+      chargePerSecond(state.enemy.squad[0]!.stats.tempo),
+    );
+    expect(state.player.accessory).toBeNull();
+    expect(state.enemy.accessory).toBeNull();
   });
 
   it("maps the player-facing rings to the persisted combat tiers", () => {

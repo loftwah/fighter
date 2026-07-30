@@ -1,4 +1,5 @@
 import type {
+  ActionPosition,
   ActionTier,
   BattleCommand,
   BattleEvent,
@@ -16,6 +17,7 @@ export interface BattleReportParticipant {
   characterId: string;
   level: number;
   actionIds: [string, string, string];
+  actionPositions: Partial<Record<string, ActionPosition>>;
   actionTiers: Record<string, ActionTier>;
   stats: StatBlock;
   equippedPatchId: string | null;
@@ -35,6 +37,12 @@ export interface BattleReportDifficultyChange {
   to: Difficulty;
 }
 
+export interface BattleReportTick {
+  sequence: number;
+  elapsedMs: number;
+  deltaMs: number;
+}
+
 export interface BattleReportDebugAction {
   elapsedMs: number;
   action: "addCharge" | "step" | "pause" | "resume" | "copyState";
@@ -49,6 +57,7 @@ export interface BattleReport {
   seed: number;
   difficulty: Difficulty;
   difficultyChanges: BattleReportDifficultyChange[];
+  ticks: BattleReportTick[];
   participants: BattleReportParticipant[];
   decisions: BattleReportDecision[];
   debugActions: BattleReportDebugAction[];
@@ -73,6 +82,7 @@ export function createBattleReport(
     seed: state.seed,
     difficulty: state.difficulty,
     difficultyChanges: [],
+    ticks: [],
     participants: (["player", "enemy"] as const).flatMap((side) =>
       state[side].squad.map((combatant) => ({
         side,
@@ -80,6 +90,7 @@ export function createBattleReport(
         characterId: combatant.characterId,
         level: combatant.level,
         actionIds: [...combatant.actionIds],
+        actionPositions: { ...combatant.actionPositions },
         actionTiers: { ...combatant.actionTiers },
         stats: { ...combatant.stats },
         equippedPatchId: combatant.equippedPatchId,
@@ -152,6 +163,27 @@ export function recordBattleDebugAction(
       { ...structuredClone(action), elapsedMs: state.elapsedMs },
     ],
   };
+}
+
+export function appendBattleTick(
+  report: BattleReport,
+  deltaMs: number,
+  transition: Transition,
+): BattleReport {
+  return appendBattleTransition(
+    {
+      ...report,
+      ticks: [
+        ...report.ticks,
+        {
+          sequence: report.ticks.length + 1,
+          elapsedMs: report.elapsedMs,
+          deltaMs,
+        },
+      ],
+    },
+    transition,
+  );
 }
 
 export function appendBattleTransition(

@@ -8,7 +8,7 @@ import {
 } from "../../dev/scenarios";
 import type { SaveData } from "../../persistence/save";
 import { patches } from "../../progression/patches";
-import { escapeHtml, formatClass } from "../format";
+import { escapeHtml, formatLabel } from "../format";
 
 export interface DevLabScreenModel {
   save: SaveData;
@@ -22,7 +22,7 @@ function renderCharacterOptions(selectedId: string, optional: boolean): string {
       (character) =>
         `<option value="${character.id}" ${
           character.id === selectedId ? "selected" : ""
-        }>${character.name} · ${formatClass(character.classId)}</option>`,
+        }>${character.name} · ${formatLabel(character.typeId)}</option>`,
     )
     .join("");
 
@@ -42,7 +42,7 @@ function renderLineupFields(side: Side, draft: DevBattleScenario): string {
           <select
             name="dev-${side}-${index}"
             data-dev-field="${side}Character.${index}"
-            aria-label="${side === "player" ? "Player" : "Enemy"} Relic ${index + 1}"
+            aria-label="${side === "player" ? "Player" : "Enemy"} Character ${index + 1}"
           >
             ${renderCharacterOptions(selectedId, index > 0)}
           </select>
@@ -71,7 +71,7 @@ function renderTierOptions(selected: DevMoveTier): string {
 
 function renderPatchOptions(selectedId: string | null): string {
   return [
-    '<option value="">No Patch</option>',
+    '<option value="">No Modification</option>',
     ...patches.map(
       (patch) =>
         `<option value="${patch.id}" ${
@@ -183,13 +183,13 @@ export function renderDevLabScreen({
               </select>
             </label>
             <label>
-              <span>Player Patch</span>
+              <span>Player Modification</span>
               <select data-dev-field="playerPatchId">
                 ${renderPatchOptions(draft.playerPatchId)}
               </select>
             </label>
             <label>
-              <span>Enemy Patch</span>
+              <span>Enemy Modification</span>
               <select data-dev-field="enemyPatchId">
                 ${renderPatchOptions(draft.enemyPatchId)}
               </select>
@@ -226,7 +226,7 @@ export function renderDevLabScreen({
                     (difficulty) =>
                       `<option value="${difficulty}" ${
                         draft.difficulty === difficulty ? "selected" : ""
-                      }>${formatClass(difficulty)}</option>`,
+                      }>${formatLabel(difficulty)}</option>`,
                   )
                   .join("")}
               </select>
@@ -268,7 +268,7 @@ export function renderDevLabScreen({
             }</dd></div>
             <div><dt>Content</dt><dd>${
               Object.keys(combatContent.characters).length
-            } Relics · ${Object.keys(combatContent.actions).length} Moves</dd></div>
+            } Characters · ${Object.keys(combatContent.actions).length} Moves</dd></div>
             <div><dt>Recent reports</dt><dd>${
               recentBattleReports.length
             } this session</dd></div>
@@ -280,7 +280,7 @@ export function renderDevLabScreen({
           </dl>
           <div class="dev-convenience">
             <h3>Convenience</h3>
-            <button data-command="dev-grant-collection">Grant all Relics + Patches</button>
+            <button data-command="dev-grant-collection">Grant all Characters + Modifications</button>
             <button data-command="dev-grant-stamps" data-amount="500">Add 500 Stamps</button>
             <button data-command="dev-unlock-story">Unlock First Run views</button>
             <button data-command="download-profile-data">Export profile JSON</button>

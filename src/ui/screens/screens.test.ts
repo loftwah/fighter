@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { startupSequence } from "../../content/startup-content";
 import { defaultDevScenario } from "../../dev/scenarios";
-import { createDefaultSave, defaultPreferences } from "../../persistence/save";
+import {
+  createDefaultSave,
+  createOwnedCharacter,
+  defaultPreferences,
+} from "../../persistence/save";
 import { baseOffers } from "../../store/catalog";
 import { renderDifficultyOptions } from "../components/difficulty-options";
 import { renderStorageWarning } from "../shell/storage-warning";
@@ -35,7 +39,7 @@ describe("screen renderers", () => {
     {
       name: "profile",
       markup: renderProfileScreen(save),
-      heading: "Collector Profile",
+      heading: "Player Profile",
     },
     {
       name: "settings",
@@ -61,7 +65,7 @@ describe("screen renderers", () => {
         save,
         difficulty: "normal",
       }),
-      heading: "Pull three. Print one.",
+      heading: "Build the impossible Lineup.",
     },
     {
       name: "collection",
@@ -75,7 +79,7 @@ describe("screen renderers", () => {
         offers: baseOffers.slice(0, 4),
         locked: false,
       }),
-      heading: "Backroom Counter",
+      heading: "Lost Property",
     },
     {
       name: "missions",
@@ -85,8 +89,10 @@ describe("screen renderers", () => {
     {
       name: "quick fight",
       markup: renderQuickFightScreen({
-        playerIds: ["character.mara-vex"],
-        enemyIds: ["character.zipwire"],
+        playerIds: ["character.viking"],
+        enemyIds: ["character.tux"],
+        playerAccessoryId: "accessory.press-pass",
+        enemyAccessoryId: "accessory.dead-air",
         difficultyOptions,
       }),
       heading: "Quick Fight",
@@ -99,7 +105,7 @@ describe("screen renderers", () => {
         run: null,
         locked: false,
       }),
-      heading: "The Cheap Seats Cup",
+      heading: "The Wrong Door Cup",
     },
     {
       name: "developer lab",
@@ -138,7 +144,7 @@ describe("screen renderers", () => {
         beatIndex: 0,
         beatCount: startupSequence.length,
       }),
-      heading: "Loading Riot Relics",
+      heading: "Loading the fight",
     },
   ] as const;
 
@@ -180,5 +186,28 @@ describe("screen renderers", () => {
     expect(markup).toContain("data-player-charge-fill");
     expect(markup).toContain("data-enemy-charge-fill");
     expect(markup).toContain('aria-label="Enemy Charge"');
+    expect(markup).toContain("data-battle-presentation-state");
+    expect(markup).toContain("Battle paused during this Move");
+  });
+
+  it("renders semantic per-copy build controls in Collection", () => {
+    const buildSave = {
+      ...save,
+      collection: [
+        {
+          ...createOwnedCharacter("viking-a", "character.viking", 10),
+          unspentStatPoints: 2,
+        },
+        createOwnedCharacter("viking-b", "character.viking", 3),
+      ],
+      ownedPatches: ["patch.hot-start"],
+    };
+    const markup = renderCollectionScreen(buildSave);
+
+    expect(markup).toContain('data-command="adjust-build-stat"');
+    expect(markup).toContain('data-command="move-build-action"');
+    expect(markup).toContain('data-command="enhance-build-action"');
+    expect(markup).toContain("Choose duplicate");
+    expect(markup).toContain("25 Charge");
   });
 });

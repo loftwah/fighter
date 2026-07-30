@@ -1,8 +1,9 @@
 # Art direction questionnaire
 
-Status: working interview. These questions do not change the visual system or
-content until the answers are reviewed and deliberately adopted in `DESIGN.md`
-and the authored content.
+Status: Batch 1 answered on 2026-07-30. The accepted product preferences,
+interpretation, system implications, and open visual hypotheses are recorded in
+`docs/art-direction-discovery.md`. The visual hypotheses do not replace the
+implemented system until they are proven and adopted in `DESIGN.md`.
 
 Answer briefly, skip anything you do not care about, and add references wherever
 words are inadequate.

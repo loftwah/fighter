@@ -67,7 +67,7 @@ export class AudioManager {
 
   toggle(): boolean {
     if (this.#music.paused) {
-      void this.playTrack(this.#currentTrackId || "music.red-thread");
+      void this.playTrack(this.#currentTrackId || "music.main-theme");
       return true;
     }
     this.#music.pause();

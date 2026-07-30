@@ -7,7 +7,7 @@ export function renderMissionsScreen(save: SaveData, locked: boolean): string {
     return renderLockedFeature(
       "missions-title",
       "Mission Board",
-      "Inspect the Backroom Counter in Node 03 to reveal these slips.",
+      "Inspect Lost Property in Node 03 to reveal these missions.",
     );
   }
   return `

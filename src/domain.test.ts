@@ -2,15 +2,21 @@ import { describe, expect, it } from "vitest";
 import {
   chooseAiCommand,
   createBattle,
+  forfeitBattle,
   predictedDamage,
   requestAction,
+  requestAccessory,
+  requestPickup,
   requestSwitch,
   tickBattle,
 } from "./combat/engine";
-import type { BattleEvent } from "./combat/types";
+import type { BattleEvent, CharacterTrait } from "./combat/types";
 import {
+  actionPositionForSlot,
   chargePerSecond,
-  classMultiplier,
+  COMBAT_TYPE_WHEEL,
+  traitSynergy,
+  typeMultiplier,
   POSITION_RULES,
   sideForInstance,
 } from "./combat/rules";
@@ -63,11 +69,14 @@ import { loadFirstRunSave } from "./story/save";
 import {
   applyCheapSeatsDrop,
   cheapSeatsEncounter,
+  cheapSeatsPlayerIds,
   createCheapSeatsRun,
   lockCheapSeatsCase,
+  normaliseCheapSeatsRun,
   recordCheapSeatsResult,
   recordCheapSeatsVictory,
   restoreCaseHealth,
+  selectCheapSeatsDeployment,
 } from "./tournaments/cheap-seats";
 
 class MemoryStorage implements Storage {
@@ -100,11 +109,11 @@ class MemoryStorage implements Storage {
 
 describe("combat rules", () => {
   it("gives non-Story modes one progression-neutral Standard Build contract", () => {
-    const definition = combatContent.characters["character.mara-vex"]!;
+    const definition = combatContent.characters["character.viking"]!;
     const build = createStandardBuild(definition, "player", 0);
 
     expect(build).toMatchObject({
-      instanceId: "standard.player.0.character.mara-vex",
+      instanceId: "standard.player.0.character.viking",
       level: STANDARD_MATCH_LEVEL,
       statBonuses: STANDARD_STAT_ALLOCATIONS,
       actionIds: definition.actionIds,
@@ -128,7 +137,7 @@ describe("combat rules", () => {
   it("derives achievements retroactively without mutating save data", () => {
     const save = createDefaultSave(1);
     save.collection.push(
-      createOwnedCharacter("owned.mara-vex.1", "character.mara-vex", 7),
+      createOwnedCharacter("owned.mara-vex.1", "character.viking", 7),
     );
     save.clearedNodeIds.push("story.first-run.02");
     const before = structuredClone(save);
@@ -199,10 +208,10 @@ describe("combat rules", () => {
     const save = createDefaultSave(1);
     expect(save.collection).toEqual([]);
     expect(
-      createOwnedCharacter("owned.mara-vex.1", "character.mara-vex", 7),
+      createOwnedCharacter("owned.mara-vex.1", "character.viking", 7),
     ).toMatchObject({
       instanceId: "owned.mara-vex.1",
-      characterId: "character.mara-vex",
+      characterId: "character.viking",
       level: 7,
     });
   });
@@ -214,7 +223,7 @@ describe("combat rules", () => {
     expect(first.claimed).toBe(true);
     expect(first.save.stamps).toBe(save.stamps + FIRST_RUN_ENDING_REWARD);
     expect(first.save.clearedNodeIds).toContain("story.first-run.07");
-    expect(first.save.revealedRivalIds).toContain("character.knuckle-tax");
+    expect(first.save.revealedRivalIds).toContain("character.ned-kelly");
 
     const duplicate = claimFirstRunEnding(first.save);
     expect(duplicate.claimed).toBe(false);
@@ -226,11 +235,11 @@ describe("combat rules", () => {
     const created = createBattle(
       {
         playerCharacterIds: [
-          "character.mara-vex",
-          "character.zipwire",
-          "character.velvet-hex",
+          "character.viking",
+          "character.tux",
+          "character.moses",
         ],
-        enemyCharacterIds: ["character.velvet-hex"],
+        enemyCharacterIds: ["character.moses"],
         seed: cheapSeatsEncounter(0).seed,
         difficulty: "normal",
       },
@@ -259,9 +268,9 @@ describe("combat rules", () => {
     const nextState = createBattle(
       {
         playerCharacterIds: [
-          "character.mara-vex",
-          "character.zipwire",
-          "character.velvet-hex",
+          "character.viking",
+          "character.tux",
+          "character.moses",
         ],
         enemyCharacterIds: cheapSeatsEncounter(1).enemyCharacterIds,
         seed: cheapSeatsEncounter(1).seed,
@@ -279,8 +288,8 @@ describe("combat rules", () => {
   it("marks the third Cheap Seats victory complete", () => {
     const state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: cheapSeatsEncounter(2).seed,
         difficulty: "normal",
       },
@@ -305,11 +314,123 @@ describe("combat rules", () => {
     expect(save.standaloneTournamentRun).toBeNull();
   });
 
+  it("locks six Tournament Roster Characters and deploys a chosen three", () => {
+    const caseBuilds = cheapSeatsPlayerIds.map((characterId, index) => {
+      const definition = combatContent.characters[characterId]!;
+      const build = createStandardBuild(definition, "player", index);
+      return {
+        characterId,
+        instanceId: build.instanceId!,
+        level: build.level!,
+        statBonuses: {
+          health: build.statBonuses?.health ?? 0,
+          power: build.statBonuses?.power ?? 0,
+          evasion: build.statBonuses?.evasion ?? 0,
+          fortune: build.statBonuses?.fortune ?? 0,
+          tempo: build.statBonuses?.tempo ?? 0,
+        },
+        actionIds: build.actionIds!,
+        actionTiers: Object.fromEntries(
+          build.actionIds!.map((actionId) => [actionId, "stock" as const]),
+        ),
+        interruptionResistance: 0,
+        equippedPatchId: null,
+      };
+    });
+    const run = createCheapSeatsRun(caseBuilds);
+    expect(run.caseBuilds).toHaveLength(6);
+    expect(run.deployedInstanceIds).toEqual(
+      caseBuilds.slice(0, 3).map((build) => build.instanceId),
+    );
+    expect(Object.keys(run.healthRatios)).toHaveLength(6);
+    expect(() =>
+      createCheapSeatsRun([
+        ...caseBuilds,
+        {
+          ...caseBuilds[0]!,
+          instanceId: `${caseBuilds[0]!.instanceId}.duplicate`,
+        },
+      ]),
+    ).toThrow("at most 6 Characters");
+
+    const selectedIds = caseBuilds.slice(3).map((build) => build.instanceId);
+    const selected = selectCheapSeatsDeployment(
+      run,
+      selectedIds,
+      selectedIds[2]!,
+    );
+    expect(selected.deployedInstanceIds).toEqual(selectedIds);
+    expect(selected.activeInstanceId).toBe(selectedIds[2]);
+
+    const state = createBattle(
+      {
+        playerCharacterIds: caseBuilds
+          .slice(3)
+          .map((build) => build.characterId),
+        playerBuilds: caseBuilds.slice(3),
+        enemyCharacterIds: ["character.moses"],
+        seed: cheapSeatsEncounter(0).seed,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state.player.squad[0]!.currentHealth = 1;
+    const advanced = recordCheapSeatsVictory(selected, state);
+    expect(advanced.complete).toBe(false);
+    if (!advanced.complete) {
+      expect(advanced.run.healthRatios[caseBuilds[0]!.instanceId]).toBe(1);
+      expect(advanced.run.healthRatios[selectedIds[0]!]).toBeLessThan(1);
+    }
+  });
+
+  it("repairs duplicate, defeated, and invalid Tournament deployments", () => {
+    const caseBuilds = cheapSeatsPlayerIds.map((characterId, index) => {
+      const definition = combatContent.characters[characterId]!;
+      const build = createStandardBuild(definition, "player", index);
+      return {
+        characterId,
+        instanceId: build.instanceId!,
+        level: build.level!,
+        statBonuses: {
+          health: build.statBonuses?.health ?? 0,
+          power: build.statBonuses?.power ?? 0,
+          evasion: build.statBonuses?.evasion ?? 0,
+          fortune: build.statBonuses?.fortune ?? 0,
+          tempo: build.statBonuses?.tempo ?? 0,
+        },
+        actionIds: build.actionIds!,
+        actionTiers: {},
+        interruptionResistance: 0,
+        equippedPatchId: null,
+      };
+    });
+    const corrupted = createCheapSeatsRun(caseBuilds);
+    corrupted.caseBuilds.push(structuredClone(caseBuilds[1]!));
+    corrupted.healthRatios[caseBuilds[0]!.instanceId] = 0;
+    corrupted.deployedInstanceIds = [
+      caseBuilds[0]!.instanceId,
+      caseBuilds[0]!.instanceId,
+      caseBuilds[1]!.instanceId,
+      caseBuilds[3]!.instanceId,
+      "missing.instance",
+    ];
+    corrupted.activeInstanceId = caseBuilds[0]!.instanceId;
+
+    const repaired = normaliseCheapSeatsRun(corrupted);
+
+    expect(repaired.caseBuilds).toHaveLength(6);
+    expect(repaired.deployedInstanceIds).toEqual([
+      caseBuilds[1]!.instanceId,
+      caseBuilds[3]!.instanceId,
+    ]);
+    expect(repaired.activeInstanceId).toBe(caseBuilds[1]!.instanceId);
+  });
+
   it("ends a Cheap Seats run on any lost round", () => {
     const state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: cheapSeatsEncounter(1).seed,
         difficulty: "normal",
       },
@@ -325,8 +446,8 @@ describe("combat rules", () => {
 
   it("locks the exact Case roster and migrates legacy loaner health", () => {
     const build = {
-      characterId: "character.zipwire",
-      instanceId: "owned.character.zipwire.new",
+      characterId: "character.tux",
+      instanceId: "owned.character.tux.new",
       level: 8,
       statBonuses: {
         health: 0,
@@ -335,7 +456,7 @@ describe("combat rules", () => {
         fortune: 0,
         tempo: 0,
       },
-      actionIds: combatContent.characters["character.zipwire"]!.actionIds,
+      actionIds: combatContent.characters["character.tux"]!.actionIds,
       actionTiers: {},
       interruptionResistance: 0,
       equippedPatchId: null,
@@ -345,7 +466,7 @@ describe("combat rules", () => {
       roundIndex: 1 as const,
       phase: "interlude" as const,
       healthRatios: {
-        "loaner.0.character.zipwire": 0.42,
+        "loaner.0.character.tux": 0.42,
       },
       activeInstanceId: null,
     };
@@ -353,42 +474,38 @@ describe("combat rules", () => {
     build.level = 25;
 
     expect(locked.caseBuilds[0]).toMatchObject({
-      instanceId: "owned.character.zipwire.new",
+      instanceId: "owned.character.tux.new",
       level: 8,
     });
-    expect(locked.healthRatios["owned.character.zipwire.new"]).toBe(0.42);
-    expect(locked.healthRatios["loaner.0.character.zipwire"]).toBeUndefined();
-    expect(locked.activeInstanceId).toBe("owned.character.zipwire.new");
+    expect(locked.healthRatios["owned.character.tux.new"]).toBe(0.42);
+    expect(locked.healthRatios["loaner.0.character.tux"]).toBeUndefined();
+    expect(locked.activeInstanceId).toBe("owned.character.tux.new");
 
     const activeRepair = applyCheapSeatsDrop(
       lockCheapSeatsCase(legacy, [build]),
       "front-print-repair",
     );
-    expect(
-      activeRepair.healthRatios["owned.character.zipwire.new"],
-    ).toBeCloseTo(0.87);
+    expect(activeRepair.healthRatios["owned.character.tux.new"]).toBeCloseTo(
+      0.87,
+    );
 
     const caseRepair = applyCheapSeatsDrop(
       lockCheapSeatsCase(legacy, [build]),
       "case-repair",
     );
-    expect(caseRepair.healthRatios["owned.character.zipwire.new"]).toBeCloseTo(
-      0.6,
-    );
-    expect(
-      caseRepair.healthRatios["loaner.0.character.zipwire"],
-    ).toBeUndefined();
+    expect(caseRepair.healthRatios["owned.character.tux.new"]).toBeCloseTo(0.6);
+    expect(caseRepair.healthRatios["loaner.0.character.tux"]).toBeUndefined();
   });
 
   it("repairs and restores the Relic that ended the prior round active", () => {
     const state = createBattle(
       {
         playerCharacterIds: [
-          "character.mara-vex",
-          "character.zipwire",
-          "character.velvet-hex",
+          "character.viking",
+          "character.tux",
+          "character.moses",
         ],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: cheapSeatsEncounter(0).seed,
         difficulty: "normal",
       },
@@ -418,11 +535,11 @@ describe("combat rules", () => {
       createBattle(
         {
           playerCharacterIds: [
-            "character.mara-vex",
-            "character.zipwire",
-            "character.velvet-hex",
+            "character.viking",
+            "character.tux",
+            "character.moses",
           ],
-          enemyCharacterIds: ["character.gutter-grin"],
+          enemyCharacterIds: ["character.humpty"],
           seed: cheapSeatsEncounter(1).seed,
           difficulty: "normal",
         },
@@ -435,10 +552,137 @@ describe("combat rules", () => {
     );
   });
 
-  it("forms a circular six-class wheel with neutral fallback", () => {
-    expect(classMultiplier("impact", "feral")).toBe(1.2);
-    expect(classMultiplier("feral", "impact")).toBe(0.82);
-    expect(classMultiplier("impact", "neutral")).toBe(1);
+  it("forms a circular six-Type wheel with a typeless fallback", () => {
+    for (const [index, type] of COMBAT_TYPE_WHEEL.entries()) {
+      const defeatedType =
+        COMBAT_TYPE_WHEEL[(index + 1) % COMBAT_TYPE_WHEEL.length]!;
+      expect(typeMultiplier(type, defeatedType)).toBe(1.25);
+      expect(typeMultiplier(defeatedType, type)).toBe(0.8);
+      expect(typeMultiplier(type, "typeless")).toBe(1);
+      expect(typeMultiplier("typeless", type)).toBe(1);
+    }
+    expect(typeMultiplier("typeless", "typeless")).toBe(1);
+    expect(typeMultiplier("brawler", "tech")).toBe(0.8);
+    expect(typeMultiplier("oddball", "arcane")).toBe(1.25);
+    expect(typeMultiplier("sharpshooter", "tech")).toBe(1.25);
+  });
+
+  it("scores continuous single and half-strength dual Traits", () => {
+    const icons = traitSynergy([
+      combatContent.characters["character.tux"]!,
+      combatContent.characters["character.humpty"]!,
+    ]);
+    expect(icons.scores.icon).toBe(2);
+    expect(icons.bonuses.icon).toBe(4);
+
+    const sharedHero = traitSynergy([
+      combatContent.characters["character.moses"]!,
+      combatContent.characters["character.ned-kelly"]!,
+    ]);
+    expect(sharedHero.scores.hero).toBe(1);
+    expect(sharedHero.bonuses.hero).toBe(3);
+
+    const split = traitSynergy([
+      combatContent.characters["character.moses"]!,
+      combatContent.characters["character.ned-kelly"]!,
+      combatContent.characters["character.grim-reaper"]!,
+    ]);
+    expect(split.scores.hero).toBe(1);
+    expect(split.scores.mythic).toBe(1);
+    expect(split.bonuses.hero).toBe(3);
+    expect(split.bonuses.mythic).toBe(0.04);
+
+    const unmatchedDual = traitSynergy([
+      combatContent.characters["character.moses"]!,
+    ]);
+    expect(unmatchedDual.scores.hero).toBe(0.5);
+    expect(unmatchedDual.scores.mythic).toBe(0.5);
+
+    const threeIcons = traitSynergy([
+      combatContent.characters["character.tux"]!,
+      combatContent.characters["character.humpty"]!,
+      combatContent.characters["character.tux"]!,
+    ]);
+    expect(threeIcons.scores.icon).toBe(3);
+    expect(threeIcons.bonuses.icon).toBe(6);
+
+    expect(
+      traitSynergy([
+        combatContent.characters["character.grim-reaper"]!,
+        combatContent.characters["character.ned-kelly"]!,
+        combatContent.characters["character.moses"]!,
+      ]),
+    ).toEqual(split);
+  });
+
+  it("translates every stat and opening-Charge Trait bonus into battle state", () => {
+    const battleWithTrait = (trait: CharacterTrait) => {
+      const content = structuredClone(combatContent);
+      content.characters["character.tux"]!.traitIds = [trait];
+      content.characters["character.humpty"]!.traitIds = [trait];
+      return createBattle(
+        {
+          playerCharacterIds: ["character.tux", "character.humpty"],
+          enemyCharacterIds: ["character.viking"],
+          seed: 73,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+    };
+
+    const hero = battleWithTrait("hero");
+    const heroTux = hero.player.squad[0]!;
+    const tux = combatContent.characters["character.tux"]!;
+    expect(hero.player.traitBonuses.hero).toBe(6);
+    expect(heroTux.stats.health).toBe(tux.baseStats.health + 6);
+    expect(heroTux.maxHealth).toBe(
+      Math.round(tux.baseStats.health * (1 + (tux.level - 1) * 0.035) + 6),
+    );
+
+    const villain = battleWithTrait("villain");
+    expect(villain.player.squad[0]!.stats.power).toBe(tux.baseStats.power + 2);
+
+    const mythic = battleWithTrait("mythic");
+    expect(mythic.player.traitBonuses.mythic).toBe(0.08);
+    expect(mythic.player.squad[0]!.stats.tempo).toBe(tux.baseStats.tempo);
+
+    const historic = battleWithTrait("historic");
+    expect(historic.player.bar).toBe(10);
+
+    const icon = battleWithTrait("icon");
+    expect(icon.player.squad[0]!.stats.fortune).toBe(tux.baseStats.fortune + 4);
+  });
+
+  it("applies the Monster Trait's damage resistance in resolved combat", () => {
+    const monsterContent = structuredClone(combatContent);
+    monsterContent.characters["character.tux"]!.traitIds = ["monster"];
+    monsterContent.characters["character.humpty"]!.traitIds = ["monster"];
+
+    const createDamage = (content: typeof combatContent): number => {
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.ned-kelly"],
+          enemyCharacterIds: ["character.tux", "character.humpty"],
+          playerStartingBar: 100,
+          seed: 74,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+      const result = requestAction(
+        state,
+        "player",
+        "action.ned-kelly.warning-shot",
+        content,
+      );
+      return result.events.find((event) => event.type === "damageApplied")!
+        .amount!;
+    };
+
+    const normalDamage = createDamage(combatContent);
+    const resistedDamage = createDamage(monsterContent);
+    expect(resistedDamage).toBe(Math.max(1, Math.round(normalDamage * 0.95)));
   });
 
   it("makes later action positions costlier and stronger", () => {
@@ -448,11 +692,98 @@ describe("combat rules", () => {
     );
   });
 
+  it("moves a reordered Move to its new Charge band while preserving its offset", () => {
+    expect(actionPositionForSlot("3H", 0)).toBe("1H");
+    expect(actionPositionForSlot("1L", 2)).toBe("3L");
+
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        playerBuilds: [
+          {
+            actionIds: [
+              "action.viking.berserker-oath",
+              "action.viking.shield-bash",
+              "action.viking.axe-first",
+            ],
+          },
+        ],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: POSITION_RULES["1H"].cost,
+        seed: 72,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    const started = requestAction(
+      state,
+      "player",
+      "action.viking.berserker-oath",
+      combatContent,
+    );
+
+    expect(started.events.some((event) => event.type === "actionStarted")).toBe(
+      true,
+    );
+    expect(started.state.player.bar).toBe(5);
+  });
+
+  it("scales a reordered utility Move to its new output band", () => {
+    const shieldForOrder = (
+      actionIds:
+        | [
+            "action.ned-kelly.warning-shot",
+            "action.ned-kelly.iron-outlaw",
+            "action.ned-kelly.last-stand",
+          ]
+        | [
+            "action.ned-kelly.iron-outlaw",
+            "action.ned-kelly.warning-shot",
+            "action.ned-kelly.last-stand",
+          ],
+    ) => {
+      let state = createBattle(
+        {
+          playerCharacterIds: ["character.ned-kelly"],
+          playerBuilds: [{ actionIds }],
+          enemyCharacterIds: ["character.viking"],
+          playerStartingBar: 100,
+          seed: 96,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state;
+      state = requestAction(
+        state,
+        "player",
+        "action.ned-kelly.iron-outlaw",
+        combatContent,
+      ).state;
+      return (
+        state.player.squad[0]!.statuses.find(
+          (status) => status.kind === "shield",
+        )?.magnitude ?? 0
+      );
+    };
+
+    const defaultShield = shieldForOrder([
+      "action.ned-kelly.warning-shot",
+      "action.ned-kelly.iron-outlaw",
+      "action.ned-kelly.last-stand",
+    ]);
+    const earlierShield = shieldForOrder([
+      "action.ned-kelly.iron-outlaw",
+      "action.ned-kelly.warning-shot",
+      "action.ned-kelly.last-stand",
+    ]);
+    expect(earlierShield).toBeLessThan(defaultShield);
+  });
+
   it("keeps the team Charge Strip when switching", () => {
     const created = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex", "character.zipwire"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking", "character.tux"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 42,
         difficulty: "normal",
       },
@@ -464,11 +795,449 @@ describe("combat rules", () => {
     expect(switched.state.player.bar).toBe(before);
   });
 
+  it("locks an active target when a charged Move commits", () => {
+    const content = structuredClone(combatContent);
+    content.characters["character.tux"]!.baseStats.evasion = 0;
+    content.characters["character.humpty"]!.baseStats.evasion = 0;
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.tux", "character.humpty"],
+        enemyCharacterIds: ["character.viking"],
+        enemyStartingBar: 100,
+        seed: 5_041,
+        difficulty: "normal",
+      },
+      content,
+    ).state;
+    const originalTarget = state.player.squad[0]!;
+    const replacement = state.player.squad[1]!;
+    const originalHealth = originalTarget.currentHealth;
+    const replacementHealth = replacement.currentHealth;
+
+    state = requestAction(
+      state,
+      "enemy",
+      "action.viking.shield-bash",
+      content,
+    ).state;
+    state = requestSwitch(state, "player", 1).state;
+    for (let elapsed = 0; elapsed < 750; elapsed += 250) {
+      state = tickBattle(state, 250, content).state;
+    }
+
+    expect(state.player.activeIndex).toBe(1);
+    expect(originalTarget.instanceId).not.toBe(replacement.instanceId);
+    expect(state.player.squad[0]!.currentHealth).toBeLessThan(originalHealth);
+    expect(state.player.squad[1]!.currentHealth).toBe(replacementHealth);
+  });
+
+  it("records a forfeit as a deterministic loss and clears pending Moves", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: 100,
+        seed: 84,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state = requestAction(
+      state,
+      "player",
+      "action.viking.shield-bash",
+      combatContent,
+    ).state;
+    const forfeited = forfeitBattle(state, "player");
+
+    expect(forfeited.state.outcome).toBe("enemyWon");
+    expect(forfeited.state.pendingActions).toEqual({});
+    expect(forfeited.events).toContainEqual(
+      expect.objectContaining({
+        type: "battleEnded",
+        side: "enemy",
+        message: "playerForfeited",
+      }),
+    );
+  });
+
+  it("charges and activates a team Accessory independently of the Charge Strip", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerAccessoryId: "accessory.press-pass",
+        playerStartingBar: 100,
+        seed: 87,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state = requestAction(
+      state,
+      "player",
+      "action.viking.axe-first",
+      combatContent,
+    ).state;
+    expect(state.player.accessory?.charge).toBeGreaterThan(0);
+
+    state.player.accessory!.charge = 100;
+    state.player.bar = 0;
+    const activated = requestAccessory(state, "player", combatContent);
+    expect(activated.state.player.bar).toBe(30);
+    expect(activated.state.player.accessory?.charge).toBe(0);
+    expect(
+      activated.events.some((event) => event.type === "accessoryActivated"),
+    ).toBe(true);
+  });
+
+  it("supports a separately charged Accessory that freezes the opposing Strip", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerAccessoryId: "accessory.dead-air",
+        seed: 88,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state.player.accessory!.charge = 100;
+    state = requestAccessory(state, "player", combatContent).state;
+    expect(state.enemy.statuses).toEqual([
+      expect.objectContaining({
+        kind: "chargeRate",
+        multiplier: 0,
+      }),
+    ]);
+
+    for (let elapsed = 0; elapsed < 2_000; elapsed += 250) {
+      state = tickBattle(state, 250, combatContent).state;
+    }
+    expect(state.enemy.bar).toBe(2.5);
+    for (let elapsed = 0; elapsed < 750; elapsed += 250) {
+      state = tickBattle(state, 250, combatContent).state;
+    }
+    expect(state.enemy.bar).toBeGreaterThan(0);
+  });
+
+  it("supports team healing and shielding Accessories", () => {
+    const healingState = createBattle(
+      {
+        playerCharacterIds: ["character.viking", "character.tux"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerAccessoryId: "accessory.field-kit",
+        seed: 188,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    healingState.player.squad[0]!.currentHealth -= 30;
+    healingState.player.squad[1]!.currentHealth -= 10;
+    healingState.player.accessory!.charge = 100;
+    const healed = requestAccessory(healingState, "player", combatContent);
+    expect(healed.state.player.squad[0]!.currentHealth).toBe(
+      healingState.player.squad[0]!.currentHealth + 22,
+    );
+    expect(healed.state.player.squad[1]!.currentHealth).toBe(
+      healingState.player.squad[1]!.maxHealth,
+    );
+
+    let shieldState = createBattle(
+      {
+        playerCharacterIds: ["character.viking", "character.tux"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerAccessoryId: "accessory.ward-projector",
+        seed: 189,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    shieldState.player.accessory!.charge = 100;
+    shieldState = requestAccessory(shieldState, "player", combatContent).state;
+    expect(
+      shieldState.player.squad.every((combatant) =>
+        combatant.statuses.some(
+          (status) => status.kind === "shield" && status.magnitude === 18,
+        ),
+      ),
+    ).toBe(true);
+  });
+
+  it("lets an Accessory temporarily block the opposing middle Move", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerAccessoryId: "accessory.slot-jammer",
+        enemyStartingBar: 100,
+        seed: 190,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state.player.accessory!.charge = 100;
+    state = requestAccessory(state, "player", combatContent).state;
+    expect(
+      requestAction(
+        state,
+        "enemy",
+        "action.ned-kelly.iron-outlaw",
+        combatContent,
+      ).events,
+    ).toContainEqual(
+      expect.objectContaining({
+        type: "commandRejected",
+        message: "That Move slot is temporarily blocked.",
+      }),
+    );
+
+    for (let elapsed = 0; elapsed < 4_000; elapsed += 250) {
+      state = tickBattle(state, 250, combatContent).state;
+    }
+    expect(
+      requestAction(
+        state,
+        "enemy",
+        "action.ned-kelly.iron-outlaw",
+        combatContent,
+      ).events,
+    ).toContainEqual(expect.objectContaining({ type: "actionStarted" }));
+  });
+
+  it("drops battle pickups from a separate deterministic RNG stream", () => {
+    const run = (seed: number) => {
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.ned-kelly"],
+          playerAccessoryId: "accessory.press-pass",
+          playerStartingBar: 100,
+          seed,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state;
+      return requestAction(
+        state,
+        "player",
+        "action.viking.axe-first",
+        combatContent,
+      );
+    };
+    const seedWithDrop = Array.from(
+      { length: 200 },
+      (_, index) => index + 1,
+    ).find((seed) =>
+      run(seed).events.some((event) => event.type === "pickupDropped"),
+    );
+
+    expect(seedWithDrop).toBeDefined();
+    const first = run(seedWithDrop!);
+    const repeated = run(seedWithDrop!);
+    expect(first.state.pickups).toEqual(repeated.state.pickups);
+    expect(first.state.rngState).toBe(repeated.state.rngState);
+  });
+
+  it("collects battery, repair, and Charge pickups through one command", () => {
+    const baseState = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerAccessoryId: "accessory.press-pass",
+        seed: 191,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    baseState.player.squad[0]!.currentHealth -= 20;
+    baseState.pickups = [
+      {
+        id: "pickup.player.battery",
+        kind: "battery",
+        side: "player",
+        amount: 28,
+        remainingMs: 7_000,
+      },
+      {
+        id: "pickup.player.repair",
+        kind: "repair",
+        side: "player",
+        amount: 16,
+        remainingMs: 7_000,
+      },
+      {
+        id: "pickup.player.surge",
+        kind: "surge",
+        side: "player",
+        amount: 18,
+        remainingMs: 7_000,
+      },
+    ];
+
+    const battery = requestPickup(
+      baseState,
+      "player",
+      "pickup.player.battery",
+    ).state;
+    expect(battery.player.accessory?.charge).toBe(28);
+    const repair = requestPickup(
+      battery,
+      "player",
+      "pickup.player.repair",
+    ).state;
+    expect(repair.player.squad[0]!.currentHealth).toBe(
+      baseState.player.squad[0]!.currentHealth + 16,
+    );
+    const surge = requestPickup(repair, "player", "pickup.player.surge").state;
+    expect(surge.player.bar).toBeGreaterThanOrEqual(18);
+    expect(surge.pickups).toEqual([]);
+  });
+
+  it("expires ignored pickups and lets the AI collect useful ones", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        seed: 192,
+        difficulty: "hard",
+      },
+      combatContent,
+    ).state;
+    state.pickups = [
+      {
+        id: "pickup.enemy.surge",
+        kind: "surge",
+        side: "enemy",
+        amount: 18,
+        remainingMs: 250,
+      },
+    ];
+    expect(chooseAiCommand(state, combatContent)).toEqual({
+      kind: "pickup",
+      pickupId: "pickup.enemy.surge",
+    });
+    const expired = tickBattle(state, 250, combatContent);
+    expect(expired.state.pickups).toEqual([]);
+    expect(expired.events).toContainEqual(
+      expect.objectContaining({
+        type: "pickupExpired",
+        message: "surge",
+      }),
+    );
+  });
+
+  it("ticks authored damage-over-time and regeneration deterministically", () => {
+    const periodicContent = structuredClone(combatContent);
+    periodicContent.actions["action.humpty.great-fall"]!.chargeMs = 0;
+    let damageState = createBattle(
+      {
+        playerCharacterIds: ["character.humpty"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: 100,
+        seed: 90,
+        difficulty: "normal",
+      },
+      periodicContent,
+    ).state;
+    damageState = requestAction(
+      damageState,
+      "player",
+      "action.humpty.great-fall",
+      periodicContent,
+    ).state;
+    const afterHit = damageState.enemy.squad[0]!.currentHealth;
+    for (let elapsed = 0; elapsed < 1_000; elapsed += 250) {
+      damageState = tickBattle(damageState, 250, periodicContent).state;
+    }
+    expect(damageState.enemy.squad[0]!.currentHealth).toBeLessThan(afterHit);
+
+    let healState = createBattle(
+      {
+        playerCharacterIds: ["character.moses"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: 100,
+        seed: 91,
+        difficulty: "normal",
+      },
+      periodicContent,
+    ).state;
+    healState.player.squad[0]!.currentHealth -= 30;
+    healState = requestAction(
+      healState,
+      "player",
+      "action.moses.staff-tap",
+      periodicContent,
+    ).state;
+    const afterImmediateHeal = healState.player.squad[0]!.currentHealth;
+    for (let elapsed = 0; elapsed < 1_000; elapsed += 250) {
+      healState = tickBattle(healState, 250, periodicContent).state;
+    }
+    expect(healState.player.squad[0]!.currentHealth).toBeGreaterThan(
+      afterImmediateHeal,
+    );
+  });
+
+  it("catches up every periodic tick crossed by a simulation slice", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        seed: 92,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    const target = state.enemy.squad[0]!;
+    const before = target.currentHealth;
+    target.statuses.push({
+      id: "status.test-fast-dot",
+      kind: "damageOverTime",
+      magnitude: 2,
+      remainingMs: 250,
+      intervalMs: 100,
+      nextTickMs: 100,
+      sourceSide: "player",
+    });
+    state = tickBattle(state, 250, combatContent).state;
+
+    expect(before - state.enemy.squad[0]!.currentHealth).toBe(4);
+  });
+
+  it("uses the explicit difficulty tie rule for a mutual wipe", () => {
+    const run = (difficulty: "normal" | "brutal") => {
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.ned-kelly"],
+          seed: 102,
+          difficulty,
+        },
+        combatContent,
+      ).state;
+      for (const combatant of [state.player.squad[0]!, state.enemy.squad[0]!]) {
+        combatant.currentHealth = 1;
+        combatant.statuses.push({
+          id: `status.mutual-wipe.${combatant.side}`,
+          kind: "damageOverTime",
+          magnitude: 1,
+          remainingMs: 100,
+          intervalMs: 100,
+          nextTickMs: 100,
+        });
+      }
+      return tickBattle(state, 100, combatContent).state.outcome;
+    };
+
+    expect(run("normal")).toBe("playerWon");
+    expect(run("brutal")).toBe("enemyWon");
+  });
+
   it("applies a saved character build instead of the authored base level", () => {
     const baseline = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 42,
         difficulty: "normal",
       },
@@ -476,14 +1245,14 @@ describe("combat rules", () => {
     ).state.player.squad[0]!;
     const progressed = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
+        playerCharacterIds: ["character.viking"],
         playerBuilds: [
           {
             instanceId: "owned.mara-vex.1",
             level: 20,
           },
         ],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 42,
         difficulty: "normal",
       },
@@ -495,12 +1264,432 @@ describe("combat rules", () => {
     expect(progressed.maxHealth).toBeGreaterThan(baseline.maxHealth);
   });
 
+  it("upgrades numeric utility effects as well as direct damage", () => {
+    const runShield = (tier: "stock" | "platinum") => {
+      let state = createBattle(
+        {
+          playerCharacterIds: ["character.ned-kelly"],
+          playerBuilds: [
+            {
+              actionTiers: {
+                "action.ned-kelly.iron-outlaw": tier,
+              },
+            },
+          ],
+          enemyCharacterIds: ["character.viking"],
+          playerStartingBar: 100,
+          seed: 63,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state;
+      state = requestAction(
+        state,
+        "player",
+        "action.ned-kelly.iron-outlaw",
+        combatContent,
+      ).state;
+      return state.player.squad[0]!.statuses.find(
+        (status) => status.kind === "shield",
+      )?.magnitude;
+    };
+
+    expect(runShield("platinum")).toBeGreaterThan(runShield("stock") ?? 0);
+  });
+
+  it("consumes shield pools and lets explicitly piercing hits bypass them", () => {
+    const runHit = (shieldPiercing: boolean) => {
+      const content = structuredClone(combatContent);
+      const action = content.actions["action.viking.axe-first"]!;
+      const damage = action.effects.find((effect) => effect.kind === "damage");
+      if (!damage || damage.kind !== "damage") {
+        throw new Error("Invoice Breaker must deal damage");
+      }
+      damage.shieldPiercing = shieldPiercing;
+      let state = createBattle(
+        {
+          playerCharacterIds: ["character.ned-kelly"],
+          enemyCharacterIds: ["character.viking"],
+          enemyStartingBar: 100,
+          seed: 93,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+      const target = state.player.squad[0]!;
+      target.stats.evasion = 0;
+      target.statuses.push({
+        id: "test.shield",
+        kind: "shield",
+        magnitude: 999,
+        remainingMs: 5_000,
+      });
+      const before = target.currentHealth;
+      const transition = requestAction(state, "enemy", action.id, content);
+      state = transition.state;
+      return {
+        damage: before - state.player.squad[0]!.currentHealth,
+        shield:
+          state.player.squad[0]!.statuses.find(
+            (status) => status.kind === "shield",
+          )?.magnitude ?? 0,
+      };
+    };
+
+    const absorbed = runHit(false);
+    const pierced = runHit(true);
+    expect(absorbed.damage).toBe(0);
+    expect(absorbed.shield).toBeLessThan(999);
+    expect(pierced.damage).toBeGreaterThan(0);
+    expect(pierced.shield).toBe(999);
+  });
+
+  it("supports undodgeable lifesteal and authored switching locks", () => {
+    const content = structuredClone(combatContent);
+    const invoice = content.actions["action.viking.axe-first"]!;
+    const damage = invoice.effects.find((effect) => effect.kind === "damage");
+    if (!damage || damage.kind !== "damage") {
+      throw new Error("Invoice Breaker must deal damage");
+    }
+    damage.undodgeable = true;
+    damage.lifeStealRatio = 1;
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly", "character.tux"],
+        playerStartingBar: 100,
+        seed: 94,
+        difficulty: "normal",
+      },
+      content,
+    ).state;
+    state.player.squad[0]!.currentHealth -= 40;
+    state.enemy.squad[0]!.stats.evasion = 100;
+    const beforeHealth = state.player.squad[0]!.currentHealth;
+    state = requestAction(state, "player", invoice.id, content).state;
+    expect(state.enemy.squad[0]!.currentHealth).toBeLessThan(
+      state.enemy.squad[0]!.maxHealth,
+    );
+    expect(state.player.squad[0]!.currentHealth).toBeGreaterThan(beforeHealth);
+
+    const assetFreeze = content.actions["action.ned-kelly.last-stand"]!;
+    assetFreeze.chargeMs = 0;
+    const stun = assetFreeze.effects.find((effect) => effect.kind === "stun");
+    if (stun?.kind === "stun") {
+      stun.chance = 0;
+    }
+    state = createBattle(
+      {
+        playerCharacterIds: ["character.ned-kelly"],
+        enemyCharacterIds: ["character.viking", "character.tux"],
+        playerStartingBar: 100,
+        seed: 95,
+        difficulty: "normal",
+      },
+      content,
+    ).state;
+    state.enemy.squad[0]!.stats.evasion = 0;
+    state = requestAction(state, "player", assetFreeze.id, content).state;
+    expect(
+      state.enemy.squad[0]!.statuses.some(
+        (status) => status.kind === "switchLock",
+      ),
+    ).toBe(true);
+    expect(
+      requestSwitch(state, "enemy", 1).events.some(
+        (event) => event.type === "commandRejected",
+      ),
+    ).toBe(true);
+  });
+
+  it("queues per-hit reflections until the authored Move is complete", () => {
+    const content = structuredClone(combatContent);
+    const finisher = content.actions["action.viking.berserker-oath"]!;
+    finisher.chargeMs = 0;
+    const damage = finisher.effects.find((effect) => effect.kind === "damage");
+    if (!damage || damage.kind !== "damage") {
+      throw new Error("Hostile Takeover must deal damage");
+    }
+    damage.undodgeable = true;
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.humpty"],
+        playerStartingBar: 100,
+        seed: 99,
+        difficulty: "normal",
+      },
+      content,
+    ).state;
+    const player = state.player.squad[0]!;
+    const enemy = state.enemy.squad[0]!;
+    enemy.maxHealth = 999;
+    enemy.currentHealth = 999;
+    enemy.statuses.push(
+      {
+        id: "status.reflect-a",
+        kind: "reflection",
+        magnitude: 0.25,
+        remainingMs: 5_000,
+        actionId: "action.humpty.shell-game",
+      },
+      {
+        id: "status.reflect-b",
+        kind: "reflection",
+        magnitude: 0.15,
+        remainingMs: 5_000,
+        actionId: "action.humpty.shell-game",
+      },
+    );
+    player.statuses.push({
+      id: "status.no-ping-pong",
+      kind: "reflection",
+      magnitude: 1,
+      remainingMs: 5_000,
+      actionId: "action.humpty.shell-game",
+    });
+    const transition = requestAction(state, "player", finisher.id, content);
+    const directDamageIndices = transition.events
+      .map((event, index) => ({ event, index }))
+      .filter(
+        ({ event }) => event.type === "damageApplied" && !event.reactionKind,
+      )
+      .map(({ index }) => index);
+    const reactionIndices = transition.events
+      .map((event, index) => ({ event, index }))
+      .filter(({ event }) => event.type === "reactionTriggered")
+      .map(({ index }) => index);
+    const reactions = transition.events.filter(
+      (event) => event.type === "reactionTriggered",
+    );
+
+    expect(directDamageIndices).toHaveLength(3);
+    expect(reactions).toHaveLength(6);
+    expect(Math.min(...reactionIndices)).toBeGreaterThan(
+      Math.max(...directDamageIndices),
+    );
+    expect(reactions.every((event) => event.actionId === finisher.id)).toBe(
+      true,
+    );
+    expect(
+      reactions.every(
+        (event) =>
+          event.reactionId === "action.humpty.shell-game" &&
+          typeof event.triggerEventId === "number",
+      ),
+    ).toBe(true);
+    expect(
+      transition.events.filter(
+        (event) =>
+          event.type === "reactionTriggered" &&
+          event.sourceId === player.instanceId,
+      ),
+    ).toHaveLength(0);
+  });
+
+  it("reflects only post-shield damage and not a lethal incoming hit", () => {
+    const content = structuredClone(combatContent);
+    const action = content.actions["action.viking.axe-first"]!;
+    const damage = action.effects.find((effect) => effect.kind === "damage");
+    if (!damage || damage.kind !== "damage") {
+      throw new Error("Invoice Breaker must deal damage");
+    }
+    damage.undodgeable = true;
+    const createState = () =>
+      createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.humpty"],
+          playerStartingBar: 100,
+          seed: 100,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+
+    const shielded = createState();
+    shielded.enemy.squad[0]!.statuses.push(
+      {
+        id: "status.full-shield",
+        kind: "shield",
+        magnitude: 999,
+        remainingMs: 5_000,
+      },
+      {
+        id: "status.reflect",
+        kind: "reflection",
+        magnitude: 1,
+        remainingMs: 5_000,
+      },
+    );
+    expect(
+      requestAction(shielded, "player", action.id, content).events.some(
+        (event) => event.type === "reactionTriggered",
+      ),
+    ).toBe(false);
+
+    const lethal = createState();
+    lethal.enemy.squad[0]!.currentHealth = 1;
+    lethal.enemy.squad[0]!.statuses.push({
+      id: "status.reflect",
+      kind: "reflection",
+      magnitude: 1,
+      remainingMs: 5_000,
+    });
+    const lethalTransition = requestAction(
+      lethal,
+      "player",
+      action.id,
+      content,
+    );
+    expect(
+      lethalTransition.events.some(
+        (event) => event.type === "reactionTriggered",
+      ),
+    ).toBe(false);
+    expect(
+      lethalTransition.events.filter(
+        (event) => event.type === "characterDefeated",
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("does not let a later effect react retroactively to earlier damage", () => {
+    const run = (grantFirst: boolean) => {
+      const content = structuredClone(combatContent);
+      const action = content.actions["action.viking.axe-first"]!;
+      const damage = action.effects.find((effect) => effect.kind === "damage")!;
+      const reflection = {
+        kind: "reflectDamage" as const,
+        target: "activeEnemy" as const,
+        ratio: 1,
+        durationMs: 5_000,
+      };
+      action.effects = grantFirst ? [reflection, damage] : [damage, reflection];
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.ned-kelly"],
+          playerStartingBar: 100,
+          seed: 101,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+      state.enemy.squad[0]!.stats.evasion = 0;
+      const before = state.player.squad[0]!.currentHealth;
+      const transition = requestAction(state, "player", action.id, content);
+      return {
+        reflected: before - transition.state.player.squad[0]!.currentHealth,
+        events: transition.events,
+      };
+    };
+
+    expect(run(false).reflected).toBe(0);
+    expect(run(true).reflected).toBeGreaterThan(0);
+  });
+
+  it("allows a landed hit to grant a hit-gated reaction to the attacker", () => {
+    const content = structuredClone(combatContent);
+    const action = content.actions["action.humpty.egg-on-your-face"]!;
+    const damage = action.effects.find((effect) => effect.kind === "damage");
+    if (!damage || damage.kind !== "damage") {
+      throw new Error("Sucker Sticker must deal damage");
+    }
+    damage.undodgeable = true;
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.humpty"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: 100,
+        seed: 102,
+        difficulty: "normal",
+      },
+      content,
+    ).state;
+
+    const transition = requestAction(state, "player", action.id, content);
+
+    expect(transition.state.player.squad[0]!.statuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "evasion" }),
+        expect.objectContaining({
+          kind: "dodgeCounter",
+          remainingTriggers: 1,
+        }),
+      ]),
+    );
+  });
+
+  it("spends a dodge counter when queued and resolves it after a multi-hit", () => {
+    const content = structuredClone(combatContent);
+    const finisher = content.actions["action.viking.berserker-oath"]!;
+    finisher.chargeMs = 0;
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.humpty"],
+        playerStartingBar: 100,
+        seed: 1,
+        difficulty: "normal",
+      },
+      content,
+    ).state;
+    state.player.squad[0]!.currentHealth = 10;
+    state.enemy.squad[0]!.stats.evasion = 100;
+    state.enemy.squad[0]!.maxHealth = 999;
+    state.enemy.squad[0]!.currentHealth = 999;
+    state.enemy.squad[0]!.statuses.push({
+      id: "status.one-counter",
+      kind: "dodgeCounter",
+      magnitude: 99,
+      remainingMs: 5_000,
+      remainingTriggers: 1,
+      actionId: "action.humpty.egg-on-your-face",
+    });
+    const transition = requestAction(state, "player", finisher.id, content);
+    const hitOutcomes = transition.events.filter(
+      (event) =>
+        event.type === "characterDodged" ||
+        (event.type === "damageApplied" && !event.reactionKind),
+    );
+    const reactionIndex = transition.events.findIndex(
+      (event) => event.type === "reactionTriggered",
+    );
+    const finalHitIndex = Math.max(
+      ...transition.events
+        .map((event, index) => ({ event, index }))
+        .filter(
+          ({ event }) =>
+            event.type === "characterDodged" ||
+            (event.type === "damageApplied" && !event.reactionKind),
+        )
+        .map(({ index }) => index),
+    );
+
+    expect(hitOutcomes).toHaveLength(3);
+    expect(reactionIndex).toBeGreaterThan(finalHitIndex);
+    expect(
+      transition.state.enemy.squad[0]!.statuses.some(
+        (status) => status.kind === "dodgeCounter",
+      ),
+    ).toBe(false);
+    expect(transition.state.outcome).toBe("enemyWon");
+    expect(
+      transition.events.filter(
+        (event) =>
+          event.type === "characterDefeated" &&
+          event.targetId === transition.state.player.squad[0]!.instanceId,
+      ),
+    ).toHaveLength(1);
+  });
+
   it("keeps opaque owned-instance IDs on the player side", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
+        playerCharacterIds: ["character.viking"],
         playerBuilds: [{ instanceId: "owned.mara-vex.1" }],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 42,
         difficulty: "normal",
       },
@@ -510,7 +1699,7 @@ describe("combat rules", () => {
     const started = requestAction(
       state,
       "player",
-      "action.mara-vex.hostile-takeover",
+      "action.viking.berserker-oath",
       combatContent,
     );
     state = started.state;
@@ -532,9 +1721,9 @@ describe("combat rules", () => {
   it("cleanses owned player instances without relying on ID prefixes", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.velvet-hex"],
+        playerCharacterIds: ["character.moses"],
         playerBuilds: [{ instanceId: "owned.velvet-hex.1" }],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 43,
         difficulty: "normal",
       },
@@ -546,13 +1735,30 @@ describe("combat rules", () => {
       magnitude: -0.2,
       remainingMs: 5_000,
     });
+    state.player.squad[0]!.statuses.push(
+      {
+        id: "test.evasion-up",
+        kind: "evasion",
+        magnitude: 4,
+        remainingMs: 5_000,
+      },
+      {
+        id: "test.fortune-up",
+        kind: "fortune",
+        magnitude: 4,
+        remainingMs: 5_000,
+      },
+    );
     state.player.bar = 100;
     state = requestAction(
       state,
       "player",
-      "action.velvet-hex.curtain-call",
+      "action.moses.safe-passage",
       combatContent,
     ).state;
+    expect(
+      state.player.squad[0]!.statuses.map((status) => status.kind),
+    ).toEqual(expect.arrayContaining(["evasion", "fortune"]));
     const events = [];
     for (let elapsed = 0; elapsed < 1_250; elapsed += 250) {
       const transition = tickBattle(state, 250, combatContent);
@@ -566,13 +1772,15 @@ describe("combat rules", () => {
     );
 
     expect(removed?.side).toBe("player");
-    expect(state.player.squad[0]!.statuses).toHaveLength(0);
+    expect(
+      state.player.squad[0]!.statuses.map((status) => status.kind),
+    ).toEqual(["evasion", "fortune"]);
   });
 
   it("applies equipped Patch effects to an owned-instance build", () => {
     const owned = createOwnedCharacter(
       "owned.mara-vex.1",
-      "character.mara-vex",
+      "character.viking",
       7,
     );
     owned.equippedPatchId = "patch.heavy-ink";
@@ -588,7 +1796,7 @@ describe("combat rules", () => {
   it("keeps a reusable Patch equipped to only one owned Relic", () => {
     const first = createOwnedCharacter(
       "owned.mara-vex.1",
-      "character.mara-vex",
+      "character.viking",
       7,
     );
     const second = {
@@ -614,14 +1822,14 @@ describe("combat rules", () => {
   it("uses seeded interruption resistance without cancelling the Move", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
+        playerCharacterIds: ["character.viking"],
         playerBuilds: [
           {
             instanceId: "owned.mara-vex.1",
             interruptionResistance: 1,
           },
         ],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 42,
         difficulty: "normal",
       },
@@ -632,29 +1840,29 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "player",
-      "action.mara-vex.red-tape",
+      "action.viking.shield-bash",
       combatContent,
     ).state;
     const hit = requestAction(
       state,
       "enemy",
-      "action.knuckle-tax.late-fee",
+      "action.ned-kelly.warning-shot",
       combatContent,
     );
     expect(
       hit.events.some((event) => event.type === "interruptionResisted"),
     ).toBe(true);
     expect(hit.state.pendingActions.player?.actionId).toBe(
-      "action.mara-vex.red-tape",
+      "action.viking.shield-bash",
     );
   });
 
   it("marks enemy debuffs and stuns against opaque owned IDs as player events", () => {
     let debuffState = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
+        playerCharacterIds: ["character.viking"],
         playerBuilds: [{ instanceId: "owned.mara-vex.1" }],
-        enemyCharacterIds: ["character.velvet-hex"],
+        enemyCharacterIds: ["character.moses"],
         seed: 44,
         difficulty: "normal",
       },
@@ -664,7 +1872,7 @@ describe("combat rules", () => {
     debuffState = requestAction(
       debuffState,
       "enemy",
-      "action.velvet-hex.bad-omen",
+      "action.moses.part-the-strip",
       combatContent,
     ).state;
     const debuffEvents: BattleEvent[] = [];
@@ -683,7 +1891,7 @@ describe("combat rules", () => {
 
     const guaranteedStunContent = structuredClone(combatContent);
     const stunEffect = guaranteedStunContent.actions[
-      "action.knuckle-tax.asset-freeze"
+      "action.ned-kelly.last-stand"
     ]!.effects.find((effect) => effect.kind === "stun");
     if (!stunEffect || stunEffect.kind !== "stun") {
       throw new Error("Asset Freeze must contain a stun effect");
@@ -691,9 +1899,9 @@ describe("combat rules", () => {
     stunEffect.chance = 1;
     let stunState = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
+        playerCharacterIds: ["character.viking"],
         playerBuilds: [{ instanceId: "owned.mara-vex.1" }],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 45,
         difficulty: "normal",
       },
@@ -703,7 +1911,7 @@ describe("combat rules", () => {
     stunState = requestAction(
       stunState,
       "enemy",
-      "action.knuckle-tax.asset-freeze",
+      "action.ned-kelly.last-stand",
       guaranteedStunContent,
     ).state;
     const stunEvents: BattleEvent[] = [];
@@ -726,8 +1934,8 @@ describe("combat rules", () => {
     const run = () => {
       let state = createBattle(
         {
-          playerCharacterIds: ["character.mara-vex"],
-          enemyCharacterIds: ["character.knuckle-tax"],
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.ned-kelly"],
           seed: 818,
           difficulty: "normal",
         },
@@ -737,7 +1945,7 @@ describe("combat rules", () => {
       state = requestAction(
         state,
         "player",
-        "action.mara-vex.hostile-takeover",
+        "action.viking.berserker-oath",
         combatContent,
       ).state;
       for (let elapsed = 0; elapsed < 1_250; elapsed += 250) {
@@ -751,9 +1959,9 @@ describe("combat rules", () => {
   it("records participants, decisions, events, and outcome in a battle report", () => {
     const created = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
+        playerCharacterIds: ["character.viking"],
         playerBuilds: [{ instanceId: "owned.mara-vex.1", level: 9 }],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 818,
         difficulty: "normal",
       },
@@ -765,7 +1973,7 @@ describe("combat rules", () => {
     });
     report = recordBattleDecision(report, created.state, "player", {
       kind: "action",
-      actionId: "action.mara-vex.invoice-breaker",
+      actionId: "action.viking.axe-first",
     });
     report = recordBattleDifficultyChange(report, created.state, "hard");
     report = recordBattleDebugAction(report, created.state, {
@@ -791,7 +1999,7 @@ describe("combat rules", () => {
       instanceId: "owned.mara-vex.1",
       level: 9,
       actionTiers: {
-        "action.mara-vex.invoice-breaker": "stock",
+        "action.viking.axe-first": "stock",
       },
     });
     expect(report.schemaVersion).toBe(2);
@@ -801,7 +2009,7 @@ describe("combat rules", () => {
     ]);
     expect(report.decisions[0]?.command).toEqual({
       kind: "action",
-      actionId: "action.mara-vex.invoice-breaker",
+      actionId: "action.viking.axe-first",
     });
     expect(report.events.map((event) => event.type)).toContain("battleEnded");
     expect(report.outcome).toBe("playerWon");
@@ -813,8 +2021,8 @@ describe("combat rules", () => {
   it("reports a useful pre-random damage estimate", () => {
     const state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 1,
         difficulty: "normal",
       },
@@ -824,7 +2032,7 @@ describe("combat rules", () => {
       predictedDamage(
         state,
         "player",
-        "action.mara-vex.invoice-breaker",
+        "action.viking.axe-first",
         combatContent,
       ),
     ).toBeGreaterThan(0);
@@ -833,11 +2041,11 @@ describe("combat rules", () => {
   it("distributes team damage instead of multiplying its authored pool", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.zipwire"],
+        playerCharacterIds: ["character.tux"],
         enemyCharacterIds: [
-          "character.knuckle-tax",
-          "character.scrapjack",
-          "character.gutter-grin",
+          "character.ned-kelly",
+          "character.grim-reaper",
+          "character.humpty",
         ],
         seed: 66,
         difficulty: "normal",
@@ -852,7 +2060,7 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "player",
-      "action.zipwire.full-tilt",
+      "action.tux.kernel-panic",
       combatContent,
     ).state;
     for (let elapsed = 0; elapsed < 1_000; elapsed += 250) {
@@ -870,11 +2078,11 @@ describe("combat rules", () => {
     const mixed = createBattle(
       {
         playerCharacterIds: [
-          "character.mara-vex",
-          "character.zipwire",
-          "character.velvet-hex",
+          "character.viking",
+          "character.tux",
+          "character.moses",
         ],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 8,
         difficulty: "normal",
       },
@@ -883,11 +2091,11 @@ describe("combat rules", () => {
     const echo = createBattle(
       {
         playerCharacterIds: [
-          "character.mara-vex",
-          "character.mara-vex",
-          "character.mara-vex",
+          "character.viking",
+          "character.viking",
+          "character.viking",
         ],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 8,
         difficulty: "normal",
       },
@@ -901,30 +2109,29 @@ describe("combat rules", () => {
   });
 
   it("uses a deliberate Charge cadence with meaningful Tempo separation", () => {
-    expect(chargePerSecond(5)).toBe(7.5);
+    expect(chargePerSecond(5)).toBe(10);
     expect(chargePerSecond(9)).toBeGreaterThan(chargePerSecond(3) * 1.2);
-    expect(25 / chargePerSecond(5)).toBeLessThan(3.5);
-    expect(100 / chargePerSecond(5)).toBeGreaterThan(12);
-    expect(100 / chargePerSecond(5)).toBeLessThan(14);
+    expect(25 / chargePerSecond(5)).toBe(2.5);
+    expect(100 / chargePerSecond(5)).toBe(10);
 
     const state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 808,
         difficulty: "normal",
       },
       combatContent,
     ).state;
-    expect(state.player.bar).toBe(0);
-    expect(state.enemy.bar).toBe(0);
+    expect(state.player.bar).toBe(5);
+    expect(state.enemy.bar).toBe(2.5);
 
     const afterFiveSeconds = tickBattle(state, 250, combatContent).state;
     let advanced = afterFiveSeconds;
     for (let elapsed = 250; elapsed < 5_000; elapsed += 250) {
       advanced = tickBattle(advanced, 250, combatContent).state;
     }
-    expect(advanced.player.bar).toBeCloseTo(37.5, 5);
+    expect(advanced.player.bar).toBeCloseTo(55, 5);
 
     let quarterStepped = state;
     for (let quarter = 0; quarter < 4; quarter += 1) {
@@ -938,11 +2145,35 @@ describe("combat rules", () => {
     expect(frameStepped.player.bar).toBeCloseTo(quarterStepped.player.bar, 8);
   });
 
+  it("pauses a side's Charge while its active Relic is stunned", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        seed: 86,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state.player.squad[0]!.statuses.push({
+      id: "status.test-stun",
+      kind: "stun",
+      remainingMs: 1_000,
+      magnitude: 1,
+    });
+    for (let elapsed = 0; elapsed < 1_000; elapsed += 250) {
+      state = tickBattle(state, 250, combatContent).state;
+      expect(state.player.bar).toBe(5);
+    }
+    state = tickBattle(state, 250, combatContent).state;
+    expect(state.player.bar).toBeGreaterThan(0);
+  });
+
   it("does not resolve a charged Move beyond the timer", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 12,
         difficulty: "normal",
         timeLimitMs: 100,
@@ -954,7 +2185,7 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "player",
-      "action.mara-vex.red-tape",
+      "action.viking.shield-bash",
       combatContent,
     ).state;
     state = tickBattle(state, 250, combatContent).state;
@@ -965,8 +2196,8 @@ describe("combat rules", () => {
   it("interrupts a charging Move when its source takes damage", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 91,
         difficulty: "normal",
       },
@@ -977,14 +2208,14 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "enemy",
-      "action.knuckle-tax.asset-freeze",
+      "action.ned-kelly.last-stand",
       combatContent,
     ).state;
     expect(state.pendingActions.enemy).toBeDefined();
     const interrupted = requestAction(
       state,
       "player",
-      "action.mara-vex.invoice-breaker",
+      "action.viking.axe-first",
       combatContent,
     );
     expect(interrupted.state.pendingActions.enemy).toBeUndefined();
@@ -993,11 +2224,47 @@ describe("combat rules", () => {
     ).toBe(true);
   });
 
+  it("does not apply a hit-gated status when the attack is dodged", () => {
+    const guaranteedControl = structuredClone(combatContent);
+    const redTape = guaranteedControl.actions["action.viking.shield-bash"]!;
+    redTape.chargeMs = 0;
+    const stun = redTape.effects.find((effect) => effect.kind === "stun");
+    if (!stun || stun.kind !== "stun") {
+      throw new Error("Red Tape must contain a stun");
+    }
+    stun.chance = 1;
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        enemyBuilds: [{ statBonuses: { evasion: 100 } }],
+        playerStartingBar: 100,
+        seed: 1,
+        difficulty: "normal",
+      },
+      guaranteedControl,
+    ).state;
+    const transition = requestAction(
+      state,
+      "player",
+      redTape.id,
+      guaranteedControl,
+    );
+    state = transition.state;
+
+    expect(
+      transition.events.some((event) => event.type === "characterDodged"),
+    ).toBe(true);
+    expect(
+      state.enemy.squad[0]!.statuses.some((status) => status.kind === "stun"),
+    ).toBe(false);
+  });
+
   it("automatically switches to the next living Relic", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax", "character.scrapjack"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly", "character.grim-reaper"],
         seed: 27,
         difficulty: "normal",
       },
@@ -1008,7 +2275,7 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "player",
-      "action.mara-vex.invoice-breaker",
+      "action.viking.axe-first",
       combatContent,
     ).state;
     expect(state.enemy.activeIndex).toBe(1);
@@ -1018,8 +2285,8 @@ describe("combat rules", () => {
   it("emits removals when a cleanse clears negative statuses", () => {
     let state = createBattle(
       {
-        playerCharacterIds: ["character.velvet-hex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.moses"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 73,
         difficulty: "normal",
       },
@@ -1035,7 +2302,7 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "player",
-      "action.velvet-hex.curtain-call",
+      "action.moses.safe-passage",
       combatContent,
     ).state;
     const events: Array<{ type: string }> = [];
@@ -1094,8 +2361,8 @@ describe("AI, missions, and store", () => {
   it("keeps AI choices legal for empty and full Charge Strips", () => {
     const state = createBattle(
       {
-        playerCharacterIds: ["character.mara-vex"],
-        enemyCharacterIds: ["character.knuckle-tax"],
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
         seed: 33,
         difficulty: "hard",
       },
@@ -1114,25 +2381,104 @@ describe("AI, missions, and store", () => {
     }
   });
 
+  it("lets the AI switch from a healthy pure support into affordable pressure", () => {
+    const supportContent = structuredClone(combatContent);
+    supportContent.actions["action.moses.part-the-strip"]!.effects =
+      supportContent.actions["action.moses.part-the-strip"]!.effects.filter(
+        (effect) => effect.kind !== "damage",
+      );
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.moses", "character.grim-reaper"],
+        enemyStartingBar: 100,
+        seed: 85,
+        difficulty: "hard",
+      },
+      supportContent,
+    ).state;
+
+    expect(chooseAiCommand(state, supportContent)).toEqual({
+      kind: "switch",
+      targetIndex: 1,
+    });
+  });
+
+  it("waits past a zero-value heal instead of trapping solo support in a loop", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.moses"],
+        enemyStartingBar: 32,
+        seed: 97,
+        difficulty: "hard",
+      },
+      combatContent,
+    ).state;
+
+    expect(chooseAiCommand(state, combatContent)).toBeNull();
+    state.enemy.bar = 50;
+    expect(chooseAiCommand(state, combatContent)).toEqual({
+      kind: "action",
+      actionId: "action.moses.part-the-strip",
+    });
+  });
+
+  it("lets the AI activate a ready team Accessory", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        enemyAccessoryId: "accessory.dead-air",
+        seed: 89,
+        difficulty: "hard",
+      },
+      combatContent,
+    ).state;
+    state.enemy.accessory!.charge = 100;
+    expect(chooseAiCommand(state, combatContent)).toEqual({
+      kind: "accessory",
+    });
+  });
+
+  it("holds a ready AI Accessory until its effect has value", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        enemyAccessoryId: "accessory.press-pass",
+        enemyStartingBar: 100,
+        seed: 98,
+        difficulty: "hard",
+      },
+      combatContent,
+    ).state;
+    state.enemy.accessory!.charge = 100;
+
+    expect(chooseAiCommand(state, combatContent)).not.toEqual({
+      kind: "accessory",
+    });
+  });
+
   it("only completes win missions from matching semantic reports", () => {
     expect(
       evaluateMissionProgress("mission.invoice-denied", 0, {
         type: "battleEnded",
         won: false,
-        opponentCharacterIds: ["character.knuckle-tax"],
+        opponentCharacterIds: ["character.ned-kelly"],
       }),
     ).toBe(0);
     expect(
       evaluateMissionProgress("mission.invoice-denied", 0, {
         type: "battleEnded",
         won: true,
-        opponentCharacterIds: ["character.knuckle-tax"],
+        opponentCharacterIds: ["character.ned-kelly"],
       }),
     ).toBe(1);
     expect(
       evaluateMissionProgress("mission.print-it-personal", 0, {
         type: "vengeanceResolved",
-        opponentCharacterId: "character.knuckle-tax",
+        opponentCharacterId: "character.ned-kelly",
         previouslyLost: true,
         won: true,
       }),
@@ -1151,12 +2497,12 @@ describe("AI, missions, and store", () => {
     const save = createDefaultSave(1);
     save.stamps = 500;
     const characterOffer = baseOffers.find(
-      (offer) => offer.id === "offer.zipwire",
+      (offer) => offer.id === "offer.tux",
     )!;
     const purchasedCharacter = purchaseOffer(
       save,
       characterOffer,
-      "owned.character.zipwire.test",
+      "owned.character.tux.test",
     );
     expect(purchasedCharacter.ok).toBe(true);
     if (!purchasedCharacter.ok) {
@@ -1166,7 +2512,7 @@ describe("AI, missions, and store", () => {
     expect(purchasedCharacter.save.stamps).toBe(500 - characterOffer.price);
     expect(
       purchasedCharacter.save.collection.some(
-        (entry) => entry.instanceId === "owned.character.zipwire.test",
+        (entry) => entry.instanceId === "owned.character.tux.test",
       ),
     ).toBe(true);
 
@@ -1295,12 +2641,19 @@ describe("validated persistence", () => {
 
   it("migrates a v1 save explicitly into the v2 slot key", () => {
     const storage = new MemoryStorage();
+    const legacyOwned = createOwnedCharacter(
+      "owned.prototype.v1",
+      "character.zipwire",
+      4,
+    );
+    legacyOwned.actionOrder = ["action.zipwire.full-tilt"];
     storage.setItem(
       "riot-relics.save.v1.3",
       JSON.stringify({
         ...createDefaultSave(3),
         schemaVersion: 1,
         stamps: 321,
+        collection: [legacyOwned],
         ownedPatches: undefined,
         claimedMissionIds: undefined,
       }),
@@ -1310,6 +2663,151 @@ describe("validated persistence", () => {
     expect(migrated.stamps).toBe(321);
     expect(migrated.ownedPatches).toEqual([]);
     expect(migrated.claimedMissionIds).toEqual([]);
+    expect(migrated.collection[0]).toEqual(
+      expect.objectContaining({
+        characterId: "character.tux",
+        actionOrder: ["action.tux.kernel-panic"],
+      }),
+    );
     expect(storage.getItem("riot-relics.save.v2.3")).not.toBeNull();
+  });
+
+  it("migrates retired prototype roster IDs in an existing v2 save", () => {
+    const storage = new MemoryStorage();
+    const legacy = createDefaultSave(1);
+    const owned = createOwnedCharacter(
+      "owned.prototype.1",
+      "character.mara-vex",
+      9,
+    );
+    owned.actionOrder = [
+      "action.mara-vex.hostile-takeover",
+      "action.mara-vex.red-tape",
+      "action.mara-vex.invoice-breaker",
+    ];
+    owned.actionPositions["action.mara-vex.red-tape"] = "2H";
+    owned.actionTiers["action.mara-vex.red-tape"] = "gold";
+    legacy.collection = [owned];
+    legacy.lossesTo = ["character.knuckle-tax"];
+    legacy.revealedRivalIds = ["character.zipwire"];
+    const retiredBuild = {
+      characterId: "character.scrapjack",
+      instanceId: "owned.prototype.run",
+      level: 7,
+      statBonuses: {
+        health: 0,
+        power: 0,
+        evasion: 0,
+        fortune: 0,
+        tempo: 0,
+      },
+      actionIds: [
+        "action.scrapjack.bin-kick",
+        "action.scrapjack.loose-screws",
+        "action.scrapjack.hard-rubbish",
+      ] as [string, string, string],
+      actionPositions: {
+        "action.scrapjack.hard-rubbish": "3H" as const,
+      },
+      actionTiers: { "action.scrapjack.hard-rubbish": "platinum" as const },
+      interruptionResistance: 0,
+      equippedPatchId: null,
+    };
+    legacy.tournamentRun = createCheapSeatsRun([retiredBuild], "story");
+    legacy.standaloneTournamentRun = createCheapSeatsRun([retiredBuild]);
+    storage.setItem("riot-relics.save.v2.1", JSON.stringify(legacy));
+
+    const migrated = loadSave(storage, 1);
+
+    expect(migrated.collection[0]).toEqual(
+      expect.objectContaining({
+        characterId: "character.viking",
+        actionOrder: [
+          "action.viking.berserker-oath",
+          "action.viking.shield-bash",
+          "action.viking.axe-first",
+        ],
+        actionPositions: { "action.viking.shield-bash": "2H" },
+        actionTiers: { "action.viking.shield-bash": "gold" },
+      }),
+    );
+    expect(migrated.lossesTo).toEqual(["character.ned-kelly"]);
+    expect(migrated.revealedRivalIds).toEqual(["character.tux"]);
+    for (const run of [
+      migrated.tournamentRun,
+      migrated.standaloneTournamentRun,
+    ]) {
+      expect(run?.caseBuilds[0]).toEqual(
+        expect.objectContaining({
+          characterId: "character.grim-reaper",
+          actionIds: [
+            "action.grim-reaper.cold-touch",
+            "action.grim-reaper.deaths-shadow",
+            "action.grim-reaper.final-harvest",
+          ],
+          actionPositions: {
+            "action.grim-reaper.final-harvest": "3H",
+          },
+          actionTiers: {
+            "action.grim-reaper.final-harvest": "platinum",
+          },
+        }),
+      );
+    }
+    expect(storage.getItem("riot-relics.save.v2.1")).toContain(
+      "character.viking",
+    );
+  });
+
+  it("repairs persisted Tournament deployment invariants while loading", () => {
+    const storage = new MemoryStorage();
+    const save = createDefaultSave(1);
+    const caseBuilds = cheapSeatsPlayerIds
+      .slice(0, 3)
+      .map((characterId, index) => {
+        const definition = combatContent.characters[characterId]!;
+        const build = createStandardBuild(definition, "player", index);
+        return {
+          characterId,
+          instanceId: build.instanceId!,
+          level: build.level!,
+          statBonuses: {
+            health: build.statBonuses?.health ?? 0,
+            power: build.statBonuses?.power ?? 0,
+            evasion: build.statBonuses?.evasion ?? 0,
+            fortune: build.statBonuses?.fortune ?? 0,
+            tempo: build.statBonuses?.tempo ?? 0,
+          },
+          actionIds: build.actionIds!,
+          actionTiers: {},
+          interruptionResistance: 0,
+          equippedPatchId: null,
+        };
+      });
+    const run = createCheapSeatsRun(caseBuilds);
+    run.healthRatios[caseBuilds[0]!.instanceId] = 0;
+    run.healthRatios["retired.tournament.instance"] = 0.4;
+    run.deployedInstanceIds = [
+      caseBuilds[0]!.instanceId,
+      caseBuilds[1]!.instanceId,
+      caseBuilds[1]!.instanceId,
+    ];
+    run.activeInstanceId = caseBuilds[0]!.instanceId;
+    save.standaloneTournamentRun = run;
+    storage.setItem("riot-relics.save.v2.1", JSON.stringify(save));
+
+    const loaded = loadSave(storage, 1);
+
+    expect(loaded.standaloneTournamentRun?.deployedInstanceIds).toEqual([
+      caseBuilds[1]!.instanceId,
+    ]);
+    expect(loaded.standaloneTournamentRun?.activeInstanceId).toBe(
+      caseBuilds[1]!.instanceId,
+    );
+    expect(
+      loaded.standaloneTournamentRun?.healthRatios[
+        "retired.tournament.instance"
+      ],
+    ).toBeUndefined();
   });
 });

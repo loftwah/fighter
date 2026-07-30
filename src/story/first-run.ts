@@ -32,34 +32,34 @@ const encounters: Record<FirstRunBattleNodeId, FirstRunEncounter> = {
   "story.first-run.02": {
     nodeId: "story.first-run.02",
     index: "02",
-    title: "Tax Due",
-    railLabel: "FIRST RUN · TAX DUE",
+    title: "History Disagrees",
+    railLabel: "FIRST RUN · HISTORY DISAGREES",
     playerCharacterIds: [
-      "character.mara-vex",
-      "character.zipwire",
-      "character.velvet-hex",
+      "character.viking",
+      "character.tux",
+      "character.moses",
     ],
     enemyCharacterIds: [
-      "character.knuckle-tax",
-      "character.scrapjack",
-      "character.gutter-grin",
+      "character.ned-kelly",
+      "character.grim-reaper",
+      "character.humpty",
     ],
     seed: 20_260_729,
     nextNodeId: "story.first-run.03",
-    victoryTitle: "The invoice is cancelled.",
-    victoryCopy: "The Backroom Counter is now open on this save.",
+    victoryTitle: "History remains unresolved.",
+    victoryCopy: "Lost Property is now open on this save.",
   },
   "story.first-run.05": {
     nodeId: "story.first-run.05",
     index: "05",
-    title: "Qualifier Stamp",
-    railLabel: "FIRST RUN · QUALIFIER STAMP",
-    playerCharacterIds: ["character.mara-vex", "character.zipwire"],
-    enemyCharacterIds: ["character.scrapjack", "character.gutter-grin"],
+    title: "Open Source Backup",
+    railLabel: "FIRST RUN · OPEN SOURCE BACKUP",
+    playerCharacterIds: ["character.tux", "character.humpty"],
+    enemyCharacterIds: ["character.moses", "character.grim-reaper"],
     seed: 20_260_805,
     nextNodeId: "story.first-run.06",
-    victoryTitle: "The qualifier takes the ink.",
-    victoryCopy: "The Cheap Seats Cup is unlocked on this save.",
+    victoryTitle: "The impossible team works.",
+    victoryCopy: "The Wrong Door Cup is unlocked on this save.",
   },
 };
 
@@ -114,8 +114,8 @@ export function claimFirstRunEnding(sourceSave: SaveData): {
   save.stamps += FIRST_RUN_ENDING_REWARD;
   save.clearedNodeIds.push("story.first-run.07");
   save.currentNodeId = "story.first-run.07";
-  if (!save.revealedRivalIds.includes("character.knuckle-tax")) {
-    save.revealedRivalIds.push("character.knuckle-tax");
+  if (!save.revealedRivalIds.includes("character.ned-kelly")) {
+    save.revealedRivalIds.push("character.ned-kelly");
   }
   return { claimed: true, save };
 }

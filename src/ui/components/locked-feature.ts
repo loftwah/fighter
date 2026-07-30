@@ -7,7 +7,7 @@ export function renderLockedFeature(
 ): string {
   return `
     <section class="locked-feature" aria-labelledby="${headingId}">
-      <span class="locked-stamp">Locked print</span>
+      <span class="locked-stamp">Locked</span>
       <h1 id="${headingId}">${escapeHtml(title)}</h1>
       <p>${escapeHtml(copy)}</p>
       <button class="primary-action" data-route="story">

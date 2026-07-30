@@ -1,0 +1,223 @@
+/* Shared selection controls, Trait summaries, and Type matchup wheel */
+
+.quick-slot-list {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.45rem;
+  margin-bottom: 0.7rem;
+}
+
+.quick-slot {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.quick-slot span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.quick-slot select {
+  width: 100%;
+  min-width: 0;
+}
+
+.trait-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.4rem;
+}
+
+.trait-chip {
+  border: 2px solid currentcolor;
+  padding: 0.15rem 0.42rem;
+  background: var(--chalk);
+  color: var(--ink);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.trait-chip.is-muted {
+  opacity: 0.65;
+}
+
+.trait-synergy {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  border: 3px solid currentcolor;
+  padding: 0.65rem;
+  background: rgb(255 255 255 / 9%);
+}
+
+.trait-synergy > strong {
+  font-family: var(--display);
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.trait-synergy ul {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trait-synergy li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: baseline;
+  border-left: 0.35rem solid currentcolor;
+  padding: 0.3rem 0.45rem;
+  background: rgb(0 0 0 / 14%);
+  font-size: 0.72rem;
+}
+
+.trait-synergy li b {
+  text-align: right;
+}
+
+.trait-synergy li.is-active {
+  border-left-color: var(--yellow);
+  background: var(--yellow);
+  color: var(--ink);
+}
+
+.type-wheel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 17rem;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+  border: 4px solid var(--ink);
+  padding: 1rem 1.4rem;
+  background: var(--chalk);
+  color: var(--ink);
+  box-shadow: 0.3rem 0.35rem 0 rgb(9 17 40 / 55%);
+}
+
+.type-wheel > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.type-wheel > div p,
+.type-wheel > div span {
+  margin: 0;
+}
+
+.type-wheel > div strong {
+  font-family: var(--display);
+  font-size: 2.4rem;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.type-wheel ol {
+  position: relative;
+  width: 16rem;
+  height: 16rem;
+  margin: 0;
+  padding: 0;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+  background: var(--indigo);
+  list-style: none;
+}
+
+.type-wheel li {
+  --angle: calc(var(--type-index) * 60deg);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 5.2rem;
+  justify-items: center;
+  transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-5.7rem);
+}
+
+.type-wheel li span {
+  border: 2px solid var(--ink);
+  padding: 0.2rem 0.35rem;
+  background: var(--yellow);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  transform: rotate(calc(var(--angle) * -1));
+}
+
+.type-wheel li b {
+  color: var(--tomato);
+  font-size: 2.4rem;
+  line-height: 0.75;
+  text-shadow:
+    -1px -1px 0 var(--ink),
+    1px 1px 0 var(--ink);
+}
+
+.type-wheel-mini .type-wheel {
+  grid-template-columns: 1fr;
+  margin-top: 0;
+  border-width: 3px;
+  padding: 0.7rem;
+  box-shadow: none;
+}
+
+.type-wheel-mini .type-wheel ol {
+  width: 13rem;
+  height: 13rem;
+  justify-self: center;
+}
+
+.type-wheel-mini .type-wheel li {
+  transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-4.45rem);
+}
+
+@media (max-width: 760px) {
+  .quick-slot-list {
+    grid-template-columns: 1fr;
+  }
+
+  .type-wheel {
+    grid-template-columns: 1fr;
+  }
+
+  .type-wheel ol {
+    justify-self: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .type-wheel {
+    padding: 0.65rem;
+  }
+
+  .type-wheel > div strong {
+    font-size: 1.8rem;
+  }
+
+  .type-wheel ol {
+    width: 12rem;
+    height: 12rem;
+  }
+
+  .type-wheel li {
+    width: 4.25rem;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-4rem);
+  }
+
+  .type-wheel li span {
+    padding: 0.12rem 0.22rem;
+    font-size: 0.56rem;
+  }
+}

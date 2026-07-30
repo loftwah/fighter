@@ -21,7 +21,7 @@ export function evaluateMissionProgress(
     case "mission.invoice-denied":
       return event.type === "battleEnded" &&
         event.won &&
-        event.opponentCharacterIds.includes("character.knuckle-tax")
+        event.opponentCharacterIds.includes("character.ned-kelly")
         ? Math.max(current, 1)
         : current;
     case "mission.print-it-personal":

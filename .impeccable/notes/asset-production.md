@@ -102,6 +102,28 @@ No approved-mock crop was production-resolution or clean enough to ship directly
 - Mara's reaction sheet contains exactly six cells in the requested order with no labels.
 - Final rectangular assets have no baked UI frames, rounded corners, drop shadows, navigation, HUD copy or watermark.
 
+## Visual direction v2 proof batch
+
+These are review candidates for the accepted bright crossover-toybox direction
+in `docs/visual-direction-v2.md`. They do not replace approved runtime assets and
+must not enter the asset registry until visual and rights review is complete.
+
+All three candidates were produced with the built-in `image_gen` tool as opaque
+RGB PNGs. The roster sheet established the style lock; the subsequent battle and
+storyboard images used that exact sheet as their visual reference.
+
+| Candidate                        | Path                                                                        | Dimensions | Purpose                                                                                                       | Status           |
+| -------------------------------- | --------------------------------------------------------------------------- | ---------: | ------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Launch roster style lock v1      | `.impeccable/review/visual-direction-v2/launch-roster-style-lock-v1.png`    |  1536×1024 | Six equal panels for Tux, Humpty Dumpty, Moses, Viking, Ned Kelly, and Grim Reaper in one unified house style | review candidate |
+| Tux/Viking battle key art v1     | `.impeccable/review/visual-direction-v2/tux-viking-battle-keyart-v1.png`    |   1672×941 | Wide opaque arena composition with overlay-safe lanes for code-rendered combat UI                             | review candidate |
+| Viking `Axe First` storyboard v1 | `.impeccable/review/visual-direction-v2/viking-axe-first-storyboard-v1.png` |  1536×1024 | Four-key anticipation, launch, impact, and reset sequence for crop/zoom/slide/hit-stop choreography           | review candidate |
+
+Generation lock: bright cartoon–anime toybox; bold varied collectible
+silhouettes; heavy controlled near-black outlines; simple cel shading; graphic
+colour masses; cute but not infantile; light tactile texture; opaque rectangular
+frames; no generated UI, labels, numbers, logos, transparency, generic anime
+sameness, realism, neon HUD styling, or risograph poster treatment.
+
 ## Execution order
 
 1. Approved-mock inventory and reference crops.
@@ -125,7 +147,8 @@ None.
 
 ## Assumptions
 
-- Opaque rectangular PNGs are correct for this stage; no alpha extraction was requested.
+- Opaque rectangular PNGs are a permanent renderer constraint, not a temporary
+  stage. Alpha extraction is not part of the generated-asset pipeline.
 - Intrinsic physical costume lettering is permitted only for Knuckle Tax's canonical red `TAX` chest mark. All scene and interface text remains semantic.
 - CSS/runtime code will provide card frames, shadows, clipping, layout transforms, HUD, labels, prices and interaction states.
 - The idle pairs are intended as lightweight motion keys, not rigged or frame-perfect sprite animation.

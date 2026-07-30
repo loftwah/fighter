@@ -14,8 +14,8 @@ export function renderStoreScreen(model: StoreScreenModel): string {
   if (model.locked) {
     return renderLockedFeature(
       "store-title",
-      "Backroom Counter",
-      "Clear Tax Due to reveal rotating Relics and Patches.",
+      "Lost Property",
+      "Clear History Disagrees to reveal rotating Characters and Modifications.",
     );
   }
   const ownedIds = new Set(
@@ -42,10 +42,11 @@ export function renderStoreScreen(model: StoreScreenModel): string {
       }
       <div class="store-scene">
         <div>
-          <h1 id="store-title">Backroom Counter</h1>
+          <h1 id="store-title">Lost Property</h1>
           <p>
-            Prices rotate with the print run. Favourites will eventually pin
-            revealed stock; for now, today's four labels are the whole box.
+            Prices rotate with the current selection. Favourites will
+            eventually pin revealed stock; for now, today's four offers are
+            the whole list.
           </p>
         </div>
         <span class="store-balance">★ ${model.save.stamps} Stamps</span>
@@ -79,7 +80,9 @@ function renderOfferLabel(
   return `
     <article class="offer-label tone-${index % 3}">
       <div>
-        <span>${offer.rarity} · ${offer.kind}</span>
+        <span>${offer.rarity} · ${
+          offer.kind === "patch" ? "modification" : offer.kind
+        }</span>
         <h2>${offer.name}</h2>
         <p>${
           offer.kind === "character"
@@ -88,7 +91,7 @@ function renderOfferLabel(
               }`
             : escapeHtml(
                 findPatch(offer.itemId)?.description ??
-                  "Reusable. One equipped Relic at a time.",
+                  "Reusable. One equipped Character at a time.",
               )
         }</p>
       </div>

@@ -30,13 +30,13 @@ export type StartupBeat = StartupTextBeat | StartupImageBeat | StartupVideoBeat;
  */
 export const startupSequence: StartupBeat[] = [
   {
-    id: "startup.first-print",
+    id: "startup.wrong-door",
     kind: "image",
-    eyebrow: "A Riot Relics game",
-    title: "Bad toys. Worse paperwork.",
-    body: "Build the Lineup. Break the invoice.",
+    eyebrow: "An impossible crossover",
+    title: "Everybody got the same invitation.",
+    body: "Build a Lineup. Pick a fight. Do not ask how any of this works.",
     imageAssetId: "image.story.first-run",
-    imageAlt: "The Free Shelf print shop after hours.",
+    imageAlt: "Six incompatible fighters called to the same tournament.",
     durationMs: 2_600,
   },
 ];

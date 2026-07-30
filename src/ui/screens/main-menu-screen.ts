@@ -25,7 +25,7 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
       </div>
       <div class="mode-launcher">
         <article class="mode-bill mode-story">
-          <div class="mode-art mode-art-story" role="img" aria-label="The Free Shelf print shop"></div>
+          <div class="mode-art mode-art-story" role="img" aria-label="An impossible tournament invitation"></div>
           <div class="mode-copy">
             <h2>Story Mode</h2>
             <p>
@@ -59,7 +59,7 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
             <div class="mode-copy">
               <h2>Quick Fight</h2>
               <p>
-                Build two Lineups of one to three Standard Relics and fight
+                Build two Lineups of one to three Standard Characters and fight
                 immediately. No ownership, Story unlocks, Stamps, or XP are
                 changed.
               </p>
@@ -69,12 +69,12 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
             </div>
           </article>
           <article class="mode-bill mode-tournament">
-            <div class="mode-art mode-art-tournament" role="img" aria-label="The Cheap Seats arena"></div>
+            <div class="mode-art mode-art-tournament" role="img" aria-label="The Wrong Door arena"></div>
             <div class="mode-copy">
               <h2>Tournament</h2>
               <p>
-                Open a standalone three-round Cheap Seats Case. Health and
-                interlude choices persist until the run ends.
+                Enter a standalone three-round Wrong Door Cup. Roster health
+                and interlude choices persist until the run ends.
               </p>
               <button class="secondary-action" data-command="enter-tournament">
                 ${
@@ -104,7 +104,7 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
       <footer class="main-menu-profile">
         <div>
           <strong>${escapeHtml(model.save.playerName)}</strong>
-          <span>Collector profile ${model.save.slot} · ${model.save.collection.length} owned Relic${
+          <span>Profile ${model.save.slot} · ${model.save.collection.length} owned Character${
             model.save.collection.length === 1 ? "" : "s"
           } · ${model.save.tournamentBadges.length} badge${
             model.save.tournamentBadges.length === 1 ? "" : "s"
