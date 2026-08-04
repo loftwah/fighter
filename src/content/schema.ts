@@ -64,6 +64,12 @@ const effectSchema = z.discriminatedUnion("kind", [
     requiresHit: z.boolean().optional(),
   }),
   z.object({
+    kind: z.literal("empowerNextMove"),
+    target,
+    magnitude: z.number().positive(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
     kind: z.literal("modifyDefence"),
     target,
     magnitude: z.number(),
@@ -167,19 +173,58 @@ export const accessorySchema = z.object({
   id,
   name: z.string().min(2),
   description: z.string().min(4),
+  imageAssetId: id,
   effects: z.array(accessoryEffectSchema).min(1),
 });
 
-export const actionSchema = z.object({
-  id,
-  name: z.string().min(2),
-  description: z.string().min(4),
-  position: z.enum(["1L", "1", "1H", "2L", "2", "2H", "3L", "3", "3H"]),
-  chargeMs: z.number().int().nonnegative(),
-  effects: z.array(effectSchema).min(1),
-  presentationId: id,
-  audioId: id,
-});
+export const actionSchema = z
+  .object({
+    id,
+    name: z.string().min(2),
+    description: z.string().min(4),
+    category: z.enum([
+      "attack",
+      "teamAttack",
+      "stun",
+      "teamStun",
+      "support",
+      "teamSupport",
+      "strip",
+      "special",
+    ]),
+    position: z.enum(["1L", "1", "1H", "2L", "2", "2H", "3L", "3", "3H"]),
+    chargeMs: z.number().int().nonnegative(),
+    interruptionPolicy: z.literal("spend").optional(),
+    effects: z.array(effectSchema).min(1),
+    tierProperties: z
+      .object({
+        gold: z
+          .object({
+            undodgeable: z.boolean().optional(),
+            shieldPiercing: z.boolean().optional(),
+          })
+          .optional(),
+        platinum: z
+          .object({
+            undodgeable: z.boolean().optional(),
+            shieldPiercing: z.boolean().optional(),
+          })
+          .optional(),
+      })
+      .optional(),
+    presentationId: id,
+    audioId: id,
+  })
+  .superRefine((action, context) => {
+    if (action.chargeMs > 0 && action.interruptionPolicy !== "spend") {
+      context.addIssue({
+        code: "custom",
+        path: ["interruptionPolicy"],
+        message:
+          "A charged Move must declare how interruption handles spent Charge",
+      });
+    }
+  });
 
 export const characterSchema = z.object({
   id,
@@ -255,6 +300,7 @@ export const startupBeatSchema = z.discriminatedUnion("kind", [
     ...startupBeatBase,
     kind: z.literal("image"),
     imageAssetId: id,
+    portraitImageAssetId: id.optional(),
     imageAlt: z.string(),
   }),
   z.object({
@@ -270,6 +316,15 @@ export function validateStartupContent(beats: unknown[]): void {
   for (const beat of parsed) {
     if (beat.kind === "image" && !imageAssets[beat.imageAssetId]) {
       throw new Error(`${beat.id} references missing ${beat.imageAssetId}`);
+    }
+    if (
+      beat.kind === "image" &&
+      beat.portraitImageAssetId &&
+      !imageAssets[beat.portraitImageAssetId]
+    ) {
+      throw new Error(
+        `${beat.id} references missing ${beat.portraitImageAssetId}`,
+      );
     }
     if (beat.kind === "video") {
       if (!videoAssets[beat.videoAssetId]) {

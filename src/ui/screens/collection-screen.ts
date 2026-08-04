@@ -1,4 +1,7 @@
-import { resolveImagePath } from "../../assets/registry";
+import {
+  resolveImageObjectPosition,
+  resolveImagePath,
+} from "../../assets/registry";
 import { POSITION_RULES } from "../../combat/rules";
 import type { ActionPosition, ActionTier, StatBlock } from "../../combat/types";
 import { combatContent } from "../../content/initial-content";
@@ -51,7 +54,12 @@ export function renderCollectionScreen(save: SaveData): string {
             return `
               <article class="relic-box ${owned ? "" : "is-locked"}">
                 <div class="box-art">
-                  <img src="${resolveImagePath(character.portraitAssetId)}" data-asset-id="${character.portraitAssetId}" alt="" />
+                  <img
+                    src="${resolveImagePath(character.portraitAssetId)}"
+                    data-asset-id="${character.portraitAssetId}"
+                    style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
+                    alt=""
+                  />
                 </div>
                 <div class="box-label">
                   <span>${formatLabel(character.typeId)}</span>
@@ -89,6 +97,11 @@ export function renderCollectionScreen(save: SaveData): string {
                     const patch = findPatch(patchId);
                     return `
                       <span>
+                        ${
+                          patch
+                            ? `<img src="${resolveImagePath(patch.imageAssetId)}" data-asset-id="${patch.imageAssetId}" alt="" />`
+                            : ""
+                        }
                         <strong>${escapeHtml(patch?.name ?? patchId)}</strong>
                         ${escapeHtml(patch?.description ?? "Unknown Modification")}
                       </span>

@@ -13,6 +13,7 @@ export interface StartupTextBeat extends StartupBeatBase {
 export interface StartupImageBeat extends StartupBeatBase {
   kind: "image";
   imageAssetId: string;
+  portraitImageAssetId?: string;
   imageAlt: string;
 }
 
@@ -35,7 +36,8 @@ export const startupSequence: StartupBeat[] = [
     eyebrow: "An impossible crossover",
     title: "Everybody got the same invitation.",
     body: "Build a Lineup. Pick a fight. Do not ask how any of this works.",
-    imageAssetId: "image.story.first-run",
+    imageAssetId: "image.intro.launch-roster",
+    portraitImageAssetId: "image.intro.launch-roster.portrait",
     imageAlt: "Six incompatible fighters called to the same tournament.",
     durationMs: 2_600,
   },

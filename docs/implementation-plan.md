@@ -1,4 +1,10 @@
-# Prioritised implementation plan
+# Archived pre-V2 implementation plan
+
+Status: **ARCHIVE EVIDENCE**
+
+This plan records how the current vertical slice was assembled. It is no longer
+the release backlog. `docs/v2-release-spec.md` owns the V2 milestone and
+`docs/release-roadmap.md` owns later release scope.
 
 ## Now — vertical slice
 

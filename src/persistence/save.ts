@@ -4,6 +4,7 @@ import type {
   Difficulty,
   StatBlock,
 } from "../combat/types";
+import { tournamentDefinitions } from "../tournaments/catalog";
 import { z } from "zod";
 
 export interface Preferences {
@@ -44,7 +45,7 @@ export interface TournamentCaseBuild {
 }
 
 export interface TournamentRunData {
-  tournamentId: "tournament.cheap-seats";
+  tournamentId: string;
   origin: "story" | "standalone";
   roundIndex: 0 | 1 | 2;
   phase: "ready" | "interlude";
@@ -54,6 +55,16 @@ export interface TournamentRunData {
   activeInstanceId: string | null;
   nextRoundChargeBonus: number;
   selectedDrop: "front-print-repair" | "case-repair" | "hot-start" | null;
+  exhaustedAccessoryIds: string[];
+}
+
+export interface QuickFightRecord {
+  fightsPlayed: number;
+  wins: number;
+  losses: number;
+  lastSeed: number | null;
+  lastPlayerCharacterIds: string[];
+  lastOpponentCharacterIds: string[];
 }
 
 export interface SaveData {
@@ -68,9 +79,10 @@ export interface SaveData {
   missionProgress: Record<string, number>;
   claimedMissionIds: string[];
   lossesTo: string[];
+  quickFightRecord: QuickFightRecord;
   tournamentRun: TournamentRunData | null;
   standaloneTournamentRun: TournamentRunData | null;
-  tournamentBadges: string[];
+  tournamentTrophyIds: string[];
   revealedRivalIds: string[];
   updatedAt: string;
 }
@@ -110,6 +122,10 @@ const legacyActionIds: Record<string, string> = {
   "action.scrapjack.bin-kick": "action.grim-reaper.cold-touch",
   "action.scrapjack.loose-screws": "action.grim-reaper.deaths-shadow",
   "action.scrapjack.hard-rubbish": "action.grim-reaper.final-harvest",
+};
+
+const legacyTournamentBadgeIds: Record<string, string> = {
+  "badge.cheap-seats-champion": "trophy.wrong-door-cup",
 };
 
 const preferencesSchema = z.object({
@@ -185,7 +201,10 @@ const tournamentCaseBuildSchema = z.object({
 
 const tournamentRunSchema = z
   .object({
-    tournamentId: z.literal("tournament.cheap-seats"),
+    tournamentId: z
+      .string()
+      .min(1)
+      .refine((id) => tournamentDefinitions[id] !== undefined),
     origin: z.enum(["story", "standalone"]).default("story"),
     roundIndex: z.union([z.literal(0), z.literal(1), z.literal(2)]),
     phase: z.enum(["ready", "interlude"]),
@@ -199,8 +218,18 @@ const tournamentRunSchema = z
       .enum(["front-print-repair", "case-repair", "hot-start"])
       .nullable()
       .default(null),
+    exhaustedAccessoryIds: z.array(z.string().min(1)).default([]),
   })
   .nullable();
+
+const quickFightRecordSchema = z.object({
+  fightsPlayed: z.number().int().nonnegative(),
+  wins: z.number().int().nonnegative(),
+  losses: z.number().int().nonnegative(),
+  lastSeed: z.number().int().nonnegative().nullable(),
+  lastPlayerCharacterIds: z.array(z.string().min(1)).max(3),
+  lastOpponentCharacterIds: z.array(z.string().min(1)).max(3),
+});
 
 const saveSchema = z.object({
   schemaVersion: z.literal(2),
@@ -214,9 +243,10 @@ const saveSchema = z.object({
   missionProgress: z.record(z.string(), z.number().int().nonnegative()),
   claimedMissionIds: z.array(z.string().min(1)),
   lossesTo: z.array(z.string().min(1)),
+  quickFightRecord: quickFightRecordSchema,
   tournamentRun: tournamentRunSchema.default(null),
   standaloneTournamentRun: tournamentRunSchema.default(null),
-  tournamentBadges: z.array(z.string().min(1)).default([]),
+  tournamentTrophyIds: z.array(z.string().min(1)).default([]),
   revealedRivalIds: z.array(z.string().min(1)).default([]),
   updatedAt: z.string(),
 });
@@ -275,9 +305,17 @@ export function createDefaultSave(slot: 1 | 2 | 3): SaveData {
     },
     claimedMissionIds: [],
     lossesTo: [],
+    quickFightRecord: {
+      fightsPlayed: 0,
+      wins: 0,
+      losses: 0,
+      lastSeed: null,
+      lastPlayerCharacterIds: [],
+      lastOpponentCharacterIds: [],
+    },
     tournamentRun: null,
     standaloneTournamentRun: null,
-    tournamentBadges: [],
+    tournamentTrophyIds: [],
     revealedRivalIds: [],
     updatedAt: new Date(0).toISOString(),
   };
@@ -323,6 +361,10 @@ function migrateRosterIds(sourceSave: SaveData): {
   }
   save.lossesTo = save.lossesTo.map(characterId);
   save.revealedRivalIds = save.revealedRivalIds.map(characterId);
+  save.quickFightRecord.lastPlayerCharacterIds =
+    save.quickFightRecord.lastPlayerCharacterIds.map(characterId);
+  save.quickFightRecord.lastOpponentCharacterIds =
+    save.quickFightRecord.lastOpponentCharacterIds.map(characterId);
 
   for (const run of [save.tournamentRun, save.standaloneTournamentRun]) {
     if (!run) {
@@ -400,6 +442,36 @@ function parseJson(value: string): unknown {
   } catch {
     return undefined;
   }
+}
+
+function migrateTournamentTrophyInput(source: Record<string, unknown>): {
+  input: Record<string, unknown>;
+  changed: boolean;
+} {
+  const legacyBadges = source.tournamentBadges;
+  if (!Array.isArray(legacyBadges)) {
+    return { input: source, changed: false };
+  }
+  const currentTrophies = Array.isArray(source.tournamentTrophyIds)
+    ? source.tournamentTrophyIds.filter(
+        (id): id is string => typeof id === "string" && id.length > 0,
+      )
+    : [];
+  const migratedBadges = legacyBadges
+    .filter((id): id is string => typeof id === "string" && id.length > 0)
+    .flatMap((id) => {
+      const trophyId = legacyTournamentBadgeIds[id];
+      return trophyId ? [trophyId] : [];
+    });
+  return {
+    input: {
+      ...source,
+      tournamentTrophyIds: [
+        ...new Set([...currentTrophies, ...migratedBadges]),
+      ],
+    },
+    changed: true,
+  };
 }
 
 function preserveCorruptValue(
@@ -511,13 +583,16 @@ export function loadSave(storage: Storage, slot: 1 | 2 | 3): SaveData {
     );
     return fallback;
   }
+  const trophyMigration = migrateTournamentTrophyInput(
+    loaded as Record<string, unknown>,
+  );
   const candidate = saveSchema.safeParse({
     ...fallback,
-    ...loaded,
+    ...trophyMigration.input,
   });
   if (candidate.success && candidate.data.slot === slot) {
     const migrated = migrateRosterIds(candidate.data);
-    if (migrated.changed) {
+    if (migrated.changed || trophyMigration.changed) {
       storage.setItem(key, JSON.stringify(migrated.save));
     }
     return migrated.save;
@@ -551,9 +626,10 @@ function migrateLegacySave(
     );
     return null;
   }
+  const trophyMigration = migrateTournamentTrophyInput(loaded);
   const migrated = saveSchema.safeParse({
     ...createDefaultSave(slot),
-    ...loaded,
+    ...trophyMigration.input,
     schemaVersion: 2,
     slot,
   });

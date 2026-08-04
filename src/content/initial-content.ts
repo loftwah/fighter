@@ -5,6 +5,7 @@ export const accessories = [
   {
     id: "accessory.press-pass",
     name: "Second Wind",
+    imageAssetId: "image.accessory.second-wind",
     description:
       "Trigger a fully charged boost to add 30 Charge to your team's Strip.",
     effects: [{ kind: "bar", target: "allies", amount: 30 }],
@@ -12,6 +13,7 @@ export const accessories = [
   {
     id: "accessory.dead-air",
     name: "Dead Air",
+    imageAssetId: "image.accessory.dead-air",
     description:
       "Blank the opposing Charge Strip for 2.4 seconds without removing its progress.",
     effects: [
@@ -26,12 +28,14 @@ export const accessories = [
   {
     id: "accessory.field-kit",
     name: "Field Kit",
+    imageAssetId: "image.accessory.field-kit",
     description: "Restore 22 Health to every living member of your team.",
     effects: [{ kind: "heal", target: "allies", amount: 22 }],
   },
   {
     id: "accessory.ward-projector",
     name: "Ward Projector",
+    imageAssetId: "image.accessory.ward-projector",
     description:
       "Give every living team member an 18-point shield for 6 seconds.",
     effects: [
@@ -46,6 +50,7 @@ export const accessories = [
   {
     id: "accessory.slot-jammer",
     name: "Slot Jammer",
+    imageAssetId: "image.accessory.slot-jammer",
     description:
       "Block the opposing active Character's middle Move for 4 seconds.",
     effects: [
@@ -61,6 +66,14 @@ export const accessories = [
 
 export const actions = launchActions;
 export const characters = launchCharacters;
+
+export const quickFightDefaults = {
+  playerIds: ["character.viking"],
+  enemyIds: ["character.grim-reaper"],
+  playerAccessoryId: "accessory.press-pass",
+  enemyAccessoryId: "accessory.dead-air",
+  seed: 3_844_240_869,
+} as const;
 
 export const combatContent: CombatContent = {
   actions: Object.fromEntries(actions.map((action) => [action.id, action])),
@@ -157,8 +170,8 @@ export const missions = [
   {
     id: "mission.print-it-personal",
     name: "Run It Back",
-    description: "Return and defeat an opponent who beat you.",
-    target: 1,
+    description: "Win two Story fights.",
+    target: 2,
     rewardStamps: 180,
   },
 ] as const;

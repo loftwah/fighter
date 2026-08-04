@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { BattleState } from "../../combat/types";
 import {
   activeSideForPresentationTarget,
+  presentationActionEvent,
   presentationActionSide,
 } from "./targeting";
 
@@ -60,5 +61,38 @@ describe("presentation action side", () => {
         },
       ]),
     ).toBe("enemy");
+  });
+
+  it("uses the charged event as the purpose-specific cut-in trigger", () => {
+    expect(
+      presentationActionEvent([
+        {
+          id: 1,
+          type: "actionStarted",
+          side: "player",
+          actionId: "action.player.example",
+        },
+      ]),
+    ).toBeNull();
+
+    expect(
+      presentationActionEvent([
+        {
+          id: 1,
+          type: "actionStarted",
+          side: "player",
+          actionId: "action.player.example",
+        },
+        {
+          id: 2,
+          type: "actionCharged",
+          side: "player",
+          actionId: "action.player.example",
+        },
+      ]),
+    ).toMatchObject({
+      type: "actionCharged",
+      actionId: "action.player.example",
+    });
   });
 });

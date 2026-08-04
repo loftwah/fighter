@@ -1,5 +1,15 @@
 import type { BattleEvent, BattleState, Side } from "../../combat/types";
 
+export function presentationActionEvent(
+  events: BattleEvent[],
+): BattleEvent | null {
+  return (
+    events.find(
+      (event) => event.type === "actionCharged" && Boolean(event.actionId),
+    ) ?? null
+  );
+}
+
 export function presentationActionSide(events: BattleEvent[]): Side | null {
   const actionEvent = events.find(
     (event) => event.type === "actionStarted" || event.type === "actionCharged",

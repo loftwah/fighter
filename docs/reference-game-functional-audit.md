@@ -1,16 +1,16 @@
-# Teeny Titans 2 functional audit and Riot Relics translation
+# Reference-game functional audit and loftwah/fighter translation
 
 Status: source-backed product audit  
 Reviewed: 2026-07-30
 
 ## Purpose
 
-This audit uses Teeny Titans 2 as a functional reference, not a visual asset
-source or a licence to copy protected characters, writing, or art. Riot Relics
+This audit uses the reference game as a functional reference, not a visual asset
+source or a licence to copy protected characters, writing, or art. loftwah/fighter
 keeps its own rules, content, names, and Kinetic Print presentation.
 
 The detailed combat mechanic and character-capability comparison now lives in
-[the battle-capability parity audit](./teeny-titans-battle-parity.md).
+[the battle-capability parity audit](./reference-game-battle-parity.md).
 
 ## What the reference game proves
 
@@ -31,14 +31,19 @@ The detailed combat mechanic and character-capability comparison now lives in
 
 Supporting sources:
 
-- [Official Teeny Titans 2 pre-registration trailer](https://www.youtube.com/watch?v=pbTPap-o_1M)
-- [Grumpyface v1.03 notes: loading, achievements, team bonuses, Mod Chips, tournaments](https://grumpyfaceblog.tumblr.com/post/177072839828/teeny-titans-2-new-v103-bugfix-patch-released)
-- [Pocket Gamer review: team of three, switching, shared bar and Accessories](https://www.pocketgamer.com/teen-titans-go-figure/review/)
-- [TouchArcade review: stat choices, Mod Chips, move upgrades and Accessories](https://toucharcade.com/2018/07/19/teen-titans-go-figure-review-remember-the-titans/)
-- [AppUnwrapper guide: type wheel before fights and tournament carry rules](https://www.appunwrapper.com/2016/06/23/teeny-titans-a-teen-titans-go-figure-battling-game-tips-tricks-and-strategy-guide/)
-- [Teeny Titans Mod Chips reference](https://teeny-titans-the-game.fandom.com/wiki/Mod_Chips)
+- Official pre-registration trailer.
+- Developer v1.03 notes: loading, achievements, team bonuses,
+  Modifications, tournaments.
+- Contemporary review: team of three, switching, shared bar, and Accessories.
+- Contemporary review: stat choices, Modifications, Move upgrades, and Accessories.
+- Strategy guide: type wheel before fights and Tournament carry rules.
+- Community Modification catalogue.
 
-## Confirmed Riot Relics view model
+Direct external-game naming and URLs were intentionally removed from
+project-facing documentation on 2026-07-31. Git history retains the research
+trail when provenance must be re-audited.
+
+## Confirmed loftwah/fighter view model
 
 | Area        | Required view or state          | Current status      | Decision                                                                                                       |
 | ----------- | ------------------------------- | ------------------- | -------------------------------------------------------------------------------------------------------------- |
@@ -65,7 +70,7 @@ Supporting sources:
 
 ## Functional parity ledger
 
-This ledger is the binding answer to “do we have the Teeny Titans 2
+This ledger is the binding answer to “do we have the reference game
 equivalent?” Map traversal and the reference game's menu topology are outside
 scope by product decision. A row marked **Equivalent** means the player can make
 the same kind of decision, not that names, art, exact numbers, or proprietary
@@ -215,9 +220,9 @@ Settings without duplicating them.
 - Do not add open-world walking or a city map. Story nodes provide the same
   functional transitions without violating the product boundary.
 - Do not add multiplayer, backend accounts, monetisation, or mobile packaging.
-- Do not copy Teeny Titans characters, art, names, maps, dialogue, or exact UI.
+- Do not copy the reference series characters, art, names, maps, dialogue, or exact UI.
 - Preserve rectangular art and Kinetic Print motion. The reference informs
-  hierarchy and interaction, while Riot Relics owns the presentation.
+  hierarchy and interaction, while loftwah/fighter owns the presentation.
 
 ## Next implementation order
 

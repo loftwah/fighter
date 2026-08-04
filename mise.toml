@@ -34,6 +34,14 @@ run = "pnpm format"
 description = "Regenerate Phaser-safe opaque launch-roster placeholder PNGs"
 run = "pnpm assets:launch-placeholders"
 
+[tasks."assets:launch-roster"]
+description = "Build reviewed launch-roster production art without silent overwrite"
+run = "pnpm assets:launch-roster"
+
+[tasks."assets:trophies"]
+description = "Build reviewed Tournament Trophy art without silent overwrite"
+run = "pnpm assets:trophies"
+
 [tasks."assets:music"]
 description = "Sync supplied music into stable public soundtrack paths"
 run = "pnpm assets:music"

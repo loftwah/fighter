@@ -19,8 +19,8 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
       <div class="main-menu-intro">
         <h1 id="main-menu-title">Choose a game.</h1>
         <p>
-          Nothing starts until you choose it. Story Mode keeps progression;
-          Quick Fight is a sandbox; Tournament is a separate multi-round run.
+          Grow a collection in Story, build any matchup in Quick Fight, or
+          survive three rounds in Tournament.
         </p>
       </div>
       <div class="mode-launcher">
@@ -59,12 +59,12 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
             <div class="mode-copy">
               <h2>Quick Fight</h2>
               <p>
-                Build two Lineups of one to three Standard Characters and fight
-                immediately. No ownership, Story unlocks, Stamps, or XP are
-                changed.
+                Build both Lineups and fight immediately. Nothing here changes
+                your Story collection or progress.
               </p>
               <button class="secondary-action" data-command="enter-quick">
-                Set up Quick Fight <span aria-hidden="true">→</span>
+                ${storyComplete ? "Open end-game sandbox" : "Set up Quick Fight"}
+                <span aria-hidden="true">→</span>
               </button>
             </div>
           </article>
@@ -88,31 +88,15 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
           </article>
         </div>
       </div>
-      ${
-        model.devToolsEnabled
-          ? `
-            <aside class="dev-launch-ticket" aria-label="Development tools">
-              <div>
-                <strong>Developer Lab</strong>
-                <span>Launch isolated scenarios, inspect battles, and use local convenience tools.</span>
-              </div>
-              <button data-command="enter-dev">Open Dev Lab <span aria-hidden="true">→</span></button>
-            </aside>
-          `
-          : ""
-      }
       <footer class="main-menu-profile">
         <div>
           <strong>${escapeHtml(model.save.playerName)}</strong>
           <span>Profile ${model.save.slot} · ${model.save.collection.length} owned Character${
             model.save.collection.length === 1 ? "" : "s"
-          } · ${model.save.tournamentBadges.length} badge${
-            model.save.tournamentBadges.length === 1 ? "" : "s"
+          } · ${model.save.tournamentTrophyIds.length} ${
+            model.save.tournamentTrophyIds.length === 1 ? "Trophy" : "Trophies"
           }</span>
         </div>
-        <button data-route="achievements">Achievements</button>
-        <button data-route="profile">Manage Profile</button>
-        <button data-route="settings">Settings</button>
       </footer>
     </section>
   `;

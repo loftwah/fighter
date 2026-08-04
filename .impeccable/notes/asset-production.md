@@ -1,4 +1,4 @@
-# Riot Relics Collector Drawer — Asset Production
+# loftwah/fighter Collector Drawer — Asset Production
 
 Production source: `/Users/deanlofts/gits/fighter/.impeccable/mocks/battle-collector-drawer.png`
 
@@ -111,6 +111,11 @@ must not enter the asset registry until visual and rights review is complete.
 All three candidates were produced with the built-in `image_gen` tool as opaque
 RGB PNGs. The roster sheet established the style lock; the subsequent battle and
 storyboard images used that exact sheet as their visual reference.
+
+The proof was subsequently promoted into the six-Character production bitmap
+package. The complete current manifest, prompt deltas, build task, responsive
+startup variants, rights notes, and QA record live in
+`docs/launch-roster-art-production.md`.
 
 | Candidate                        | Path                                                                        | Dimensions | Purpose                                                                                                       | Status           |
 | -------------------------------- | --------------------------------------------------------------------------- | ---------: | ------------------------------------------------------------------------------------------------------------- | ---------------- |

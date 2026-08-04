@@ -25,7 +25,7 @@ export function renderAppHeader(model: AppShellModel): string {
   return `
     <header class="top-rail">
       <button class="wordmark" data-command="main-menu" aria-label="Main Menu">
-        <span>FIGHTER</span><span>PROTOTYPE</span>
+        <span>LOFTWAH</span><span>FIGHTER</span>
       </button>
       <nav class="primary-nav ${
         storyNavigation ? "is-story-nav" : "is-global-nav"

@@ -13,7 +13,7 @@
 .story-art {
   min-height: 38rem;
   background-color: var(--indigo-soft);
-  background-image: url("/assets/generated/story-bg.png");
+  background-image: var(--art-story);
   background-position: center;
   background-size: cover;
 }
@@ -81,6 +81,7 @@
 
 .ending-reward-panel {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
@@ -113,6 +114,31 @@
 .ending-reward-panel.is-claimed {
   background: var(--indigo);
   color: var(--chalk);
+}
+
+.story-completion-list {
+  display: grid;
+  flex: 1 1 24rem;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-completion-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 2px solid currentColor;
+  padding: 0.4rem 0.55rem;
+  background: color-mix(in srgb, var(--chalk) 82%, transparent);
+}
+
+.story-completion-list li.is-complete {
+  background: var(--indigo);
+  color: var(--chalk);
+  font-weight: 700;
 }
 
 .dialogue-line {
@@ -496,6 +522,13 @@
   font-size: 0.82rem;
 }
 
+.patch-inventory > span > img {
+  width: 4.5rem;
+  aspect-ratio: 1;
+  border: 3px solid var(--ink);
+  object-fit: cover;
+}
+
 .owned-build-list {
   display: grid;
   gap: 0.6rem;
@@ -761,7 +794,7 @@
   padding: clamp(2rem, 8vw, 8rem);
   background:
     linear-gradient(rgb(9 17 40 / 84%), rgb(9 17 40 / 94%)),
-    url("/assets/generated/story-bg.png") center / cover;
+    var(--art-story) center / cover;
   color: var(--chalk);
 }
 
@@ -795,7 +828,7 @@
   gap: 2rem;
   padding: clamp(2rem, 5vw, 5rem);
   background-color: var(--indigo);
-  background-image: url("/assets/generated/story-bg.png");
+  background-image: var(--art-story);
   background-position: center 58%;
   background-size: cover;
   color: var(--chalk);
@@ -839,6 +872,13 @@
   background: var(--tomato);
   color: var(--chalk);
   box-shadow: var(--shadow);
+}
+
+.offer-label .offer-art {
+  width: 100%;
+  max-height: 8.5rem;
+  border: 3px solid currentColor;
+  object-fit: cover;
 }
 
 .offer-label.tone-1 {
@@ -956,12 +996,12 @@
 }
 
 .tournament-art {
+  width: 100%;
+  height: 100%;
   min-height: 42rem;
   border-right: 6px solid var(--chalk);
   background-color: var(--indigo-deep);
-  background-image: url("/assets/generated/tournament-bg.png");
-  background-position: center;
-  background-size: cover;
+  object-fit: cover;
 }
 
 .tournament-copy {
@@ -980,7 +1020,7 @@
   text-transform: uppercase;
 }
 
-.cup-badge {
+.cup-status-stamp {
   align-self: flex-start;
   border: 3px solid var(--ink);
   padding: 0.35rem 0.55rem;
@@ -990,6 +1030,49 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   transform: rotate(-1deg);
+}
+
+.cup-trophy-preview {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 0.8rem;
+  align-items: center;
+  margin: 0.2rem 0 0.8rem;
+  border: 3px solid var(--ink);
+  padding: 0.45rem;
+  background: var(--chalk);
+  color: var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+}
+
+.cup-trophy-preview img {
+  width: 6.5rem;
+  aspect-ratio: 1;
+  border: 3px solid var(--ink);
+  object-fit: cover;
+}
+
+.cup-trophy-preview figcaption {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.cup-trophy-preview figcaption > span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cup-trophy-preview figcaption > strong {
+  font-family: var(--display);
+  font-size: 2rem;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
+.cup-trophy-preview figcaption > small {
+  font-size: 0.75rem;
 }
 
 .bracket {

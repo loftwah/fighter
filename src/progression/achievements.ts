@@ -46,9 +46,9 @@ export const achievements: AchievementDefinition[] = [
   {
     id: "achievement.cheap-seat",
     name: "Wrong Door Champion",
-    description: "Win a Tournament badge.",
+    description: "Collect a Tournament Trophy.",
     target: 1,
-    progress: (save) => save.tournamentBadges.length,
+    progress: (save) => save.tournamentTrophyIds.length,
   },
   {
     id: "achievement.first-run",

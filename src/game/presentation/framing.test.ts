@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   calculateBattleLayout,
+  calculateComicPanelLayout,
   calculateCoverCrop,
+  shouldMirrorFramedShot,
   type Rect,
 } from "./framing";
 
@@ -15,6 +17,27 @@ const expectRectWithin = (inner: Rect, outer: Rect): void => {
 };
 
 describe("opaque framed-shot cover crop", () => {
+  it("mirrors only side-aware directional art toward the opponent", () => {
+    const rightFacing = {
+      facing: "right",
+      mirrorPolicy: "side-aware",
+    } as const;
+    expect(shouldMirrorFramedShot(rightFacing, "player")).toBe(false);
+    expect(shouldMirrorFramedShot(rightFacing, "enemy")).toBe(true);
+    expect(
+      shouldMirrorFramedShot(
+        { facing: "right", mirrorPolicy: "never" },
+        "enemy",
+      ),
+    ).toBe(false);
+    expect(
+      shouldMirrorFramedShot(
+        { facing: "camera", mirrorPolicy: "never" },
+        "enemy",
+      ),
+    ).toBe(false);
+  });
+
   it("crops a 4:5 source to a wide panel without stretching", () => {
     const result = calculateCoverCrop(
       { width: 800, height: 1_000 },
@@ -202,6 +225,35 @@ describe("battle panel layout", () => {
         layout.enemyFrame,
         layout.cutInFrame,
         layout.impactFrame,
+      ]) {
+        expectRectWithin(rect, layout.viewport);
+      }
+    },
+  );
+});
+
+describe("comic cutaway panel layout", () => {
+  it.each([
+    [390, 844, "portrait"],
+    [844, 390, "landscape"],
+    [1728, 1117, "landscape"],
+  ] as const)(
+    "keeps three distinct panels inside %d by %d",
+    (width, height, orientation) => {
+      const layout = calculateComicPanelLayout(width, height);
+
+      expect(layout.orientation).toBe(orientation);
+      expect(
+        new Set([
+          JSON.stringify(layout.leadFrame),
+          JSON.stringify(layout.actionFrame),
+          JSON.stringify(layout.reactionFrame),
+        ]),
+      ).toHaveLength(3);
+      for (const rect of [
+        layout.leadFrame,
+        layout.actionFrame,
+        layout.reactionFrame,
       ]) {
         expectRectWithin(rect, layout.viewport);
       }

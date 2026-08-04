@@ -1,10 +1,16 @@
-# Untitled crossover battler
+# LOFTWAH FIGHTER
 
-This is a local-first, real-time team fighter prototype built around an absurd,
-extensible crossover roster. Collect duplicate Characters, arrange a
-three-Character Lineup, spend two persistent team Charge Strips, switch active
-Characters, and clear authored story or tournament fights. `Riot Relics`
-survives only as a development codename in migration-safe storage identifiers.
+**LOFTWAH FIGHTER** is a local-first, real-time squad battler for the browser.
+Collect Characters, arrange a one-to-three-Character Lineup, read both teams'
+Charge Strips, commit a Move at the right moment, and clear authored Story or
+Tournament fights. The repository remains `loftwah/fighter`; the canonical
+public home is `fighter.loftwah.com`, and the first intended release is V2.
+
+- [Documentation hub](docs/README.md)
+- [V2 release specification](docs/v2-release-spec.md)
+- [Release roadmap](docs/release-roadmap.md)
+- [V2 source and archive ledger](docs/v2-source-ledger.md)
+- [Brand, domain, landing page, and promotional art](docs/brand-and-site.md)
 
 The current vertical slice includes:
 
@@ -25,15 +31,20 @@ The current vertical slice includes:
   Character deployment, an explicit starter, reserve XP, carried Tournament
   Roster health, revive/heal/Charge interludes, a roster/build snapshot,
   loss-to-Round-1 reset, exact round reports, repeatable completion purse, and
-  one-time champion badge;
+  one-time illustrated Wrong Door Cup Trophy displayed in the Profile Trophy
+  cabinet;
+- a First Run completion contract requiring all three Missions and the Wrong
+  Door Cup Trophy, after which Quick Fight is the unrestricted end-game
+  sandbox;
 - owned-instance combat builds with free stat reallocation, Move ordering,
   matching-copy Move enhancement, exact participant XP, four equipable
   Modifications, atomic store purchases, deterministic battle reports, and
   durable corrupt-save recovery;
-- generated opaque framed-shot artwork for the first arena, story, tournament,
-  store, and legacy prototype fighters, plus procedural opaque fallback panels
-  for the accepted six-Character launch roster, with
-  metadata-aware masking, cropping, crossfades, and panel choreography;
+- a complete opaque framed-shot art package for all six launch Characters:
+  canonical and two-frame idle plates, six-state reactions, all eighteen
+  character-specific Move cut-ins, matching arena/story/tournament scenes, and
+  responsive intro ensembles, with metadata-aware masking, cropping,
+  crossfades, and panel choreography;
 - all eighteen supplied tracks in one seeded, purpose-aware soundtrack with
   weighted main, wandering, battle, and Character-theme moments, plus valid
   silent WAV placeholders for sound effects and dialogue until ElevenLabs
@@ -63,6 +74,11 @@ mise run check
 This runs formatting, ESLint, strict TypeScript, domain tests, authored-content
 validation, and a production build.
 
+`.github/workflows/check.yml` runs the same pinned `mise` gate for pull
+requests, `main`, and manual release-candidate checks, then retains the exact
+`dist/` build as a short-lived GitHub Actions artefact. Accepted version tags
+and GitHub Releases are created only at an approved release gate.
+
 ## Project map
 
 - `src/combat/` — pure deterministic combat domain and rules
@@ -76,15 +92,19 @@ validation, and a production build.
 - `src/tournaments/` — tournament rounds, carried-health, and interlude domain
 - `src/ui/` — pure semantic screen renderers, shell, components, and ordered styles
 - `public/assets/generated/` — approved first-slice artwork
+- `.impeccable/review/visual-direction-v2/production-sources/` — reviewed
+  launch-art sources; build them with `mise run assets:launch-roster`
+- `.impeccable/review/visual-direction-v2/trophy-sources/` — reviewed Trophy
+  sources; build them with `mise run assets:trophies`
 - `public/assets/audio/` — silent SFX/dialogue placeholders
 - `public/music/` — supplied soundtrack with stable filenames
 - `music/` — user-supplied soundtrack sources; sync with `mise run assets:music`
 - `docs/game-design.md` — authoritative game design
 - `docs/technical-design.md` — architecture and system boundaries
-- `docs/teeny-titans-functional-audit.md` — reference-game screen and mode audit
-- `docs/teeny-titans-battle-parity.md` — source-backed combat capability matrix
+- `docs/reference-game-functional-audit.md` — reference-game screen and mode audit
+- `docs/reference-game-battle-parity.md` — source-backed combat capability matrix
 - `docs/view-inventory.md` — authoritative map of global and per-mode views
-- `docs/implementation-plan.md` — staged delivery plan and remaining scope
+- `docs/implementation-plan.md` — archived pre-V2 delivery history
 
 `PRODUCT.md` records the product contract and `DESIGN.md` records the final
 visual system once the finish review is complete.

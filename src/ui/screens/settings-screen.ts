@@ -1,8 +1,11 @@
 import type { Preferences } from "../../persistence/save";
+import type { DevExperimentSelections } from "../../dev/experiments";
 
 export interface SettingsScreenModel {
   preferences: Preferences;
   difficultyOptions: string;
+  devToolsEnabled: boolean;
+  experiments: DevExperimentSelections;
 }
 
 export function renderSettingsScreen(model: SettingsScreenModel): string {
@@ -71,6 +74,41 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
             Manage Player profiles
           </button>
         </fieldset>
+        ${
+          model.devToolsEnabled
+            ? `
+        <fieldset class="experiment-settings">
+          <legend>Development experiments</legend>
+          <p>
+            These local choices compare presentation without changing battle
+            rules, damage, AI, progression, or the placement of combat controls.
+          </p>
+          <label>
+            <span>
+              <strong>Battle visual style</strong>
+              <small>Cosmetic · the Battle Report remains identical.</small>
+            </span>
+            <select name="experiment.battlePresentationStyle">
+              <option value="kinetic-print" ${
+                model.experiments.battlePresentationStyle === "kinetic-print"
+                  ? "selected"
+                  : ""
+              }>Kinetic Print</option>
+              <option value="comic-panels" ${
+                model.experiments.battlePresentationStyle === "comic-panels"
+                  ? "selected"
+                  : ""
+              }>Comic Cutaways</option>
+            </select>
+          </label>
+          <p class="settings-note">
+            Gameplay and tuning experiments stay in Developer Lab so normal
+            fights and progression cannot be contaminated accidentally.
+          </p>
+        </fieldset>
+            `
+            : ""
+        }
       </div>
     </section>
   `;

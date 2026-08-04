@@ -3,6 +3,7 @@ import {
   chooseAiCommand,
   createBattle,
   forfeitBattle,
+  predictedBaseDamage,
   predictedDamage,
   requestAction,
   requestAccessory,
@@ -15,6 +16,7 @@ import {
   actionPositionForSlot,
   chargePerSecond,
   COMBAT_TYPE_WHEEL,
+  difficultyAiDelay,
   traitSynergy,
   typeMultiplier,
   POSITION_RULES,
@@ -71,6 +73,8 @@ import {
   cheapSeatsEncounter,
   cheapSeatsPlayerIds,
   createCheapSeatsRun,
+  exhaustTournamentAccessory,
+  exhaustTournamentAccessoriesFromEvents,
   lockCheapSeatsCase,
   normaliseCheapSeatsRun,
   recordCheapSeatsResult,
@@ -219,6 +223,10 @@ describe("combat rules", () => {
   it("claims the First Run ending reward exactly once", () => {
     const save = createDefaultSave(1);
     save.currentNodeId = "story.first-run.07";
+    save.missionProgress["mission.fresh-ink"] = 2;
+    save.missionProgress["mission.invoice-denied"] = 1;
+    save.missionProgress["mission.print-it-personal"] = 2;
+    save.tournamentTrophyIds.push("trophy.wrong-door-cup");
     const first = claimFirstRunEnding(save);
     expect(first.claimed).toBe(true);
     expect(first.save.stamps).toBe(save.stamps + FIRST_RUN_ENDING_REWARD);
@@ -228,6 +236,54 @@ describe("combat rules", () => {
     const duplicate = claimFirstRunEnding(first.save);
     expect(duplicate.claimed).toBe(false);
     expect(duplicate.save.stamps).toBe(first.save.stamps);
+  });
+
+  it("blocks the First Run ending until every Mission and Trophy is complete", () => {
+    const save = createDefaultSave(1);
+    save.currentNodeId = "story.first-run.07";
+
+    const ending = claimFirstRunEnding(save);
+
+    expect(ending.claimed).toBe(false);
+    expect(ending.blockedBy).toEqual({
+      ready: false,
+      incompleteMissionIds: [
+        "mission.fresh-ink",
+        "mission.invoice-denied",
+        "mission.print-it-personal",
+      ],
+      missingTrophyIds: ["trophy.wrong-door-cup"],
+    });
+    expect(ending.save).toBe(save);
+  });
+
+  it("honours previously claimed Missions when evaluating Story completion", () => {
+    const save = createDefaultSave(1);
+    save.currentNodeId = "story.first-run.07";
+    save.claimedMissionIds = [
+      "mission.fresh-ink",
+      "mission.invoice-denied",
+      "mission.print-it-personal",
+    ];
+    save.tournamentTrophyIds = ["trophy.wrong-door-cup"];
+
+    expect(claimFirstRunEnding(save).claimed).toBe(true);
+  });
+
+  it("cannot claim the First Run ending before reaching its ending node", () => {
+    const save = createDefaultSave(1);
+    save.claimedMissionIds = [
+      "mission.fresh-ink",
+      "mission.invoice-denied",
+      "mission.print-it-personal",
+    ];
+    save.tournamentTrophyIds = ["trophy.wrong-door-cup"];
+
+    expect(claimFirstRunEnding(save)).toEqual({
+      claimed: false,
+      save,
+      blockedBy: null,
+    });
   });
 
   it("carries a tournament Case through an interlude and authored next round", () => {
@@ -283,6 +339,49 @@ describe("combat rules", () => {
       restored.player.squad[0]!.maxHealth,
     );
     expect(restored.player.squad[1]!.currentHealth).toBeGreaterThan(0);
+  });
+
+  it("exhausts an activated Accessory for the rest of one Tournament run", () => {
+    const exhausted = exhaustTournamentAccessoriesFromEvents(
+      createCheapSeatsRun(),
+      [
+        {
+          id: 1,
+          type: "accessoryActivated",
+          side: "enemy",
+          message: "accessory.dead-air",
+        },
+        {
+          id: 2,
+          type: "accessoryActivated",
+          side: "player",
+          message: "accessory.press-pass",
+        },
+      ],
+    );
+    const repeated = exhaustTournamentAccessory(
+      exhausted,
+      "accessory.press-pass",
+    );
+
+    expect(repeated.exhaustedAccessoryIds).toEqual(["accessory.press-pass"]);
+
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.moses"],
+        seed: cheapSeatsEncounter(0).seed,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    const advanced = recordCheapSeatsVictory(repeated, state);
+    expect(advanced.complete).toBe(false);
+    if (!advanced.complete) {
+      expect(advanced.run.exhaustedAccessoryIds).toEqual([
+        "accessory.press-pass",
+      ]);
+    }
   });
 
   it("marks the third Cheap Seats victory complete", () => {
@@ -709,7 +808,7 @@ describe("combat rules", () => {
           },
         ],
         enemyCharacterIds: ["character.ned-kelly"],
-        playerStartingBar: POSITION_RULES["1H"].cost,
+        playerStartingBar: POSITION_RULES["1L"].cost,
         seed: 72,
         difficulty: "normal",
       },
@@ -817,7 +916,7 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "enemy",
-      "action.viking.shield-bash",
+      "action.viking.berserker-oath",
       content,
     ).state;
     state = requestSwitch(state, "player", 1).state;
@@ -1297,13 +1396,377 @@ describe("combat rules", () => {
     expect(runShield("platinum")).toBeGreaterThan(runShield("stock") ?? 0);
   });
 
+  it("stacks next-Move Power and consumes every stack after one damaging Move", () => {
+    const run = (stacks: number) => {
+      let state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.ned-kelly"],
+          playerStartingBar: 100,
+          seed: 6_301,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state;
+      const enemy = state.enemy.squad[0]!;
+      enemy.stats.evasion = 0;
+      enemy.maxHealth = 999;
+      enemy.currentHealth = 999;
+
+      for (let stack = 0; stack < stacks; stack += 1) {
+        state = requestAction(
+          state,
+          "player",
+          "action.viking.shield-bash",
+          combatContent,
+        ).state;
+      }
+      expect(
+        state.player.squad[0]!.statuses.filter(
+          (status) => status.kind === "empower",
+        ),
+      ).toHaveLength(stacks);
+
+      const transition = requestAction(
+        state,
+        "player",
+        "action.viking.axe-first",
+        combatContent,
+      );
+      const damage = transition.events.find(
+        (event) =>
+          event.type === "damageApplied" &&
+          event.actionId === "action.viking.axe-first",
+      )?.amount;
+      expect(
+        transition.state.player.squad[0]!.statuses.some(
+          (status) => status.kind === "empower",
+        ),
+      ).toBe(false);
+      return damage ?? 0;
+    };
+
+    expect(run(1)).toBeGreaterThan(run(0));
+    expect(run(2)).toBeGreaterThan(run(1));
+  });
+
+  it("previews the Power stack on both of Viking's attacks", () => {
+    let state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: 100,
+        seed: 6_306,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    const unbuffedAxe = predictedDamage(
+      state,
+      "player",
+      "action.viking.axe-first",
+      combatContent,
+    );
+    const unbuffedOath = predictedDamage(
+      state,
+      "player",
+      "action.viking.berserker-oath",
+      combatContent,
+    );
+
+    state = requestAction(
+      state,
+      "player",
+      "action.viking.shield-bash",
+      combatContent,
+    ).state;
+    const oneStackAxe = predictedDamage(
+      state,
+      "player",
+      "action.viking.axe-first",
+      combatContent,
+    );
+    const oneStackOath = predictedDamage(
+      state,
+      "player",
+      "action.viking.berserker-oath",
+      combatContent,
+    );
+
+    state = requestAction(
+      state,
+      "player",
+      "action.viking.shield-bash",
+      combatContent,
+    ).state;
+
+    expect(oneStackAxe).toBeGreaterThan(unbuffedAxe);
+    expect(oneStackOath).toBeGreaterThan(unbuffedOath);
+    expect(
+      predictedBaseDamage(
+        state,
+        "player",
+        "action.viking.axe-first",
+        combatContent,
+      ),
+    ).toBe(unbuffedAxe);
+    expect(
+      predictedDamage(
+        state,
+        "player",
+        "action.viking.axe-first",
+        combatContent,
+      ),
+    ).toBeGreaterThan(oneStackAxe);
+    expect(
+      predictedDamage(
+        state,
+        "player",
+        "action.viking.berserker-oath",
+        combatContent,
+      ),
+    ).toBeGreaterThan(oneStackOath);
+  });
+
+  it("projects attack reductions below the unmodified Move value", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.grim-reaper"],
+        seed: 6_308,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    const actionId = "action.viking.axe-first";
+    const base = predictedBaseDamage(state, "player", actionId, combatContent);
+    state.player.squad[0]!.statuses.push({
+      id: "status.attack-down",
+      kind: "attack",
+      magnitude: -0.4,
+      remainingMs: 4_000,
+    });
+
+    expect(
+      predictedDamage(state, "player", actionId, combatContent),
+    ).toBeLessThan(base);
+    expect(predictedBaseDamage(state, "player", actionId, combatContent)).toBe(
+      base,
+    );
+  });
+
+  it("banks the advertised 28 percent Power in each Stock stack", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        playerStartingBar: 100,
+        seed: 6_307,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+
+    const empowered = requestAction(
+      state,
+      "player",
+      "action.viking.shield-bash",
+      combatContent,
+    ).state;
+    const stack = empowered.player.squad[0]!.statuses.find(
+      (status) => status.kind === "empower",
+    );
+
+    expect(stack?.magnitude).toBeCloseTo(0.28, 5);
+  });
+
+  it("captures next-Move Power in a periodic damaging Move before consuming it", () => {
+    const periodicMagnitude = (empowered: boolean) => {
+      const content = structuredClone(combatContent);
+      const axe = content.actions["action.viking.axe-first"]!;
+      axe.effects = [
+        {
+          kind: "damageOverTime",
+          target: "activeEnemy",
+          power: 4,
+          durationMs: 3_000,
+          intervalMs: 1_000,
+        },
+      ];
+      let state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          enemyCharacterIds: ["character.ned-kelly"],
+          playerStartingBar: 100,
+          seed: 6_305,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+      if (empowered) {
+        state = requestAction(
+          state,
+          "player",
+          "action.viking.shield-bash",
+          content,
+        ).state;
+      }
+      state = requestAction(state, "player", axe.id, content).state;
+      expect(
+        state.player.squad[0]!.statuses.some(
+          (status) => status.kind === "empower",
+        ),
+      ).toBe(false);
+      return state.enemy.squad[0]!.statuses.find(
+        (status) => status.kind === "damageOverTime",
+      )?.magnitude;
+    };
+
+    expect(periodicMagnitude(true)).toBeGreaterThan(
+      periodicMagnitude(false) ?? 0,
+    );
+  });
+
+  it("unlocks the returning axe's undodgeable property at Tier 1", () => {
+    const wasDodged = (seed: number, tier: "stock" | "gold") => {
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          playerBuilds: [
+            {
+              actionTiers: {
+                "action.viking.axe-first": tier,
+              },
+            },
+          ],
+          enemyCharacterIds: ["character.ned-kelly"],
+          enemyBuilds: [{ statBonuses: { evasion: 100 } }],
+          playerStartingBar: 100,
+          seed,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state;
+      return requestAction(
+        state,
+        "player",
+        "action.viking.axe-first",
+        combatContent,
+      ).events.some((event) => event.type === "characterDodged");
+    };
+
+    const seeds = Array.from({ length: 32 }, (_, index) => index + 1);
+    expect(seeds.some((seed) => wasDodged(seed, "stock"))).toBe(true);
+    expect(seeds.some((seed) => wasDodged(seed, "gold"))).toBe(false);
+  });
+
+  it("improves Viking's Power stack and finisher stun through Move tiers", () => {
+    const empowerMagnitude = (tier: "stock" | "platinum") => {
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          playerBuilds: [
+            {
+              actionTiers: {
+                "action.viking.shield-bash": tier,
+              },
+            },
+          ],
+          enemyCharacterIds: ["character.ned-kelly"],
+          playerStartingBar: 100,
+          seed: 6_302,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state;
+      return requestAction(
+        state,
+        "player",
+        "action.viking.shield-bash",
+        combatContent,
+      ).state.player.squad[0]!.statuses.find(
+        (status) => status.kind === "empower",
+      )?.magnitude;
+    };
+    const stunDuration = (tier: "stock" | "platinum") => {
+      const content = structuredClone(combatContent);
+      const finisher = content.actions["action.viking.berserker-oath"]!;
+      finisher.chargeMs = 0;
+      const stun = finisher.effects.find((effect) => effect.kind === "stun");
+      if (!stun || stun.kind !== "stun") {
+        throw new Error("Berserker Oath must stun");
+      }
+      stun.chance = 1;
+      const state = createBattle(
+        {
+          playerCharacterIds: ["character.viking"],
+          playerBuilds: [
+            {
+              actionTiers: {
+                "action.viking.berserker-oath": tier,
+              },
+            },
+          ],
+          enemyCharacterIds: ["character.ned-kelly"],
+          playerStartingBar: 100,
+          seed: 6_303,
+          difficulty: "normal",
+        },
+        content,
+      ).state;
+      state.enemy.squad[0]!.stats.evasion = 0;
+      return requestAction(
+        state,
+        "player",
+        finisher.id,
+        content,
+      ).state.enemy.squad[0]!.statuses.find((status) => status.kind === "stun")
+        ?.remainingMs;
+    };
+
+    expect(empowerMagnitude("platinum")).toBeGreaterThan(
+      empowerMagnitude("stock") ?? 0,
+    );
+    expect(stunDuration("platinum")).toBeGreaterThan(
+      stunDuration("stock") ?? 0,
+    );
+  });
+
+  it("shows Viking's finisher as his strongest unbuffed hit", () => {
+    const state = createBattle(
+      {
+        playerCharacterIds: ["character.viking"],
+        enemyCharacterIds: ["character.ned-kelly"],
+        seed: 6_304,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+
+    expect(
+      predictedDamage(
+        state,
+        "player",
+        "action.viking.berserker-oath",
+        combatContent,
+      ),
+    ).toBeGreaterThan(
+      predictedDamage(
+        state,
+        "player",
+        "action.viking.axe-first",
+        combatContent,
+      ),
+    );
+  });
+
   it("consumes shield pools and lets explicitly piercing hits bypass them", () => {
     const runHit = (shieldPiercing: boolean) => {
       const content = structuredClone(combatContent);
       const action = content.actions["action.viking.axe-first"]!;
       const damage = action.effects.find((effect) => effect.kind === "damage");
       if (!damage || damage.kind !== "damage") {
-        throw new Error("Invoice Breaker must deal damage");
+        throw new Error("Axe First must deal damage");
       }
       damage.shieldPiercing = shieldPiercing;
       let state = createBattle(
@@ -1346,10 +1809,10 @@ describe("combat rules", () => {
 
   it("supports undodgeable lifesteal and authored switching locks", () => {
     const content = structuredClone(combatContent);
-    const invoice = content.actions["action.viking.axe-first"]!;
-    const damage = invoice.effects.find((effect) => effect.kind === "damage");
+    const axeFirst = content.actions["action.viking.axe-first"]!;
+    const damage = axeFirst.effects.find((effect) => effect.kind === "damage");
     if (!damage || damage.kind !== "damage") {
-      throw new Error("Invoice Breaker must deal damage");
+      throw new Error("Axe First must deal damage");
     }
     damage.undodgeable = true;
     damage.lifeStealRatio = 1;
@@ -1366,7 +1829,7 @@ describe("combat rules", () => {
     state.player.squad[0]!.currentHealth -= 40;
     state.enemy.squad[0]!.stats.evasion = 100;
     const beforeHealth = state.player.squad[0]!.currentHealth;
-    state = requestAction(state, "player", invoice.id, content).state;
+    state = requestAction(state, "player", axeFirst.id, content).state;
     expect(state.enemy.squad[0]!.currentHealth).toBeLessThan(
       state.enemy.squad[0]!.maxHealth,
     );
@@ -1410,6 +1873,7 @@ describe("combat rules", () => {
     if (!damage || damage.kind !== "damage") {
       throw new Error("Hostile Takeover must deal damage");
     }
+    damage.hits = 3;
     damage.undodgeable = true;
     const state = createBattle(
       {
@@ -1492,7 +1956,7 @@ describe("combat rules", () => {
     const action = content.actions["action.viking.axe-first"]!;
     const damage = action.effects.find((effect) => effect.kind === "damage");
     if (!damage || damage.kind !== "damage") {
-      throw new Error("Invoice Breaker must deal damage");
+      throw new Error("Axe First must deal damage");
     }
     damage.undodgeable = true;
     const createState = () =>
@@ -1625,6 +2089,11 @@ describe("combat rules", () => {
     const content = structuredClone(combatContent);
     const finisher = content.actions["action.viking.berserker-oath"]!;
     finisher.chargeMs = 0;
+    const damage = finisher.effects.find((effect) => effect.kind === "damage");
+    if (!damage || damage.kind !== "damage") {
+      throw new Error("Hostile Takeover must deal damage");
+    }
+    damage.hits = 3;
     const state = createBattle(
       {
         playerCharacterIds: ["character.viking"],
@@ -1699,16 +2168,11 @@ describe("combat rules", () => {
     const started = requestAction(
       state,
       "player",
-      "action.viking.berserker-oath",
+      "action.viking.shield-bash",
       combatContent,
     );
     state = started.state;
     const events = [...started.events];
-    for (let elapsed = 0; elapsed < 1_250; elapsed += 250) {
-      const transition = tickBattle(state, 250, combatContent);
-      state = transition.state;
-      events.push(...transition.events);
-    }
     const selfBuff = events.find(
       (event) =>
         event.type === "statusApplied" && event.targetId === "owned.mara-vex.1",
@@ -1840,7 +2304,7 @@ describe("combat rules", () => {
     state = requestAction(
       state,
       "player",
-      "action.viking.shield-bash",
+      "action.viking.berserker-oath",
       combatContent,
     ).state;
     const hit = requestAction(
@@ -1853,7 +2317,7 @@ describe("combat rules", () => {
       hit.events.some((event) => event.type === "interruptionResisted"),
     ).toBe(true);
     expect(hit.state.pendingActions.player?.actionId).toBe(
-      "action.viking.shield-bash",
+      "action.viking.berserker-oath",
     );
   });
 
@@ -2109,10 +2573,11 @@ describe("combat rules", () => {
   });
 
   it("uses a deliberate Charge cadence with meaningful Tempo separation", () => {
-    expect(chargePerSecond(5)).toBe(10);
+    expect(chargePerSecond(5)).toBe(7);
     expect(chargePerSecond(9)).toBeGreaterThan(chargePerSecond(3) * 1.2);
-    expect(25 / chargePerSecond(5)).toBe(2.5);
-    expect(100 / chargePerSecond(5)).toBe(10);
+    expect(25 / chargePerSecond(5)).toBeCloseTo(3.57, 2);
+    expect(100 / chargePerSecond(5)).toBeCloseTo(14.29, 2);
+    expect(difficultyAiDelay("normal")).toBeGreaterThanOrEqual(1_400);
 
     const state = createBattle(
       {
@@ -2131,7 +2596,7 @@ describe("combat rules", () => {
     for (let elapsed = 250; elapsed < 5_000; elapsed += 250) {
       advanced = tickBattle(advanced, 250, combatContent).state;
     }
-    expect(advanced.player.bar).toBeCloseTo(55, 5);
+    expect(advanced.player.bar).toBeCloseTo(40, 5);
 
     let quarterStepped = state;
     for (let quarter = 0; quarter < 4; quarter += 1) {
@@ -2226,7 +2691,7 @@ describe("combat rules", () => {
 
   it("does not apply a hit-gated status when the attack is dodged", () => {
     const guaranteedControl = structuredClone(combatContent);
-    const redTape = guaranteedControl.actions["action.viking.shield-bash"]!;
+    const redTape = guaranteedControl.actions["action.viking.berserker-oath"]!;
     redTape.chargeMs = 0;
     const stun = redTape.effects.find((effect) => effect.kind === "stun");
     if (!stun || stun.kind !== "stun") {
@@ -2477,12 +2942,16 @@ describe("AI, missions, and store", () => {
     ).toBe(1);
     expect(
       evaluateMissionProgress("mission.print-it-personal", 0, {
-        type: "vengeanceResolved",
-        opponentCharacterId: "character.ned-kelly",
-        previouslyLost: true,
+        type: "storyBattleEnded",
         won: true,
       }),
     ).toBe(1);
+    expect(
+      evaluateMissionProgress("mission.print-it-personal", 1, {
+        type: "storyBattleEnded",
+        won: true,
+      }),
+    ).toBe(2);
   });
 
   it("rotates four deterministic store labels", () => {
@@ -2533,6 +3002,24 @@ describe("AI, missions, and store", () => {
 });
 
 describe("validated persistence", () => {
+  it("adds a profile-owned Quick Fight record to older compatible v2 saves", () => {
+    const storage = new MemoryStorage();
+    const olderSave = {
+      ...createDefaultSave(1),
+      quickFightRecord: undefined,
+    };
+    storage.setItem("riot-relics.save.v2.1", JSON.stringify(olderSave));
+
+    expect(loadSave(storage, 1).quickFightRecord).toEqual({
+      fightsPlayed: 0,
+      wins: 0,
+      losses: 0,
+      lastSeed: null,
+      lastPlayerCharacterIds: [],
+      lastOpponentCharacterIds: [],
+    });
+  });
+
   it("keeps three save slots independent, including owned Patches", () => {
     const storage = new MemoryStorage();
     const slotTwo = createDefaultSave(2);
@@ -2670,6 +3157,26 @@ describe("validated persistence", () => {
       }),
     );
     expect(storage.getItem("riot-relics.save.v2.3")).not.toBeNull();
+  });
+
+  it("migrates the retired Tournament champion badge into Trophy ownership", () => {
+    const storage = new MemoryStorage();
+    const legacy = {
+      ...createDefaultSave(1),
+      tournamentTrophyIds: undefined,
+      tournamentBadges: [
+        "badge.cheap-seats-champion",
+        "badge.cheap-seats-champion",
+      ],
+    };
+    storage.setItem("riot-relics.save.v2.1", JSON.stringify(legacy));
+
+    const migrated = loadSave(storage, 1);
+
+    expect(migrated.tournamentTrophyIds).toEqual(["trophy.wrong-door-cup"]);
+    expect(storage.getItem("riot-relics.save.v2.1")).toContain(
+      "tournamentTrophyIds",
+    );
   });
 
   it("migrates retired prototype roster IDs in an existing v2 save", () => {

@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { createBattle } from "../combat/engine";
+import {
+  createBattle,
+  predictedBaseDamage,
+  predictedDamage,
+} from "../combat/engine";
 import { chargePerSecond, typeMultiplier } from "../combat/rules";
 import { combatContent } from "../content/initial-content";
 import {
   actionTierForDevTier,
-  applyDevStartingHealth,
+  applyDevScenarioState,
+  defaultDevScenario,
   devBattleScenarios,
   devBattleScenarioSchema,
   devBuildsForSide,
@@ -61,6 +66,23 @@ describe("development battle scenarios", () => {
     );
     expect(state.player.accessory).toBeNull();
     expect(state.enemy.accessory).toBeNull();
+    expect(defaultDevScenario.id).toBe("dev.neutral-1v1");
+  });
+
+  it("pins the V2 Viking acceptance fight to the default Quick Fight", () => {
+    const acceptance = devBattleScenarios.find(
+      (scenario) => scenario.id === "v2.viking-acceptance",
+    )!;
+
+    expect(acceptance).toMatchObject({
+      playerCharacterIds: ["character.viking"],
+      enemyCharacterIds: ["character.grim-reaper"],
+      playerLevel: 10,
+      enemyLevel: 10,
+      difficulty: "normal",
+      seed: 3_844_240_869,
+      startPaused: false,
+    });
   });
 
   it("maps the player-facing rings to the persisted combat tiers", () => {
@@ -71,7 +93,11 @@ describe("development battle scenarios", () => {
 
   it("builds authored Moves at the selected tier and applies starting health ratios", () => {
     const scenario = {
-      ...structuredClone(devBattleScenarios[3]),
+      ...structuredClone(
+        devBattleScenarios.find(
+          (candidate) => candidate.id === "dev.status-stack",
+        )!,
+      ),
       playerTier: "tier2" as const,
       playerPatchId: "patch.heavy-ink",
       playerHealthRatio: 0.5,
@@ -91,7 +117,7 @@ describe("development battle scenarios", () => {
       },
       combatContent,
     );
-    const state = applyDevStartingHealth(created.state, scenario);
+    const state = applyDevScenarioState(created.state, scenario);
 
     expect(Object.values(state.player.squad[0]!.actionTiers)).toEqual([
       "platinum",
@@ -107,5 +133,54 @@ describe("development battle scenarios", () => {
     );
     expect(state.player.bar).toBe(scenario.playerStartingBar);
     expect(state.seed).toBe(scenario.seed);
+  });
+
+  it("provides deterministic boosted and reduced attack-preview states", () => {
+    const stateFor = (id: string) => {
+      const scenario = devBattleScenarios.find(
+        (candidate) => candidate.id === id,
+      )!;
+      const created = createBattle(
+        {
+          playerCharacterIds: scenario.playerCharacterIds,
+          playerBuilds: devBuildsForSide(scenario, "player"),
+          enemyCharacterIds: scenario.enemyCharacterIds,
+          enemyBuilds: devBuildsForSide(scenario, "enemy"),
+          playerStartingBar: scenario.playerStartingBar,
+          enemyStartingBar: scenario.enemyStartingBar,
+          seed: scenario.seed,
+          difficulty: scenario.difficulty,
+          timeLimitMs: scenario.timeLimitMs,
+        },
+        combatContent,
+      );
+      return applyDevScenarioState(created.state, scenario);
+    };
+    const actionIds = [
+      "action.viking.axe-first",
+      "action.viking.berserker-oath",
+    ];
+    const boosted = stateFor("dev.boosted-attacks");
+    const reduced = stateFor("dev.reduced-attacks");
+
+    expect(
+      boosted.player.squad[0]!.statuses.filter(
+        (status) => status.kind === "empower",
+      ),
+    ).toHaveLength(2);
+    for (const actionId of actionIds) {
+      expect(
+        predictedDamage(boosted, "player", actionId, combatContent),
+      ).toBeGreaterThan(
+        predictedBaseDamage(boosted, "player", actionId, combatContent),
+      );
+      expect(
+        predictedDamage(reduced, "player", actionId, combatContent),
+      ).toBeLessThan(
+        predictedBaseDamage(reduced, "player", actionId, combatContent),
+      );
+    }
+    expect(boosted.player.bar).toBeLessThan(40);
+    expect(reduced.player.bar).toBeLessThan(70);
   });
 });

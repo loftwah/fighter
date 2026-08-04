@@ -1,4 +1,7 @@
-import { resolveImagePath } from "../../assets/registry";
+import {
+  resolveImageObjectPosition,
+  resolveImagePath,
+} from "../../assets/registry";
 import { STANDARD_MATCH_LEVEL } from "../../combat/standard-build";
 import { combatContent } from "../../content/initial-content";
 import type {
@@ -7,9 +10,9 @@ import type {
   TournamentRunData,
 } from "../../persistence/save";
 import {
-  cheapSeatsEncounter,
-  cheapSeatsEncounters,
-} from "../../tournaments/cheap-seats";
+  tournamentDefinition,
+  tournamentTrophy,
+} from "../../tournaments/catalog";
 import type { SessionMode } from "../../app/routes";
 import { renderLockedFeature } from "../components/locked-feature";
 import { escapeHtml, formatLabel } from "../format";
@@ -17,6 +20,7 @@ import { escapeHtml, formatLabel } from "../format";
 export interface TournamentScreenModel {
   save: SaveData;
   sessionMode: SessionMode;
+  tournamentId?: string;
   run: TournamentRunData | null;
   caseBuilds?: TournamentCaseBuild[];
   deployedInstanceIds?: string[];
@@ -25,17 +29,20 @@ export interface TournamentScreenModel {
 }
 
 export function renderTournamentScreen(model: TournamentScreenModel): string {
+  const tournamentId =
+    model.run?.tournamentId ?? model.tournamentId ?? "tournament.cheap-seats";
+  const tournament = tournamentDefinition(tournamentId);
   if (model.locked) {
     return renderLockedFeature(
       "tournament-title",
-      "The Wrong Door Cup",
+      tournament.name,
       "Clear the two-Character qualifier to earn a place in the bracket.",
     );
   }
-  const champion = model.save.tournamentBadges.includes(
-    "badge.cheap-seats-champion",
-  );
-  const encounter = cheapSeatsEncounter(model.run?.roundIndex ?? 0);
+  const trophy = tournamentTrophy(tournament.id);
+  const champion = model.save.tournamentTrophyIds.includes(trophy.id);
+  const encounter =
+    tournament.rounds[model.run?.roundIndex ?? 0] ?? tournament.rounds[0]!;
   const caseBuilds = model.caseBuilds ?? model.run?.caseBuilds ?? [];
   const deployedInstanceIds =
     model.deployedInstanceIds ?? model.run?.deployedInstanceIds ?? [];
@@ -79,7 +86,12 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
                       deployedInstanceIds[0] === build.instanceId));
                 return `
                   <article class="cup-roster-ticket ${selected ? "is-deployed" : ""} ${defeated ? "is-defeated" : ""}">
-                    <img src="${resolveImagePath(character.portraitAssetId)}" data-asset-id="${character.portraitAssetId}" alt="" />
+                    <img
+                      src="${resolveImagePath(character.portraitAssetId)}"
+                      data-asset-id="${character.portraitAssetId}"
+                      style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
+                      alt=""
+                    />
                     <div>
                       <span>${formatLabel(character.typeId)} · ${Math.round(healthRatio * 100)}% Health</span>
                       <strong>${escapeHtml(character.name)}</strong>
@@ -138,13 +150,19 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
       : `
         ${rosterControls}
         <button class="primary-action" data-command="start-tournament">
-          ${model.run ? `Enter Round ${encounter.roundIndex + 1}` : "Lock Roster · Enter Round 1"}
+          ${model.run ? `Confirm Lineup · Enter Round ${encounter.roundIndex + 1}` : "Confirm Lineup · Lock Roster · Enter Round 1"}
           <span aria-hidden="true">→</span>
         </button>
       `;
   return `
-    <section class="tournament-poster" aria-labelledby="tournament-title">
-      <div class="tournament-art"></div>
+    <section class="tournament-poster" data-fight-setup aria-labelledby="tournament-title">
+      <img
+        class="tournament-art"
+        src="${resolveImagePath(tournament.imageAssetId)}"
+        data-asset-id="${tournament.imageAssetId}"
+        style="object-position: ${resolveImageObjectPosition(tournament.imageAssetId)}"
+        alt="${escapeHtml(tournament.imageAlt)}"
+      />
       <div class="tournament-copy">
         <button class="text-button" ${
           model.sessionMode === "story"
@@ -153,8 +171,21 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
         }>
           ← ${model.sessionMode === "story" ? "Back to Story" : "Main Menu"}
         </button>
-        ${champion ? '<span class="cup-badge">★ Wrong Door Champion</span>' : ""}
-        <h1 id="tournament-title">The Wrong Door Cup</h1>
+        ${champion ? '<span class="cup-status-stamp">★ Trophy collected</span>' : ""}
+        <h1 id="tournament-title">${escapeHtml(tournament.name)}</h1>
+        <figure class="cup-trophy-preview">
+          <img
+            src="${resolveImagePath(trophy.imageAssetId)}"
+            data-asset-id="${trophy.imageAssetId}"
+            style="object-position: ${resolveImageObjectPosition(trophy.imageAssetId)}"
+            alt="${escapeHtml(trophy.imageAlt)}"
+          />
+          <figcaption>
+            <span>${champion ? "On your Profile" : "Winner's Trophy"}</span>
+            <strong>${escapeHtml(trophy.name)}</strong>
+            <small>${escapeHtml(trophy.description)}</small>
+          </figcaption>
+        </figure>
         <p>
           ${
             model.run?.phase === "interlude"
@@ -163,7 +194,7 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
           }
         </p>
         <div class="bracket">
-          ${cheapSeatsEncounters
+          ${tournament.rounds
             .map(
               (round) => `
                 <span class="${

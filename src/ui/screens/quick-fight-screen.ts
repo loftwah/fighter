@@ -3,12 +3,14 @@ import {
   STANDARD_STAT_POINT_BUDGET,
 } from "../../combat/standard-build";
 import { combatContent } from "../../content/initial-content";
-import { resolveImagePath } from "../../assets/registry";
+import {
+  resolveImageObjectPosition,
+  resolveImagePath,
+} from "../../assets/registry";
 import {
   renderCharacterTraits,
   renderTraitSynergy,
 } from "../components/trait-synergy";
-import { renderTypeWheel } from "../components/type-wheel";
 import { formatLabel } from "../format";
 
 export interface QuickFightScreenModel {
@@ -20,8 +22,6 @@ export interface QuickFightScreenModel {
 }
 
 export function renderQuickFightScreen(model: QuickFightScreenModel): string {
-  const player = combatContent.characters[model.playerIds[0]!]!;
-  const enemy = combatContent.characters[model.enemyIds[0]!]!;
   const characterOptions = (
     selectedId: string | undefined,
     optional: boolean,
@@ -58,6 +58,41 @@ export function renderQuickFightScreen(model: QuickFightScreenModel): string {
         .join("")}
     </div>
   `;
+  const lineupStage = (
+    side: "Your" | "Opponent",
+    selectedIds: readonly string[],
+  ): string => {
+    const characters = selectedIds
+      .map((id) => combatContent.characters[id])
+      .filter((character) => character !== undefined);
+    return `
+      <div
+        class="quick-lineup-stage"
+        data-lineup-count="${characters.length}"
+        aria-label="${side} selected Lineup"
+      >
+        ${characters
+          .map(
+            (character, index) => `
+              <article class="quick-lineup-member">
+                <img
+                  src="${resolveImagePath(character.portraitAssetId)}"
+                  data-asset-id="${character.portraitAssetId}"
+                  style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
+                  alt=""
+                />
+                <div>
+                  <strong>${character.name}</strong>
+                  <small>${index === 0 ? "Starts" : `Bench ${index}`} · ${formatLabel(character.typeId)} · Level ${STANDARD_MATCH_LEVEL}</small>
+                  <span class="trait-chip-row">${renderCharacterTraits(character)}</span>
+                </div>
+              </article>
+            `,
+          )
+          .join("")}
+      </div>
+    `;
+  };
   const accessoryControl = (
     name: "quickPlayerAccessory" | "quickEnemyAccessory",
     selectedId: string,
@@ -65,7 +100,18 @@ export function renderQuickFightScreen(model: QuickFightScreenModel): string {
     const selectedAccessory = combatContent.accessories[selectedId];
     return `
     <label class="quick-accessory">
-      <span>Team Accessory</span>
+      <span>Accessory</span>
+      <span class="quick-accessory-preview">
+        ${
+          selectedAccessory
+            ? `<img src="${resolveImagePath(selectedAccessory.imageAssetId)}" data-asset-id="${selectedAccessory.imageAssetId}" alt="" />`
+            : '<span class="quick-accessory-empty" aria-hidden="true">—</span>'
+        }
+        <span>
+          <strong>${selectedAccessory?.name ?? "No Accessory"}</strong>
+          <small class="quick-accessory-effect">${selectedAccessory?.description ?? ""}</small>
+        </span>
+      </span>
       <select name="${name}">
         ${Object.values(combatContent.accessories)
           .map(
@@ -76,53 +122,47 @@ export function renderQuickFightScreen(model: QuickFightScreenModel): string {
           )
           .join("")}
       </select>
-      <small>${selectedAccessory?.description ?? ""}</small>
     </label>
   `;
   };
   return `
-    <section class="quick-setup" aria-labelledby="quick-title">
+    <section class="quick-setup" data-fight-setup aria-labelledby="quick-title">
       <div class="quick-heading">
         <button class="text-button" data-command="main-menu">← Main Menu</button>
-        <h1 id="quick-title">Build a Quick Fight.</h1>
-        <p>
-          Standard rules: every Character is Level ${STANDARD_MATCH_LEVEL}, has the
-          same ${STANDARD_STAT_POINT_BUDGET}-point allocation budget, Stock
-          Moves, and no Modification. Trait score 2 activates a bonus; score 3
-          upgrades it. Results never change Story progress.
-        </p>
+        <h1 id="quick-title">Choose the Lineups.</h1>
+        <div class="quick-rule-strip" aria-label="Standard fight rules">
+          <strong>Standard fight</strong>
+          <span>Level ${STANDARD_MATCH_LEVEL}</span>
+          <span>${STANDARD_STAT_POINT_BUDGET} equal stat points</span>
+          <span>Stock Moves</span>
+          <span>No Modifications</span>
+          <span>No Story rewards</span>
+        </div>
       </div>
       <div class="quick-versus">
         <article class="quick-pick">
-          <span>Your Lineup · ${model.playerIds.length}/3</span>
+          <span class="quick-side-label">Your Lineup · ${model.playerIds.length}/3</span>
+          ${lineupStage("Your", model.playerIds)}
           ${lineupControls("Player", model.playerIds)}
           ${accessoryControl("quickPlayerAccessory", model.playerAccessoryId)}
-          <img src="${resolveImagePath(player.portraitAssetId)}" data-asset-id="${player.portraitAssetId}" alt="" />
-          <strong>${player.name}</strong>
-          <small>${formatLabel(player.typeId)} · Standard L${STANDARD_MATCH_LEVEL}</small>
-          <div class="trait-chip-row">${renderCharacterTraits(player)}</div>
           ${renderTraitSynergy([...model.playerIds])}
         </article>
         <span class="versus-stamp" aria-hidden="true">VS</span>
         <article class="quick-pick is-enemy">
-          <span>Opponent Lineup · ${model.enemyIds.length}/3</span>
+          <span class="quick-side-label">Opponent Lineup · ${model.enemyIds.length}/3</span>
+          ${lineupStage("Opponent", model.enemyIds)}
           ${lineupControls("Enemy", model.enemyIds)}
           ${accessoryControl("quickEnemyAccessory", model.enemyAccessoryId)}
-          <img src="${resolveImagePath(enemy.portraitAssetId)}" data-asset-id="${enemy.portraitAssetId}" alt="" />
-          <strong>${enemy.name}</strong>
-          <small>${formatLabel(enemy.typeId)} · Standard L${STANDARD_MATCH_LEVEL}</small>
-          <div class="trait-chip-row">${renderCharacterTraits(enemy)}</div>
           ${renderTraitSynergy([...model.enemyIds])}
         </article>
       </div>
-      ${renderTypeWheel()}
       <div class="quick-footer">
         <label>
           <span>Difficulty</span>
           <select name="difficulty">${model.difficultyOptions}</select>
         </label>
         <button class="primary-action" data-command="start-quick-battle">
-          Start Quick Fight <span aria-hidden="true">→</span>
+          Confirm Lineups · Start Fight <span aria-hidden="true">→</span>
         </button>
       </div>
     </section>

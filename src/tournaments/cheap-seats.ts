@@ -1,21 +1,19 @@
-import type { BattleState } from "../combat/types";
+import type { BattleEvent, BattleState } from "../combat/types";
 
 // Tournament orchestration remains separate from the shared combat engine.
 import type {
   TournamentCaseBuild,
   TournamentRunData,
 } from "../persistence/save";
+import {
+  tournamentDefinition,
+  type TournamentRoundDefinition,
+} from "./catalog";
 
 export type CheapSeatsDrop = "front-print-repair" | "case-repair" | "hot-start";
 export const TOURNAMENT_ROSTER_MAX = 6;
 
-export interface CheapSeatsEncounter {
-  roundIndex: 0 | 1 | 2;
-  title: string;
-  subtitle: string;
-  enemyCharacterIds: string[];
-  seed: number;
-}
+export type CheapSeatsEncounter = TournamentRoundDefinition;
 
 export const cheapSeatsPlayerIds = [
   "character.viking",
@@ -26,29 +24,9 @@ export const cheapSeatsPlayerIds = [
   "character.grim-reaper",
 ] as const;
 
-export const cheapSeatsEncounters: CheapSeatsEncounter[] = [
-  {
-    roundIndex: 0,
-    title: "Miracle Warm-Up",
-    subtitle: "Moses has read the rules and found several omissions.",
-    enemyCharacterIds: ["character.moses"],
-    seed: 20_260_906,
-  },
-  {
-    roundIndex: 1,
-    title: "Shell and Scythe",
-    subtitle: "The nursery-rhyme egg has partnered with Death.",
-    enemyCharacterIds: ["character.humpty", "character.grim-reaper"],
-    seed: 20_260_907,
-  },
-  {
-    roundIndex: 2,
-    title: "The Wrong Door Final",
-    subtitle: "Ned Kelly brought armour. Death brought a prior appointment.",
-    enemyCharacterIds: ["character.ned-kelly", "character.grim-reaper"],
-    seed: 20_260_908,
-  },
-];
+export const cheapSeatsEncounters = tournamentDefinition(
+  "tournament.cheap-seats",
+).rounds;
 
 export function createCheapSeatsRun(
   caseBuilds: TournamentCaseBuild[] = [],
@@ -75,7 +53,35 @@ export function createCheapSeatsRun(
     activeInstanceId: deployedInstanceIds[0] ?? null,
     nextRoundChargeBonus: 0,
     selectedDrop: null,
+    exhaustedAccessoryIds: [],
   });
+}
+
+export function exhaustTournamentAccessory(
+  sourceRun: TournamentRunData,
+  accessoryId: string,
+): TournamentRunData {
+  return {
+    ...sourceRun,
+    exhaustedAccessoryIds: [
+      ...new Set([...sourceRun.exhaustedAccessoryIds, accessoryId]),
+    ],
+  };
+}
+
+export function exhaustTournamentAccessoriesFromEvents(
+  sourceRun: TournamentRunData,
+  events: readonly BattleEvent[],
+): TournamentRunData {
+  return events.reduce(
+    (run, event) =>
+      event.type === "accessoryActivated" &&
+      event.side === "player" &&
+      event.message
+        ? exhaustTournamentAccessory(run, event.message)
+        : run,
+    sourceRun,
+  );
 }
 
 export function normaliseCheapSeatsRun(

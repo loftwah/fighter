@@ -13,10 +13,14 @@
 
 ## Application boundary
 
-The application is a desktop-first responsive web game. It can render a
+The application is a mobile-first responsive web game with a deliberate
+16-inch MacBook Pro desktop reference. `fighter.loftwah.com` is the canonical
+production hostname; repository notation remains `loftwah/fighter`. It can render a
 data-driven, skippable startup sequence and genuine waiting state before opening
-the global launcher. It only constructs a Story, Quick Fight, or Tournament
-view context after an explicit player action. Semantic DOM renders contextual navigation,
+the global launcher. Intro stages have no automatic advance; the application
+only schedules the short Main Menu handoff after an explicit advance or skip.
+It only constructs a Story, Quick Fight, or Tournament view context after an
+explicit player action. Semantic DOM renders contextual navigation,
 profile/settings surfaces, story copy, roster controls, action buttons, and
 accessibility state. Phaser renders the arena, kinetic panel imagery, two-frame
 swaps, camera motion, particles, impact effects, and cut-ins.
@@ -97,6 +101,7 @@ State has one owner:
 | Audio, difficulty preference, reduced motion           | global Preferences        | all profiles                            |
 | Identity, collection, Story, missions, store, upgrades | selected SaveData profile | persisted profile                       |
 | Quick Fight setup                                      | Quick session             | until leaving/reconfiguring Quick Fight |
+| Quick Fight history                                    | selected SaveData profile | persisted profile                       |
 | Tournament Roster and carried health                   | tournament run            | persisted until the run resolves/resets |
 | Seeded combat and report                               | battle engine/session     | one match                               |
 | Pause, countdown, presentation lock, open overlays     | battle-session controller | one mounted battle                      |
@@ -130,10 +135,85 @@ and presentation identity. Global Settings supply accessibility/audio and a
 preferred difficulty; the mode may constrain the match without copying settings
 state.
 
+Each player-facing mode renders a `data-fight-setup` confirmation boundary
+before it constructs that configuration. Quick Fight owns editable sandbox
+Lineups, Story resolves owned and authored-loan builds, and Tournament resolves
+deployment and carried Health. This is one interaction contract rather than
+three battle engines.
+
+`src/ui/battle-guidance.ts` derives visible decision and presentation copy from
+current runtime state. It does not alter combat: the application supplies
+Charge, pending/stunned/blocked state, available Move thresholds, and the
+semantic event side. The renderer uses the result for stable `CHARGING`,
+`YOUR MOVE`, `OPPONENT READY`, side-specific presentation, and recovery cues.
+Both sides receive a visible console-attached readiness marker. Waiting values
+and opponent readiness are not live-announced continuously; entering or
+expanding the player's ready state is.
+Countdown and Move cut-ins announce through their visible assertive status
+regions only, without duplicating the same copy through the shell announcer.
+
+`renderBattleScreen` groups each side's semantic Health readout and Charge
+Strip inside a single combat-console boundary. The bounded fight-event feed is
+the final element in the player console, immediately after the player Charge
+meter. `src/ui/battle-bench.ts` renders the native Lineup `details` disclosure
+from `CombatantState`, action content, positions, and tiers. These are
+presentation-only projections; neither module changes combat state or imports
+Phaser.
+
+The Gate 1 interaction shell uses one rail-first CSS grid as its spatial
+contract. Opponent console, arena, player console, and both Lineup rails are
+siblings with reserved tracks; Phaser is mounted only inside the arena track.
+Move buttons are flow-layout semantic controls with separate exact-cost anchor
+ticks over the Charge meter. Accessory, pickups, and fight feed therefore do
+not need competing absolute offsets or `z-index` escalation. Short-landscape
+Pause uses a compact three-column blocking sheet and a 44-pixel Pause target,
+while result sheets retain safe internal scrolling. Active statuses remain in
+the Health readouts as compact labelled stamps at the short-landscape reference;
+they are not removed to make the layout fit. The player Accessory also retains
+a minimum 44-pixel target in portrait and short landscape.
+
+`src/dev/experiments.ts` is the typed development experiment boundary. Each
+entry declares `interaction-critical`, `presentation-active`, `cosmetic`, or
+`gameplay-active`, plus whether it may affect a Battle Report and whether it is
+visible in Settings. Only cosmetic Battle presentation style is currently
+selectable there. Its local versioned storage and query-string override are
+development conveniences; neither enters saves, match configuration, combat
+commands, or reports. `BattleScene` receives the chosen cosmetic style after
+the engine snapshot already exists.
+
+`ActionDefinition.category` is required authored content. The closed
+`MoveCategory` vocabulary and all player-facing labels live in
+`src/ui/move-category-key.ts`; battle controls, Lineup disclosures, tooltips,
+assistive labels, and the Pause key consume that same metadata. Renderers must
+not infer a category from an effect array because hybrid Moves still need one
+stable primary reading.
+
+Charged Moves also declare `interruptionPolicy`. The launch schema currently
+accepts only `spend`: Charge is spent on commitment and is not refunded after an
+interruption. Adding a refund, staged, or action-specific policy requires a new
+closed schema value, deterministic engine handling, UI copy, and tests in the
+same change.
+
 `src/combat/standard-build.ts` is the single Standard Build constructor for
 non-Story defaults. Quick Fight and standalone Tournament must call it instead
 of inferring builds from authored character levels or the active Story profile.
 Story encounters continue to use owned builds or explicit loan builds.
+
+`src/combat/quick-fight-seed.ts` derives the stable seed from both Lineups and
+Accessories. The default Gate 1 configuration is
+`v2.viking-acceptance`/`3844240869`; the matching Developer Lab preset and
+headless diagnostic use the same content IDs rather than maintaining a second
+fight definition.
+
+The diagnostic controller prioritises collectable player Drops, then a fully
+charged Accessory, then the declared Viking Move sequence. Browser acceptance
+must exercise those same choices through the semantic controls; it cannot
+substitute a headless report for responsive operability.
+
+`src/ui/battle-result-explanation.ts` derives the decisive Move, leading damage
+sources, Type edge, random-event count, and player decision count from the
+versioned Battle Report. It may omit unavailable evidence but cannot invent a
+cause. This same report remains the export and replay source.
 
 `src/progression/builds.ts` owns immutable per-copy build edits: stat
 allocation/reclamation, validated three-Move ordering, independent
@@ -200,7 +280,10 @@ interval is rendered, not how long the combat controller remains locked. A
 semantic DOM status names the acting Character and Move throughout the lock.
 The AI decision clock is held at the current frame throughout the lock, so the
 configured reaction delay starts again when presentation releases instead of
-silently elapsing behind the animation.
+silently elapsing behind the animation. The current Easy/Normal/Hard/Brutal
+windows are 1800/1400/900/600 ms. `teamChargePerSecond` is the shared pure
+calculation used by both simulation and semantic rate readouts, preventing the
+displayed race from drifting from the engine.
 
 Periodic health events carry explicit provenance and do not create a new
 presentation lock. This prevents damage-over-time and regeneration from
@@ -249,6 +332,16 @@ Adding content should require:
 No new Phaser scene is required for a new story, tournament, Character, Move,
 or Accessory.
 
+`TournamentDefinition` owns its presentation image, accessible alternative
+text, and complete ordered round definitions, and references one required
+`TournamentTrophyDefinition`. The Tournament screen derives its arena, title,
+round copy, bracket, and Trophy from that active definition. The Trophy owns a
+stable ID, display metadata, logical image asset ID, alternative text, and a
+generic/custom flag. Registration fails when either asset or the Trophy
+relationship cannot resolve. Story completion definitions reference durable
+Mission and Trophy IDs; the ending guard derives completion from the selected
+save rather than trusting the current Story node.
+
 Accessories are stable content definitions composed from reusable effects.
 The launch vocabulary includes fixed Charge movement, timed Charge-rate
 changes, whole-team healing, whole-team shielding, and timed Move-slot blocks.
@@ -294,6 +387,8 @@ into rewards, missions, Story, or tournament persistence.
 
 ## Persistence
 
+- The original development namespace remains in storage keys solely to preserve
+  existing local profiles. It is not product identity.
 - Preferences key: `riot-relics.preferences.v1`
 - Save index key: `riot-relics.save-index.v1`
 - Slot keys: `riot-relics.save.v2.<slot>`
@@ -315,9 +410,20 @@ into rewards, missions, Story, or tournament persistence.
   ID. Older v2 entries receive compatible defaults during validation.
 - Save slots persist the active Cheap Seats round, locked instance/build
   snapshot, exact Tournament Roster health ratios, ending active instance, selected
-  interlude drop, pending opening-Charge bonus, champion badges, and revealed
+  interlude drop, pending opening-Charge bonus, Tournament Trophy IDs, and revealed
   rivals. A loss clears the run snapshot so retry starts at Round 1. Older v2
   entries receive empty compatible defaults.
+- Tournament runs persist `exhaustedAccessoryIds`. A player-side Accessory
+  activation adds its stable ID once; later rounds omit that Accessory. A fresh
+  or restarted run begins with an empty exhaustion list.
+- Save slots persist a progression-neutral Quick Fight record containing fights,
+  wins, losses, last seed, and last Lineup IDs. Older compatible V2 snapshots
+  receive zeroed counts and empty Lineups without a schema-number bump.
+- Existing v2 snapshots that contain `tournamentBadges` are additively
+  normalised into `tournamentTrophyIds`; the retired Cheap Seats champion badge
+  maps to `trophy.wrong-door-cup`. Unknown old values are ignored and valid
+  current Trophy IDs are de-duplicated. The save schema number remains v2
+  because the reader already owns explicit compatible v2 normalisation.
 - Retired eight-entry Tournament snapshots are accepted only for migration and
   deterministically trimmed to the first six unique registered instances. New
   Tournament registration rejects more than six.
@@ -364,34 +470,105 @@ Generated bitmap assets use an **opaque framed-shot contract**:
   are presented as visible panels rather than composited sprites;
 - Phaser/CSS may crop, clip, mask, stack, tint, translate, scale, rotate, or
   replace complete frames;
-- UI values, labels, controls, status marks, speed lines, flashes, particles,
-  panel borders, and other changing information remain code-native;
+- UI values, labels, controls, status marks, timed speed lines, flashes,
+  particles, panel borders, and other changing information remain code-native.
+  Static illustrative arcs, debris, or reaction marks may live inside a
+  purpose-specific authored plate;
 - generated UI text is not relied upon;
-- only the current encounter's required art and near-future presentation frames
-  are preloaded. A large installed roster must not become one initial download
-  or decode burst.
+- every authored bitmap declares the text and mirroring policy from
+  `docs/art-brief-template.md`; gameplay plates use `none`, while an image with
+  deliberate fixed promotional copy uses `authored-copy` and `mirror_policy:
+never`;
+- runtime renderers never suppress a required semantic label because similar
+  wording appears in an image. Accidental image text makes the asset
+  non-compliant and must be removed or regenerated;
+- both directional battle-idle base frames are preloaded for the current
+  encounter; canonical selection/profile portraits are not substituted for
+  battle idle A;
+  reaction sheets and Move plates are loaded only for the two active
+  Characters and become eligible for release when they leave the active pair.
+  Eviction is deferred while either persistent `FramedShot` crossfade layer
+  still references the texture; a later presentation pass retries once the
+  outgoing layer has moved to active-character art. A large installed roster
+  must not become one initial download or decode burst, and responsive layout
+  must never observe a destroyed texture.
 
 Generation is an offline authoring dependency, not a runtime dependency. The
 game remains playable with registered fallbacks when a specialised reaction or
 Move frame does not exist.
 
+The six-Character launch package is rebuilt with
+`mise run assets:launch-roster`. Reviewed sources live under
+`.impeccable/review/visual-direction-v2/production-sources/`, directional idle
+sources under `.impeccable/review/visual-direction-v2/directional-battle-sources/`,
+and Accessory sources under
+`.impeccable/review/visual-direction-v2/accessory-sources/`, and Modification
+sources under `.impeccable/review/visual-direction-v2/modification-sources/`;
+runtime outputs
+live under `public/assets/generated/launch-roster/`. The task normalises 4:5
+Character plates, 3:2 reaction sheets, and 16:9 cut-ins/environments, forces
+opaque palette PNG output, and refuses to replace an existing production
+package unless the author explicitly passes `--force`.
+The framed-shot metadata contract records `textPolicy` and `mirrorPolicy`.
+Content validation requires launch battle idles to be right-facing,
+`side-aware`, and text-free; authored-copy plates can never be mirrored.
+`src/assets/launch-art-contract.json` is the shared coverage inventory consumed
+by the offline builder, runtime registry and tests. It freezes the seven-image
+minimum for each V2.1 Character and requires every V2 Accessory and Modification
+to resolve to registered opaque square art.
+All sources and destination state are preflighted before conversion. The task
+builds and validates a complete sibling staging directory, then promotes the
+package with same-filesystem renames and rollback of the previous package if
+promotion fails.
+
+Tournament Trophy art follows the same offline, opaque, atomic production
+contract. `mise run assets:trophies` builds registered 1:1 Trophy images from
+reviewed sources under
+`.impeccable/review/visual-direction-v2/trophy-sources/` into
+`public/assets/generated/trophies/`; it refuses to overwrite the accepted set
+without `--force`. `docs/trophy-art-production.md` records source IDs and
+prompts.
+
+Every launch Move owns a non-null Character-specific presentation asset. Every
+launch Character owns a reaction sheet with the fixed order
+`hurt, dodge, stunned / defeated, victory, tense`. When a battle ends, the
+winner and loser settle onto their victory and defeated reaction cells behind
+the semantic result sheet. The startup hook registers separate landscape and
+portrait ensemble assets and selects them with semantic `<picture>` markup.
+Phaser image requests traverse the same logical image fallback chain as DOM
+images. Story and Tournament CSS backgrounds are probed and advanced through
+that chain on load failure.
+
 ## Responsive model
 
-- Design target: a full-viewport 16:9 desktop stage with edge-pinned controls
-  and a safe central action field.
+- Tier 1 targets: current mobile browsers in portrait and landscape and the
+  16-inch MacBook Pro desktop reference. Other current desktops and tablets are
+  Tier 2; older or unusual browsers are best effort.
+- The desktop model is a full-viewport 16:9 stage with edge-pinned controls and
+  a safe central action field.
 - Wide screens enlarge the fighter stills and breathing room while health,
   Lineups, timer, Pause, and the integrated Move-and-Charge control remain
   attached to the stage edges.
 - Portrait battle layouts use an authored asymmetric composition: the opponent
-  occupies the upper-right field, the player occupies the lower-left field,
-  Lineup portraits remain on the edges, and the Charge control spans the
-  reachable lower edge.
+  console owns the upper band, the player console owns the reachable lower
+  band, Lineup portraits remain on the edges, and Phaser composes asymmetric
+  fighter art only inside the arena between them.
+- Short mobile landscape uses the same regions in compressed rows. Its Move
+  controls remain at least 44 CSS pixels high, Pause actions remain visible in
+  the first viewport, and a longer result explanation scrolls inside its
+  blocking result surface rather than extending the Battle document.
+- Lineup attack disclosures are native `details` elements. Their touch-sized
+  summaries sit over the compact portrait ticket at narrow widths so they do
+  not intrude into either Charge track.
 - Responsive changes happen in semantic DOM/CSS and `BattleScene.layout()`;
   combat rules and presentation-lock durations do not vary by viewport.
 - CSS safe-area variables are supported even before mobile packaging.
 
 ## Testing
 
+- A test must name the stable contract and its beneficiary. Confidence, not
+  test count, is the goal; duplicate or brittle tests are challenged rather
+  than accumulated.
 - Calculation unit tests: costs, multipliers, Type wheel, Trait scoring and
   bonuses, tiers, seeded variance.
 - Reducer tests: bar fill, action execution, switching, interruption, defeat, timeout.
@@ -404,7 +581,60 @@ Move frame does not exist.
 - Browser control regression: a Move control keeps identity and keyboard focus
   while Charge changes, Escape pauses/resumes the simulation, and the
   development inspector cannot advance progression.
+- Gate 1 responsive geometry regression checks the critical Battle regions at
+  `390 × 844`, `844 × 390`, and `1728 × 1117`: the document does not scroll,
+  every region stays in bounds, and non-nested consoles, Lineups, Moves,
+  Accessory, Pause, and fight feed do not intersect. The short-landscape case
+  also asserts visible labelled statuses and 44-pixel Pause/Accessory targets.
+- Roster-switch presentation regression advances through defeats, resizes the
+  live Phaser arena after outgoing rich art becomes inactive, and rejects any
+  texture or `FramedShot.applyFraming` error.
+- Every release slice receives bounded gameplay, UX, visual, performance,
+  accessibility, and production-readiness passes. Fixed-seed scenarios and
+  replayable reports are preferred evidence because defects remain inspectable,
+  traceable, and reproducible.
 
 ## Deployment boundary
 
-This stage builds a static web bundle and requires no backend. Cloudflare Workers/Pages, PWA support, telemetry, cloud saves, and Capacitor are future ADRs.
+V2 builds a static web bundle and requires no backend. Deterministic battle
+reports and local diagnostics provide current observability.
+
+The staged platform boundary is:
+
+- V2: responsive static website and local profiles;
+- V2.1: web app manifest, service worker, update UX, and selective PWA caching;
+- V2.2: Cloudflare Workers Static Assets and API adapters, reviewed identity,
+  cloud-save storage, conflict handling, and account support operations;
+- V2.3: reproducible Capacitor-based iOS and Android development shells and
+  physical-device proof unless a measured prototype justifies another
+  thin-container approach; public store distribution follows when the product
+  and developer memberships are ready;
+- V2.4: server-authoritative multiplayer through a versioned match adapter,
+  Worker gateway, and one Durable Object/WebSocket coordinator per match.
+
+This ordering is authoritative in `docs/release-roadmap.md`. Each stage still
+requires its own ADR for data ownership, privacy, retention, security,
+observability, cost, migration, and failure behaviour before implementation.
+
+The combat engine, content schemas, and save migrations cannot import or depend
+on Cloudflare or Capacitor. Web, PWA, Worker, and native integrations sit behind
+application adapters. Native packaging produces distinct signed iOS and Android
+artefacts, but it must not create separate gameplay or content implementations.
+V2–V2.3 preserve explicit seeds, serialisable side-agnostic commands,
+controller ownership outside the domain, versioned reports, and deterministic
+replay; they do not add a remote controller or speculative match service.
+`docs/multiplayer-seam.md` records the V2.4 protocol, timing, trust, delivery,
+and failure-test boundary.
+
+GitHub Actions is the release-automation boundary: pull requests and main run
+the repository quality gate, reviewed static artefacts are promoted without an
+untracked rebuild, and accepted versions are tied to annotated tags and GitHub
+Releases. Deployment, signing, and store credentials live only in protected
+milestone-owned environments. No native signing secret or multiplayer backend
+secret is required for V2.
+
+The current complete static output is much larger than an acceptable startup
+payload because it contains the complete music and development/public asset
+trees. Static output size is not identical to initial transfer, but V2 must
+record actual route and battle transfers. V2.1 must use selective application
+shell and content-pack caching rather than pre-caching the complete library.

@@ -1,12 +1,11 @@
 # Visual direction v2 — bright crossover toybox
 
-Status: accepted target, implementation in progress  
+Status: accepted bitmap direction; launch raster package implemented
 Accepted: 2026-07-30
 
-`DESIGN.md` remains the source of truth for the interface currently implemented
-in code. This document defines the replacement target. A rule moves into
-`DESIGN.md` only after it exists, has been visually checked in the running game,
-and is ready to govern subsequent work.
+`DESIGN.md` remains the implemented visual-system source of truth. The launch
+bitmap rules in this document now exist in the running game and are mirrored
+there. Broader interface palette/material replacement remains in progress.
 
 ## Target
 
@@ -33,18 +32,34 @@ styles from source material.
 Generated bitmap inputs are opaque rectangles or squares. Transparency is not
 required and generated controls or changing text are prohibited.
 
-Each Character package should eventually contain:
+Each launch Character package contains:
 
 - one collection/profile portrait;
 - two compatible battle-idle frames;
 - a reaction sheet or individual reaction panels;
-- one high-value finisher or signature-Move panel;
+- one opponent-free panel for each of its three Moves;
 - optional story and victory panels where reuse cannot carry the moment.
 
-The generated image owns the Character and a compatible simple background
-field. Code owns crops, masks, panel frames, lighting overlays, speed lines,
-particles, impact words, screen flashes, damage numbers, health, Charge, Move
-costs, availability, focus, and all other changing information.
+The generated image owns the Character, a compatible simple background field,
+and static illustrative action marks that belong to that exact Move or reaction
+pose. Code owns crops, masks, panel frames, timed speed lines and particles,
+lighting overlays, impact words, screen flashes, damage numbers, health,
+Charge, Move costs, availability, focus, and all other changing information.
+
+## Implemented launch package
+
+- Six canonical 4:5 plates.
+- Six canonical-derived idle-A plates and six controlled idle-B edits.
+- Six 3 × 2 reaction sheets in the order
+  `hurt, dodge, stunned / defeated, victory, tense`.
+- Eighteen character-specific opponent-free 16:9 Move cut-ins.
+- Matching arena, Story, and Tournament establishing plates.
+- Landscape and portrait six-Character startup ensembles.
+
+Reviewed sources, prompt records, contact sheets, and build instructions are
+recorded in `docs/launch-roster-art-production.md`. Runtime files are rebuilt
+through `mise run assets:launch-roster`; approved output is never silently
+overwritten.
 
 ## Motion grammar
 

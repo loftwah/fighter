@@ -52,14 +52,14 @@ export function renderTraitSynergy(characterIds: string[]): string {
   if (representedTraits.length === 0) {
     return `
       <aside class="trait-synergy" aria-label="Team Traits">
-        <strong>Team Traits</strong>
+        <strong>Lineup bonuses</strong>
         <span>No Trait progress</span>
       </aside>
     `;
   }
   return `
     <aside class="trait-synergy" aria-label="Team Trait progress">
-      <strong>Team Traits</strong>
+      <strong>Lineup bonuses</strong>
       <ul>
         ${representedTraits
           .map((trait) => {

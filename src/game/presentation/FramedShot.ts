@@ -5,7 +5,11 @@ import {
   type NormalizedRect,
 } from "../../assets/registry";
 import type { Side } from "../../combat/types";
-import { calculateCoverCrop, type Rect } from "./framing";
+import {
+  calculateCoverCrop,
+  shouldMirrorFramedShot,
+  type Rect,
+} from "./framing";
 
 interface FramedShotOptions {
   side: Side;
@@ -40,13 +44,6 @@ function sameRegion(
       first.width === second.width &&
       first.height === second.height)
   );
-}
-
-function shouldMirrorForSide(facing: FramedShotFacing, side: Side): boolean {
-  if (facing === "camera" || facing === "none" || facing === "multiple") {
-    return false;
-  }
-  return side === "player" ? facing === "left" : facing === "right";
 }
 
 /**
@@ -135,6 +132,10 @@ export class FramedShot {
 
   get textureKey(): string {
     return this.#textureKey;
+  }
+
+  usesTexture(textureKey: string): boolean {
+    return this.#layers.some((layer) => layer.texture.key === textureKey);
   }
 
   get worldCenter(): { x: number; y: number } {
@@ -320,7 +321,7 @@ export class FramedShot {
           this.#layerSourceRegions[layerIndex] === null
             ? metadata.safeCrop
             : fullSourceRegion,
-        flipX: shouldMirrorForSide(facing, this.#side),
+        flipX: shouldMirrorFramedShot({ ...metadata, facing }, this.#side),
       },
     );
     const scale = crop.scaleX * 1.055;

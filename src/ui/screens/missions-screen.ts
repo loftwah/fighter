@@ -38,11 +38,11 @@ export function renderMissionsScreen(save: SaveData, locked: boolean): string {
       <div class="mission-list">
         ${missions
           .map((mission) => {
-            const progress = Math.min(
-              mission.target,
-              save.missionProgress[mission.id] ?? 0,
-            );
-            const complete = progress >= mission.target;
+            const claimed = save.claimedMissionIds.includes(mission.id);
+            const progress = claimed
+              ? mission.target
+              : Math.min(mission.target, save.missionProgress[mission.id] ?? 0);
+            const complete = claimed || progress >= mission.target;
             return `
               <article class="mission-slip ${complete ? "is-complete" : ""}">
                 <span class="mission-check" aria-hidden="true">${
@@ -55,7 +55,7 @@ export function renderMissionsScreen(save: SaveData, locked: boolean): string {
                 <div class="mission-progress">
                   <strong>${progress}/${mission.target}</strong>
                   ${
-                    save.claimedMissionIds.includes(mission.id)
+                    claimed
                       ? `<span>Paid · ★ ${mission.rewardStamps}</span>`
                       : complete
                         ? `<button data-command="claim-mission" data-mission-id="${mission.id}">Claim ★ ${mission.rewardStamps}</button>`

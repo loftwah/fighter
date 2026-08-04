@@ -1,5 +1,45 @@
 /* Charge-first battle control */
 
+[data-move-category="attack"],
+[data-action-category="attack"] {
+  --move-category-colour: var(--tomato);
+}
+
+[data-move-category="teamAttack"],
+[data-action-category="teamAttack"] {
+  --move-category-colour: var(--move-team-attack);
+}
+
+[data-move-category="stun"],
+[data-action-category="stun"] {
+  --move-category-colour: var(--yellow);
+}
+
+[data-move-category="teamStun"],
+[data-action-category="teamStun"] {
+  --move-category-colour: var(--move-team-stun);
+}
+
+[data-move-category="support"],
+[data-action-category="support"] {
+  --move-category-colour: var(--move-support);
+}
+
+[data-move-category="teamSupport"],
+[data-action-category="teamSupport"] {
+  --move-category-colour: var(--move-team-support);
+}
+
+[data-move-category="strip"],
+[data-action-category="strip"] {
+  --move-category-colour: var(--focus);
+}
+
+[data-move-category="special"],
+[data-action-category="special"] {
+  --move-category-colour: var(--chalk);
+}
+
 .battle-loading {
   position: absolute;
   z-index: 12;
@@ -39,6 +79,8 @@
 }
 
 .charge-move {
+  --move-tier-colour: var(--paper-muted);
+
   position: absolute;
   bottom: 0.72rem;
   left: var(--action-threshold);
@@ -82,16 +124,23 @@
     background 100ms ease;
 }
 
-.charge-move.tier-1 .charge-move-seal {
-  box-shadow:
-    0 0 0 4px #b9c3cc,
-    0.22rem 0.3rem 0 4px var(--ink);
+.charge-move-seal::before {
+  position: absolute;
+  z-index: -1;
+  inset: -0.72rem;
+  border: 0.18rem solid var(--move-category-colour, var(--chalk));
+  border-radius: 50%;
+  box-shadow: 0 0 0 0.12rem var(--ink);
+  content: "";
+  pointer-events: none;
 }
 
-.charge-move.tier-2 .charge-move-seal {
-  box-shadow:
-    0 0 0 4px #e2b531,
-    0.22rem 0.3rem 0 4px var(--ink);
+.charge-move.tier-1 {
+  --move-tier-colour: var(--tier-silver);
+}
+
+.charge-move.tier-2 {
+  --move-tier-colour: var(--tier-gold);
 }
 
 .charge-move-key {
@@ -127,6 +176,7 @@
 }
 
 .charge-move-state,
+.charge-move-role,
 .charge-move-tier,
 .charge-move-output {
   display: inline-block;
@@ -137,6 +187,15 @@
   font-weight: 700;
   line-height: 1.25;
   text-transform: uppercase;
+}
+
+.charge-move-role {
+  position: absolute;
+  top: 3.75rem;
+  left: -0.2rem;
+  border: 2px solid var(--ink);
+  background: var(--move-category-colour, var(--chalk));
+  color: var(--ink);
 }
 
 .charge-move-output {
@@ -267,6 +326,7 @@
   place-items: center;
   padding: 1.25rem;
   overflow: auto;
+  overscroll-behavior: contain;
   background: rgb(9 17 40 / 92%);
 }
 
@@ -314,6 +374,109 @@
   border-top: 2px dashed var(--ink);
   padding-top: 0.55rem;
   font-weight: 700;
+}
+
+.move-category-key {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0;
+  border: 4px solid var(--ink);
+  padding: 0.75rem;
+  background: var(--chalk);
+  box-shadow: 0.28rem 0.34rem 0 var(--ink);
+}
+
+.move-category-key header {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.move-category-key h3 {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.7rem;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+.move-category-key header p {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.move-tier-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.move-tier-key span,
+.move-category-key li {
+  border: 2px solid var(--ink);
+  background: var(--paper-muted);
+  color: var(--ink);
+}
+
+.move-tier-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  padding: 0.18rem 0.42rem;
+  font-size: 0.64rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.move-tier-key span i {
+  width: 0.8rem;
+  height: 0.8rem;
+  border: 0.18rem solid var(--ink);
+  border-radius: 50%;
+  background: var(--chalk);
+}
+
+.move-tier-key [data-move-tier="gold"] i {
+  border-color: var(--tier-silver);
+}
+
+.move-tier-key [data-move-tier="platinum"] i {
+  border-color: var(--tier-gold);
+}
+
+.move-category-key ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  gap: 0.35rem;
+  list-style: none;
+}
+
+.move-category-key li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.32rem;
+  font-size: 0.62rem;
+}
+
+.move-category-key li i {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: var(--move-category-colour, var(--chalk));
+}
+
+.move-category-key li span {
+  display: grid;
+  line-height: 1.1;
+}
+
+.move-category-key li strong {
+  text-transform: uppercase;
 }
 
 .dev-inspector-sheet {
@@ -389,6 +552,32 @@
 
 .dev-inspector-actions {
   display: grid;
+}
+
+.dev-speed-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin: 0.7rem 0 0;
+  border: 2px dashed var(--ink);
+  padding: 0.45rem;
+}
+
+.dev-speed-controls legend {
+  padding-inline: 0.25rem;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.dev-speed-controls button {
+  min-height: 2.35rem;
+  padding: 0.28rem;
+}
+
+.dev-speed-controls button[aria-pressed="true"] {
+  background: var(--yellow);
+  box-shadow: inset 0 -0.22rem 0 var(--tomato);
 }
 
 .dev-event-list {
@@ -590,6 +779,7 @@
   }
 
   .charge-move-state,
+  .charge-move-role,
   .charge-move-tier,
   .charge-move-output {
     font-size: 0.5rem;
@@ -597,9 +787,12 @@
 
   .charge-move-tier {
     top: 2.25rem;
-    right: auto;
-    left: 50%;
-    transform: translateX(-50%);
+    right: -0.1rem;
+  }
+
+  .charge-move-role {
+    top: 2.25rem;
+    left: -0.1rem;
   }
 
   .charge-move-output {
@@ -640,5 +833,11 @@
   .pause-sheet h2,
   .dev-inspector-sheet h2 {
     font-size: 3rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .move-category-key ul {
+    grid-template-columns: 1fr;
   }
 }

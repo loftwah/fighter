@@ -1,0 +1,66 @@
+{
+  "contractVersion": 1,
+  "characters": [
+    {
+      "id": "character.tux",
+      "slug": "tux",
+      "moves": ["ping", "root-access", "kernel-panic"]
+    },
+    {
+      "id": "character.humpty",
+      "slug": "humpty",
+      "moves": ["egg-on-your-face", "shell-game", "great-fall"]
+    },
+    {
+      "id": "character.moses",
+      "slug": "moses",
+      "moves": ["staff-tap", "part-the-strip", "safe-passage"]
+    },
+    {
+      "id": "character.viking",
+      "slug": "viking",
+      "moves": ["axe-first", "shield-bash", "berserker-oath"]
+    },
+    {
+      "id": "character.ned-kelly",
+      "slug": "ned-kelly",
+      "moves": ["warning-shot", "iron-outlaw", "last-stand"]
+    },
+    {
+      "id": "character.grim-reaper",
+      "slug": "grim-reaper",
+      "moves": ["cold-touch", "deaths-shadow", "final-harvest"]
+    }
+  ],
+  "accessories": [
+    { "id": "accessory.press-pass", "slug": "second-wind" },
+    { "id": "accessory.dead-air", "slug": "dead-air" },
+    { "id": "accessory.field-kit", "slug": "field-kit" },
+    { "id": "accessory.ward-projector", "slug": "ward-projector" },
+    { "id": "accessory.slot-jammer", "slug": "slot-jammer" }
+  ],
+  "modifications": [
+    { "id": "patch.hot-start", "slug": "hot-start" },
+    { "id": "patch.no-flinch", "slug": "no-flinch" },
+    { "id": "patch.heavy-ink", "slug": "power-band" },
+    { "id": "patch.lucky-misprint", "slug": "lucky-charm" }
+  ],
+  "environments": ["arena", "story", "tournament"],
+  "reactionStates": [
+    "hurt",
+    "dodge",
+    "stunned",
+    "defeated",
+    "victory",
+    "tense"
+  ],
+  "futureCharacterRequiredRoles": [
+    "canonical",
+    "idle-a",
+    "idle-b",
+    "reactions",
+    "move-1",
+    "move-2",
+    "move-3"
+  ]
+}

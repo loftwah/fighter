@@ -1,12 +1,7 @@
 export type MissionEvent =
   | { type: "collectionChanged"; distinctCharacterCount: number }
   | { type: "battleEnded"; won: boolean; opponentCharacterIds: string[] }
-  | {
-      type: "vengeanceResolved";
-      opponentCharacterId: string;
-      previouslyLost: boolean;
-      won: boolean;
-    };
+  | { type: "storyBattleEnded"; won: boolean };
 
 export function evaluateMissionProgress(
   missionId: string,
@@ -25,10 +20,8 @@ export function evaluateMissionProgress(
         ? Math.max(current, 1)
         : current;
     case "mission.print-it-personal":
-      return event.type === "vengeanceResolved" &&
-        event.won &&
-        event.previouslyLost
-        ? Math.max(current, 1)
+      return event.type === "storyBattleEnded" && event.won
+        ? Math.min(2, current + 1)
         : current;
     default:
       return current;

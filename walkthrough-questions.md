@@ -6,7 +6,7 @@ The most important high-level conclusion is:
 
 > This is a collectible squad battler with real-time battle-bar combat, character progression, a store, missions, tournaments, multiple story campaigns, and a distinctive static-image presentation built around animated rectangular and square panels.
 
-It deliberately borrows some of the appealing structural ideas from *Teeny Titans*, especially the battle bar, three-action characters, figure collection, upgrades, types, shops, tournaments and mod-style customisation. It deliberately removes open-world walking and exploration. The supplied *Teeny Titans 2* breakdown is useful as system inspiration, but its cities, roaming NPCs, scavenging, day/night exploration and physical traversal are not part of this game. 
+It deliberately borrows some of the appealing structural ideas from the reference series, especially the battle bar, three-action characters, figure collection, upgrades, types, shops, tournaments and mod-style customisation. It deliberately removes open-world walking and exploration. The supplied reference-game breakdown is useful as system inspiration, but its cities, roaming NPCs, scavenging, day/night exploration and physical traversal are not part of this game.
 
 The earlier imported discussion also established that the visual limitation should become the game’s intentional style: static rectangular artwork, image swaps, zooms, slides, shake, hit-stop, flashes, sound and two-frame character motion instead of conventional animation. 
 
@@ -211,7 +211,7 @@ The game does not need:
 * explorable hub cities
 * manually finding quests in a physical environment
 
-Those systems were part of the *Teeny Titans 2* inspiration, but they are not part of this project. 
+Those systems were part of the reference game inspiration, but they are not part of this project.
 
 Anything normally delivered through exploration is converted into structured authored content.
 
@@ -673,7 +673,7 @@ The exact rules around whether player and enemy use:
 
 still require confirmation.
 
-The conversation leaned toward a Teeny Titans-style persistent team bar, but this should be explicitly confirmed before implementation.
+The conversation leaned toward a reference-game-style persistent team bar, but this should be explicitly confirmed before implementation.
 
 ---
 
@@ -1088,7 +1088,7 @@ Possible improvements:
 
 The exact level cap is not decided.
 
-The *Teeny Titans* reference had a level 20 cap, but this project should not assume that exact number.
+The the reference series reference had a level 20 cap, but this project should not assume that exact number.
 
 ## 20.2 Allocated stats
 
@@ -1208,7 +1208,7 @@ A saved loadout may contain:
 
 The game may use mod chips or an original equivalent.
 
-The final terminology should not copy *Teeny Titans* exactly.
+The final terminology should not copy the reference series exactly.
 
 Possible concepts:
 
@@ -3285,7 +3285,7 @@ stun all
 heal one (me)
 heal team (heals are distributed)
 
-Powerups should come out from time to time (tofu in teeny titans) and they either give me
+Powerups should come out from time to time (tofu in the reference series) and they either give me
 
 heal one
 heal team
@@ -3314,7 +3314,7 @@ I am a player. I am in the game. I have 1-3 characters (which I selected before 
 My bar charges and so does the opponent bar.
 I can use one of three actions/attacks. For me to use one my bar has to be charged up enough for it to be used.
 Some actions fire instantly, or some need to be charged up (using the bar)
-Powerups should come in throughout the game/round (tofu in teeny titans) and that was either heal one, heal team, extra attack points, wipe effects, opponent stunned and I would like something similar
+Powerups should come in throughout the game/round (tofu in the reference series) and that was either heal one, heal team, extra attack points, wipe effects, opponent stunned and I would like something similar
 
 15. **Can charge-up actions be interrupted by damage or stun?**
 
@@ -3356,7 +3356,7 @@ Yes. I should be able to use the same character multiple times. Maybe there shou
 
 24. **Does squad synergy count exact matching types only, or can characters possess multiple tags that create several synergies?**
 
-Yes I like the way teeny titans 2 has this. The synergys are character class and also if they're a villain or hero etc. So there should be two factors that can get synergy. I guess that allows 4 different combos. Is that as far as we should push it? My synergy is beast > cute so I have power there and my other synergy is that I'm a good guy/hero and there are 3 of me so I would have the good guy/hero bonus (+3 health) and if there were 2 of me it would be +2 health.
+Yes I like the way the reference game has this. The synergys are character class and also if they're a villain or hero etc. So there should be two factors that can get synergy. I guess that allows 4 different combos. Is that as far as we should push it? My synergy is beast > cute so I have power there and my other synergy is that I'm a good guy/hero and there are 3 of me so I would have the good guy/hero bonus (+3 health) and if there were 2 of me it would be +2 health.
 
 25. **Should a mixed squad receive multiple level-1 synergies at once?**
 
@@ -3370,7 +3370,12 @@ One Occult
 
 Would that produce three separate level-1 bonuses?
 
-This isn't the kind of synergy I had in mind for this game. Teeny titans has the class synergy where your class determines if you have an advantage or not and your group, so if your a villain or a hero and there is +2 or +3 villains you would get +3 power or +3 health or +3 luck (or whatever balanced out to be actually useful) or maybe I just have two of them and one odd one out then I get +2 health
+This isn't the kind of synergy I had in mind for this game. The reference game
+has class synergy where your class determines if you have an advantage or not
+and your group, so if you are a villain or a hero and there are +2 or +3
+villains you would get +3 Power or +3 Health or +3 Fortune (or whatever is
+balanced to be useful). If I just have two of them and one odd one out, then I
+get +2 Health.
 
 26. **Should synergy bonuses be universal, or unique to each type?**
 
@@ -3508,7 +3513,7 @@ Not sure. Maybe? I don't like the idea of it infinitely just getting harder. Lev
 
 53. **Should level differences strongly affect combat?**
 
-I like the Teeny Titans balance. If I find it too hard I should be able to just go level up my characters and come back and win.
+I like the reference series balance. If I find it too hard I should be able to just go level up my characters and come back and win.
 
 54. **Should low-level characters gain catch-up XP?**
 
@@ -3520,7 +3525,7 @@ Not sure. I guess so. We don't want to punish.
 
 56. **Do benched characters receive full, partial or no XP?**
 
-It depends how we do it. In Teeny Titans 2 I can have 7 or 8 characters active but I can only select 3 per battle (up to 3) Only the 3 in the battle should get the XP. Maybe the benched characters can get some too?
+It depends how we do it. In the reference game I can have 7 or 8 characters active but I can only select 3 per battle (up to 3) Only the 3 in the battle should get the XP. Maybe the benched characters can get some too?
 
 57. **Does the entire collection receive passive XP?**
 
@@ -3528,11 +3533,11 @@ Maybe.
 
 58. **Can currency purchase XP items?**
 
-What are currency items and what are XP items? I think we need to consider what this is. XP drives the character's level, power, health etc. We earn currency and we can buy characters, mod chips and upgrades. I can only have one mod chip assigned to my character and it does something like fast bar for a while at the start of a game, more money etc We should copy teeny titans here.
+What are currency items and what are XP items? I think we need to consider what this is. XP drives the character's level, power, health etc. We earn currency and we can buy characters, mod chips and upgrades. I can only have one mod chip assigned to my character and it does something like fast bar for a while at the start of a game, more money etc We should copy the reference series here.
 
 59. **Should duplicate characters be consumed for XP or upgrades?**
 
-Characters were consumed for upgrades to the attacks in Teeny Titans 2. I like this but I'm not sure it is the best way to go? It is up to you.
+Characters were consumed for upgrades to the attacks in the reference game. I like this but I'm not sure it is the best way to go? It is up to you.
 
 60. **Should action upgrades require character level thresholds?**
 
@@ -3608,7 +3613,7 @@ Yes
 
 77. **Can modifications alter action behaviour, or only statistics?**
 
-They can modify anything. For example one would be a modifcation that boosts your bar speed at the start of whenver that character is used in the game. One might be 50% chance of not being interupted for charging attacks, one might be +5 power, please look at Teeny Titans 2 for this.
+They can modify anything. For example one would be a modifcation that boosts your bar speed at the start of whenver that character is used in the game. One might be 50% chance of not being interupted for charging attacks, one might be +5 power, please look at the reference game for this.
 
 78. **Can story-specific modifications exist?**
 
@@ -3796,11 +3801,11 @@ Not sure. I haven't really thought this part out yet.
 
 121. **Does health reset between tournament rounds?**
 
-No. You start with the characters you have assigned (up to 8? or maybe 7? I think teeny titans had 7 or 8). These are the only characters I can use in a tournament once it has started and their health and if they are alive or not carries through the tournament. The tournament has fights but also between fights there are opportunities for luck of the draw things where you can heal, heal team, revive (this should only come up if they can revive), start next round with more attack points etc
+No. You start with the characters you have assigned (up to 8? or maybe 7? I think the reference series had 7 or 8). These are the only characters I can use in a tournament once it has started and their health and if they are alive or not carries through the tournament. The tournament has fights but also between fights there are opportunities for luck of the draw things where you can heal, heal team, revive (this should only come up if they can revive), start next round with more attack points etc
 
 122. **Can the squad be changed between rounds?**
 
-You can have characters in the squad and up to 3 characters can be selected for a game from that squad. I can have as many characters as I want in my inventory/collection but only 7-8 are in the game at once. I can only select my characters for battle from those 7-8. See Teeny Titans 2 for this one. They did this well and in the character select screen I could select my characters (drag and drop), I could select my accessory (see teeny titans 2), it would show the game mode (if not standard) and it showed the class wheel too so you could always see which character type was better than the other etc.
+You can have characters in the squad and up to 3 characters can be selected for a game from that squad. I can have as many characters as I want in my inventory/collection but only 7-8 are in the game at once. I can only select my characters for battle from those 7-8. See the reference game for this one. They did this well and in the character select screen I could select my characters (drag and drop), I could select my accessory (see the reference game), it would show the game mode (if not standard) and it showed the class wheel too so you could always see which character type was better than the other etc.
 
 123. **Can modifications be changed between rounds?**
 
@@ -3846,7 +3851,14 @@ As above. I was thinking that but it should have something. Maybe gold or whatev
 
 133. **Can the player customise enemy levels and builds?**
 
-In quick fight yes and same with tournament mode (tournament should all be able to be custom selected along with presets for all of the story mode tournaments). In story mode the tournaments won't be able to be customized. Enemy levels should be balanced for whenever and whatever it is and well thought out. I should be able to beat higher levels than me within reason but I also shouldn't be able to just beat anyone with my low level characters. I want tournaments to work closely to how they do in teeny titans 2. Difference is we have the tournament mode and we have tournaments in stories. Teeny titans 2 only had tournaments as part of the story. They had legion of doom for their quick match grind system.
+In Quick Fight yes and same with Tournament Mode (tournaments should all be
+custom-selectable, along with presets for all Story Mode tournaments). In Story
+Mode the tournaments will not be customisable. Enemy levels should be balanced
+for when and where they appear. I should be able to beat higher levels within
+reason, but low-level Characters should not beat anyone. Tournament structure
+should stay close to the documented reference behaviour. Our difference is
+that we have standalone Tournament Mode as well as Story tournaments, plus our
+own Quick Fight grind structure.
 
 134. **Can the player use characters they do not own in sandbox mode?**
 
@@ -3865,7 +3877,7 @@ There is only one pool of music and tracks can be used for any purpose
 
 136. **Can Quick Fight apply event or tournament rules?**
 
-Yes, although I'm not sure exactly what this means. Tournaments don't have special rules. Teeny Titans 2 has some different fight modes I would like to carry across.
+Yes, although I'm not sure exactly what this means. Tournaments don't have special rules. the reference game has some different fight modes I would like to carry across.
 
 137. **Should Quick Fight results count toward missions?**
 
@@ -3887,7 +3899,9 @@ Yes absolutely
 
 141. **Can AI inspect the player’s available actions?**
 
-Yes, everything should be visible for both sides at all times. What they have, to bar level, actions, hit points, damage the attacks are going to do. Teeny titans has this
+Yes, everything should be visible for both sides at all times: what they have,
+Charge level, Moves, Health, and predicted damage. The reference game proves
+that this information can remain readable.
 
 142. **Should bosses use bespoke AI rules?**
 
@@ -3953,7 +3967,7 @@ No not really. I want them to be consistent in the WHAT so our framework for the
 
 157. **Should variants be recolours, costume changes, new forms or all three?**
 
-Teeny Titans 2 has recolours/reskins. This works. That's probably all we need here too. Don't make it complicated. I have a character and I can recolour it. I don't actually know what this would change in the game. I don't want to have to generate too much extra artwork if we do it. I guess as long as it is thought out and consistent.
+the reference game has recolours/reskins. This works. That's probably all we need here too. Don't make it complicated. I have a character and I can recolour it. I don't actually know what this would change in the game. I don't want to have to generate too much extra artwork if we do it. I guess as long as it is thought out and consistent.
 
 # P. Audio and music
 
@@ -4036,7 +4050,8 @@ Yes but we don't have cloud yet. I plan to use Cloudflare Workers and Cloudflare
 
 175. **Is the player an explicit character in the story?**
 
-I don't know. They can be but they aren't a big part of it. Teeny Titans 2 let you select from one of the titans but it didn't really have any impact on the game.
+I don't know. They can be, but they are not a big part of it. The reference
+game let you select an avatar, but it did not materially affect the game.
 
 176. **Does the player have a visible avatar?**
 

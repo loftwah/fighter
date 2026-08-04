@@ -1,4 +1,7 @@
-import { resolveImagePath } from "../../assets/registry";
+import {
+  resolveImageObjectPosition,
+  resolveImagePath,
+} from "../../assets/registry";
 import { combatContent } from "../../content/initial-content";
 import type { Difficulty } from "../../combat/types";
 import type { SaveData } from "../../persistence/save";
@@ -19,7 +22,7 @@ export function renderLineupScreen(model: LineupScreenModel): string {
   const encounter = firstRunEncounter(model.save.currentNodeId);
   const lineup = encounter.playerCharacterIds;
   return `
-    <section class="lineup-workbench" aria-labelledby="lineup-title">
+    <section class="lineup-workbench" data-fight-setup aria-labelledby="lineup-title">
       <div class="lineup-heading">
         <button class="text-button" data-route="story">← Back to story</button>
         <h1 id="lineup-title">${
@@ -67,7 +70,7 @@ export function renderLineupScreen(model: LineupScreenModel): string {
           <strong>${formatLabel(model.difficulty)}</strong>
         </div>
         <button class="primary-action" data-command="start-battle">
-          Tear into battle <span aria-hidden="true">→</span>
+          Confirm Lineup · Start Fight <span aria-hidden="true">→</span>
         </button>
       </div>
     </section>
@@ -87,7 +90,12 @@ function renderLineupRelic(
   return `
     <article class="lineup-ticket">
       <div class="ticket-portrait is-${character.typeId}">
-        <img src="${resolveImagePath(character.portraitAssetId)}" data-asset-id="${character.portraitAssetId}" alt="" />
+        <img
+          src="${resolveImagePath(character.portraitAssetId)}"
+          data-asset-id="${character.portraitAssetId}"
+          style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
+          alt=""
+        />
       </div>
       <div>
         <span class="type-mark">${formatLabel(character.typeId)}</span>

@@ -1,0 +1,10 @@
+{
+  "contractVersion": 1,
+  "sourceDirectory": ".impeccable/review/visual-direction-v2/trophy-sources",
+  "outputs": [
+    "assets/generated/trophies/wrong-door-cup.png",
+    "assets/generated/trophies/generic-gold-cup.png",
+    "assets/generated/trophies/generic-silver-tower.png",
+    "assets/generated/trophies/generic-bronze-chaos.png"
+  ]
+}

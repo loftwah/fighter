@@ -2,12 +2,21 @@
 
 ## Authority
 
+- `docs/v2-release-spec.md` is the V2 release scope, acceptance, and freeze
+  source of truth.
+- `docs/release-roadmap.md` is the post-V2 milestone scope source of truth.
 - `docs/game-design.md` is the product and rules source of truth.
 - `docs/technical-design.md` is the architecture source of truth.
+- `docs/brand-and-site.md` is the public naming, domain, landing-page, and
+  promotional-art source of truth.
 - `DESIGN.md` is the implemented visual-system source of truth.
 - `docs/specification-alignment.md` records adopted, deferred, and deliberately
   rejected requirements from the imported comprehensive battler specification.
-- `conversation.txt` and `walkthrough-questions.md` are historical inputs. Do not implement a historical statement that conflicts with the authoritative documents.
+- `docs/v2-source-ledger.md` records how historical inputs remain preserved and
+  traceable after the V2 baseline.
+- `conversation.txt` and `walkthrough-questions.md` are historical inputs. Do
+  not implement a historical statement that conflicts with the authoritative
+  documents, but do consult the ledger before discarding or re-asking it.
 - When a rule changes, update the authoritative document, its tests, and relevant content schema in the same change.
 - Use Australian English in player-facing copy and project documentation.
 

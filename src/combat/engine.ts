@@ -1,13 +1,14 @@
 import { nextRandom, randomBetween } from "./rng";
 import {
   actionPositionForCombatant,
-  chargePerSecond,
+  actionTierProperties,
   hasStatus,
   historicOpeningCharge,
   isAlive,
   monsterDamageMultiplier,
   POSITION_RULES,
   statusMagnitude,
+  teamChargePerSecond,
   TIER_MULTIPLIERS,
   traitSynergy,
   typeMultiplier,
@@ -690,7 +691,11 @@ function damageOne(
   const tier = source.actionTiers[action.id] ?? "stock";
   const levelGrowth = 1 + (source.level - 1) * 0.035;
   const powerGrowth = 1 + sourceStats.power * 0.035;
-  const attackModifier = clamp(1 + statusMagnitude(source, "attack"), 0.25, 4);
+  const attackModifier = clamp(
+    1 + statusMagnitude(source, "attack") + statusMagnitude(source, "empower"),
+    0.25,
+    4,
+  );
   const defenceModifier = clamp(1 + statusMagnitude(target, "defence"), 0.4, 3);
   const typeEffect = typeMultiplier(
     sourceDefinition.typeId,
@@ -783,12 +788,14 @@ function periodicEffectMagnitude(
   source: CombatantState,
   action: ActionDefinition,
   power: number,
+  powerModifier = 1,
 ): number {
   const tier = source.actionTiers[action.id] ?? "stock";
   return Math.max(
     1,
     Math.round(
       power *
+        powerModifier *
         POSITION_RULES[actionPositionForCombatant(source, action)].multiplier *
         TIER_MULTIPLIERS[tier] *
         (1 + source.level * 0.025),
@@ -812,6 +819,7 @@ function resolveAction(
   const action = actionFor(content, pending.actionId);
   const tier = source.actionTiers[action.id] ?? "stock";
   const tierMultiplier = TIER_MULTIPLIERS[tier];
+  const tierProperties = actionTierProperties(action, tier);
   const utilityMultiplier =
     POSITION_RULES[actionPositionForCombatant(source, action)].multiplier *
     tierMultiplier;
@@ -906,8 +914,12 @@ function resolveAction(
               distributesPool ? effect.power / targets.length : effect.power,
               reactionQueue,
               {
-                shieldPiercing: effect.shieldPiercing ?? false,
-                undodgeable: effect.undodgeable ?? false,
+                shieldPiercing: Boolean(
+                  effect.shieldPiercing || tierProperties.shieldPiercing,
+                ),
+                undodgeable: Boolean(
+                  effect.undodgeable || tierProperties.undodgeable,
+                ),
               },
             );
             if (result.landed) {
@@ -958,6 +970,9 @@ function resolveAction(
               source,
               action,
               distributesPool ? effect.power / targets.length : effect.power,
+              effect.kind === "damageOverTime"
+                ? clamp(1 + statusMagnitude(source, "empower"), 1, 4)
+                : 1,
             ),
             remainingMs: effect.durationMs,
             intervalMs: effect.intervalMs,
@@ -987,6 +1002,16 @@ function resolveAction(
             kind: "attack",
             magnitude: effect.magnitude * utilityMultiplier,
             remainingMs: effect.durationMs,
+          });
+          break;
+        case "empowerNextMove":
+          appendStatus(state, events, sideForCombatant(target), target, {
+            kind: "empower",
+            magnitude: effect.magnitude * utilityMultiplier,
+            remainingMs: Math.max(
+              1_000,
+              state.timeLimitMs - state.elapsedMs + 1_000,
+            ),
           });
           break;
         case "modifyDefence":
@@ -1056,6 +1081,7 @@ function resolveAction(
               status.kind === "regeneration" ||
               status.kind === "reflection" ||
               status.kind === "dodgeCounter" ||
+              status.kind === "empower" ||
               (status.kind === "attack" && status.magnitude > 0) ||
               (status.kind === "defence" && status.magnitude < 0) ||
               (status.kind === "evasion" && status.magnitude > 0) ||
@@ -1073,6 +1099,24 @@ function resolveAction(
           break;
       }
     }
+  }
+
+  const consumesEmpower = action.effects.some(
+    (effect) => effect.kind === "damage" || effect.kind === "damageOverTime",
+  );
+  if (consumesEmpower) {
+    source.statuses = source.statuses.filter((status) => {
+      if (status.kind !== "empower") {
+        return true;
+      }
+      emit(state, events, {
+        type: "statusRemoved",
+        side: source.side,
+        targetId: source.instanceId,
+        message: status.kind,
+      });
+      return false;
+    });
   }
 
   const dealtDirectDamage = events
@@ -1627,13 +1671,7 @@ function tickBar(
   if (hasStatus(active, "stun")) {
     return;
   }
-  const chargeRateMultiplier = team.statuses
-    .filter((status) => status.kind === "chargeRate")
-    .reduce((multiplier, status) => multiplier * status.multiplier, 1);
-  const perSecond =
-    chargePerSecond(active.stats.tempo, team.echoChargeBonus) *
-    (1 + team.traitBonuses.mythic) *
-    chargeRateMultiplier;
+  const perSecond = teamChargePerSecond(team);
   const before = team.bar;
   team.bar = clamp(team.bar + perSecond * (deltaMs / 1000), 0, 100);
   if (Math.floor(team.bar) !== Math.floor(before)) {
@@ -1798,6 +1836,9 @@ export function chooseAiCommand(
       if (effect.kind === "stun") {
         return total + effect.durationMs * effect.chance * 0.02;
       }
+      if (effect.kind === "empowerNextMove") {
+        return total + effect.magnitude * 60;
+      }
       return total + 3;
     }, 0);
   const affordableFor = (combatant: CombatantState) =>
@@ -1848,9 +1889,18 @@ export function chooseAiCommand(
   }
 
   if (state.difficulty === "easy") {
+    const easyChoice =
+      statusMagnitude(active, "empower") > 0
+        ? (available.find((action) =>
+            action.effects.some(
+              (effect) =>
+                effect.kind === "damage" || effect.kind === "damageOverTime",
+            ),
+          ) ?? available[0])
+        : available[0];
     return {
       kind: "action",
-      actionId: available[0]?.id ?? active.actionIds[0],
+      actionId: easyChoice?.id ?? active.actionIds[0],
     };
   }
 
@@ -1879,6 +1929,38 @@ export function predictedDamage(
   content: CombatContent,
 ): number {
   const source = activeCombatant(teamFor(state, side));
+  return predictedDamageWithAttackModifier(
+    state,
+    side,
+    actionId,
+    content,
+    clamp(
+      1 +
+        statusMagnitude(source, "attack") +
+        statusMagnitude(source, "empower"),
+      0.25,
+      4,
+    ),
+  );
+}
+
+export function predictedBaseDamage(
+  state: BattleState,
+  side: Side,
+  actionId: string,
+  content: CombatContent,
+): number {
+  return predictedDamageWithAttackModifier(state, side, actionId, content, 1);
+}
+
+function predictedDamageWithAttackModifier(
+  state: BattleState,
+  side: Side,
+  actionId: string,
+  content: CombatContent,
+  attackModifier: number,
+): number {
+  const source = activeCombatant(teamFor(state, side));
   const target = activeCombatant(teamFor(state, opposingSide(side)));
   const sourceDefinition = characterFor(content, source);
   const targetDefinition = characterFor(content, target);
@@ -1902,6 +1984,7 @@ export function predictedDamage(
         TIER_MULTIPLIERS[tier] *
         (1 + (source.level - 1) * 0.035) *
         (1 + source.stats.power * 0.035) *
+        attackModifier *
         typeMultiplier(sourceDefinition.typeId, targetDefinition.typeId) *
         monsterDamageMultiplier(teamFor(state, target.side).traitBonuses),
     ),

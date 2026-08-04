@@ -1,8 +1,9 @@
 import type {
-  FramedShotMetadataV1,
+  FramedShotMetadataV2,
   NormalizedPoint,
   NormalizedRect,
 } from "../../assets/registry";
+import type { Side } from "../../combat/types";
 
 export interface Size {
   width: number;
@@ -15,7 +16,7 @@ export interface Rect extends Size {
 }
 
 export interface FramedShotFramingOptions extends Pick<
-  FramedShotMetadataV1,
+  FramedShotMetadataV2,
   "focalPoint" | "safeCrop"
 > {
   /**
@@ -38,6 +39,16 @@ export interface CoverCrop {
   focalInDestination: NormalizedPoint;
 }
 
+export function shouldMirrorFramedShot(
+  metadata: Pick<FramedShotMetadataV2, "facing" | "mirrorPolicy">,
+  side: Side,
+): boolean {
+  if (metadata.mirrorPolicy !== "side-aware") return false;
+  return side === "player"
+    ? metadata.facing === "left"
+    : metadata.facing === "right";
+}
+
 export interface BattleLayout {
   orientation: "landscape" | "portrait";
   viewport: Rect;
@@ -46,6 +57,14 @@ export interface BattleLayout {
   enemyFrame: Rect;
   cutInFrame: Rect;
   impactFrame: Rect;
+}
+
+export interface ComicPanelLayout {
+  orientation: "landscape" | "portrait";
+  viewport: Rect;
+  leadFrame: Rect;
+  actionFrame: Rect;
+  reactionFrame: Rect;
 }
 
 const clamp = (value: number, minimum: number, maximum: number): number =>
@@ -244,5 +263,29 @@ export const calculateBattleLayout = (
     enemyFrame: rectFromViewport(width, height, 0.52, 0.15, 0.44, 0.25),
     cutInFrame: rectFromViewport(width, height, 0.04, 0.18, 0.92, 0.5),
     impactFrame: rectFromViewport(width, height, 0.18, 0.29, 0.64, 0.25),
+  };
+};
+
+export const calculateComicPanelLayout = (
+  width: number,
+  height: number,
+): ComicPanelLayout => {
+  assertPositiveSize("viewport", { width, height });
+  const viewport: Rect = { x: 0, y: 0, width, height };
+  if (width >= height) {
+    return {
+      orientation: "landscape",
+      viewport,
+      leadFrame: rectFromViewport(width, height, 0.02, 0.17, 0.3, 0.67),
+      actionFrame: rectFromViewport(width, height, 0.29, 0.05, 0.44, 0.88),
+      reactionFrame: rectFromViewport(width, height, 0.7, 0.19, 0.28, 0.63),
+    };
+  }
+  return {
+    orientation: "portrait",
+    viewport,
+    leadFrame: rectFromViewport(width, height, 0.04, 0.04, 0.56, 0.3),
+    actionFrame: rectFromViewport(width, height, 0.07, 0.3, 0.86, 0.45),
+    reactionFrame: rectFromViewport(width, height, 0.4, 0.72, 0.56, 0.24),
   };
 };

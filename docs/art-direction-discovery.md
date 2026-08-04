@@ -2,7 +2,7 @@
 
 Status: accepted product direction and proposed visual-production brief  
 Recorded: 2026-07-30  
-Implementation status: the current Riot Relics visual system remains the
+Implementation status: the current loftwah/fighter visual system remains the
 implemented truth in `DESIGN.md` until a replacement direction is selected,
 built, inspected, and documented.
 
@@ -27,7 +27,7 @@ The roster may become culturally chaotic. The engine may not.
 - Comedy should be character-specific, absurd, mischievous, and willing to
   become sharp. Generic profanity, copied catchphrases, and interchangeable
   “edgy” dialogue are not a voice.
-- Teeny Titans 2 is the functional benchmark for collection, battle clarity,
+- the reference game is the functional benchmark for collection, battle clarity,
   action availability, switching, and approachable mechanical reuse. Its
   protected characters, writing, artwork, and exact presentation are not source
   assets.

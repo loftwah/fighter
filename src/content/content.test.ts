@@ -4,11 +4,13 @@ import { join } from "node:path";
 import { imageAssets, presentationAssets } from "../assets/registry";
 import { audioAssets, musicTracks } from "../audio/registry";
 import { COMBAT_TYPE_WHEEL } from "../combat/rules";
+import { quickFightSeed } from "../combat/quick-fight-seed";
 import type { ActionDefinition } from "../combat/types";
 import {
   accessories,
   actions,
   characters,
+  quickFightDefaults,
   storyNodes,
 } from "./initial-content";
 import { launchCharacterProvenance } from "./character-provenance";
@@ -24,6 +26,42 @@ describe("authored content", () => {
     expect(() =>
       validateContent(actions, characters, accessories),
     ).not.toThrow();
+  });
+
+  it("gives every launch Move one explicit tactical category", () => {
+    expect(
+      actions.every((action) =>
+        [
+          "attack",
+          "teamAttack",
+          "stun",
+          "teamStun",
+          "support",
+          "teamSupport",
+          "strip",
+          "special",
+        ].includes(action.category),
+      ),
+    ).toBe(true);
+    expect(new Set(actions.map((action) => action.category))).toEqual(
+      new Set([
+        "attack",
+        "teamAttack",
+        "stun",
+        "support",
+        "teamSupport",
+        "strip",
+        "special",
+      ]),
+    );
+  });
+
+  it("makes every charged launch Move declare its interruption spend policy", () => {
+    expect(
+      actions
+        .filter((action) => action.chargeMs > 0)
+        .every((action) => action.interruptionPolicy === "spend"),
+    ).toBe(true);
   });
 
   it("ships the accepted 6×6×6 launch roster contract", () => {
@@ -65,6 +103,67 @@ describe("authored content", () => {
     });
   });
 
+  it("makes Viking the accessible launch benchmark", () => {
+    expect(quickFightDefaults.playerIds[0]).toBe("character.viking");
+    expect(quickFightDefaults.enemyIds).toEqual(["character.grim-reaper"]);
+    expect(quickFightSeed(quickFightDefaults)).toBe(quickFightDefaults.seed);
+
+    const viking = characters.find(
+      (character) => character.id === "character.viking",
+    );
+    expect(viking?.actionIds).toEqual([
+      "action.viking.shield-bash",
+      "action.viking.axe-first",
+      "action.viking.berserker-oath",
+    ]);
+
+    const battleBoast = actions.find(
+      (action) => action.id === "action.viking.shield-bash",
+    );
+    expect(battleBoast).toMatchObject({
+      name: "Battle Boast",
+      category: "support",
+      position: "1L",
+      effects: [
+        {
+          kind: "empowerNextMove",
+          target: "self",
+          magnitude: 0.4,
+        },
+      ],
+    });
+
+    const returningAxe = actions.find(
+      (action) => action.id === "action.viking.axe-first",
+    );
+    expect(returningAxe).toMatchObject({
+      position: "2L",
+      tierProperties: {
+        gold: { undodgeable: true },
+      },
+    });
+
+    const finisher = actions.find(
+      (action) => action.id === "action.viking.berserker-oath",
+    );
+    expect(finisher).toMatchObject({
+      category: "attack",
+      position: "3L",
+    });
+    expect(finisher?.effects.some((effect) => effect.kind === "stun")).toBe(
+      true,
+    );
+    expect(
+      finisher?.effects.find((effect) => effect.kind === "stun"),
+    ).toMatchObject({
+      chance: 0.72,
+      requiresHit: true,
+    });
+    expect(finisher?.effects.some((effect) => effect.kind === "damage")).toBe(
+      true,
+    );
+  });
+
   it("tracks a validated rights-review record for every launch Character", () => {
     const validatedProvenance = launchCharacterProvenance.map((entry) =>
       characterProvenanceSchema.parse(entry),
@@ -78,6 +177,53 @@ describe("authored content", () => {
         (entry) => entry.rightsStatus !== "approved-for-distribution",
       ),
     ).toBe(true);
+  });
+
+  it("ships a complete production-art package for every launch Character", () => {
+    for (const character of characters) {
+      expect(
+        imageAssets[character.portraitAssetId]?.path,
+        `${character.id} canonical art`,
+      ).toContain("/assets/generated/launch-roster/");
+      for (const assetId of character.idleAssetIds) {
+        expect(
+          imageAssets[assetId]?.path,
+          `${character.id} idle art`,
+        ).toContain("/assets/generated/launch-roster/");
+        expect(imageAssets[assetId]?.framedShot).toMatchObject({
+          shotRole: "character-idle",
+          facing: "right",
+          mirrorPolicy: "side-aware",
+          textPolicy: "none",
+        });
+      }
+      const reactionAssetId = character.reactionAssetId;
+      expect(reactionAssetId, `${character.id} reaction binding`).toBeTruthy();
+      if (!reactionAssetId) continue;
+      expect(
+        imageAssets[reactionAssetId]?.path,
+        `${character.id} reaction art`,
+      ).toContain("/assets/generated/launch-roster/");
+
+      for (const actionId of character.actionIds) {
+        const action = actions.find((candidate) => candidate.id === actionId)!;
+        expect(
+          presentationAssets[action.presentationId]?.path,
+          `${action.id} Move cut-in`,
+        ).toContain("/assets/generated/launch-roster/");
+      }
+    }
+
+    for (const accessory of accessories) {
+      expect(imageAssets[accessory.imageAssetId]?.path, accessory.id).toContain(
+        "/assets/generated/launch-roster/accessories/",
+      );
+      expect(imageAssets[accessory.imageAssetId]?.framedShot).toMatchObject({
+        shotRole: "accessory",
+        mirrorPolicy: "never",
+        textPolicy: "none",
+      });
+    }
   });
 
   it("registers one purpose-specific theme for every launch Character", () => {

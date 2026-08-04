@@ -5,6 +5,16 @@ export type BattleOutcome = "active" | "playerWon" | "enemyWon";
 export type ActionPosition =
   "1L" | "1" | "1H" | "2L" | "2" | "2H" | "3L" | "3" | "3H";
 
+export type MoveCategory =
+  | "attack"
+  | "teamAttack"
+  | "stun"
+  | "teamStun"
+  | "support"
+  | "teamSupport"
+  | "strip"
+  | "special";
+
 export type TargetKind =
   "self" | "activeAlly" | "allAllies" | "activeEnemy" | "allEnemies";
 
@@ -22,6 +32,12 @@ export type CharacterTrait =
 
 export type TraitScoreRecord = Record<CharacterTrait, number>;
 export type TraitBonusRecord = Record<CharacterTrait, number>;
+export type ActionTier = "stock" | "gold" | "platinum";
+
+export interface ActionTierProperties {
+  undodgeable?: boolean;
+  shieldPiercing?: boolean;
+}
 
 export interface StatBlock {
   health: number;
@@ -76,6 +92,12 @@ export type ActionEffect =
       target: TargetKind;
       magnitude: number;
       durationMs: number;
+      requiresHit?: boolean;
+    }
+  | {
+      kind: "empowerNextMove";
+      target: TargetKind;
+      magnitude: number;
       requiresHit?: boolean;
     }
   | {
@@ -150,9 +172,14 @@ export interface ActionDefinition {
   id: string;
   name: string;
   description: string;
+  category: MoveCategory;
   position: ActionPosition;
   chargeMs: number;
+  interruptionPolicy?: "spend";
   effects: ActionEffect[];
+  tierProperties?: Partial<
+    Record<Exclude<ActionTier, "stock">, ActionTierProperties>
+  >;
   presentationId: string;
   audioId: string;
 }
@@ -206,10 +233,9 @@ export interface AccessoryDefinition {
   id: string;
   name: string;
   description: string;
+  imageAssetId: string;
   effects: AccessoryEffect[];
 }
-
-export type ActionTier = "stock" | "gold" | "platinum";
 
 export interface CombatantBuild {
   instanceId?: string;
@@ -235,7 +261,8 @@ export interface StatusState {
     | "reflection"
     | "dodgeCounter"
     | "damageOverTime"
-    | "regeneration";
+    | "regeneration"
+    | "empower";
   remainingMs: number;
   magnitude: number;
   intervalMs?: number;

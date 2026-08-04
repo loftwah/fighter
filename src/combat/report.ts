@@ -45,7 +45,7 @@ export interface BattleReportTick {
 
 export interface BattleReportDebugAction {
   elapsedMs: number;
-  action: "addCharge" | "step" | "pause" | "resume" | "copyState";
+  action: "addCharge" | "step" | "pause" | "resume" | "copyState" | "setSpeed";
   side?: Side;
   amount?: number;
 }

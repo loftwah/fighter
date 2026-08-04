@@ -8,15 +8,17 @@ import {
   fallbackFramedShot,
   fallbackImagePath,
   FRAMED_SHOT_CONTRACT_VERSION,
+  imageFallbackChain,
   imageAssetList,
   imageAssets,
   nextImageFallback,
   presentationAssetList,
   presentationAssets,
   resolveFramedShotMetadata,
+  resolveImageObjectPosition,
   resolveImagePath,
   type FramedShotAspect,
-  type FramedShotMetadataV1,
+  type FramedShotMetadataV2,
 } from "./registry";
 
 const pngSignature = Buffer.from([
@@ -28,6 +30,16 @@ const aspectRatios: Record<FramedShotAspect, number> = {
   "4:5": 4 / 5,
   "1:1": 1,
   "3:2": 3 / 2,
+};
+
+const exactDimensions: Record<
+  FramedShotAspect,
+  { width: number; height: number }
+> = {
+  "16:9": { width: 1536, height: 864 },
+  "4:5": { width: 1024, height: 1280 },
+  "1:1": { width: 1024, height: 1024 },
+  "3:2": { width: 1536, height: 1024 },
 };
 
 interface PngContract {
@@ -61,7 +73,7 @@ function readPngContract(publicPath: string): PngContract {
 }
 
 describe("opaque framed-shot asset registry", () => {
-  it("gives every image and presentation a valid v1 framed-shot contract", () => {
+  it("gives every image and presentation a valid v2 framed-shot contract", () => {
     expect(() => assertValidFramedShotRegistries()).not.toThrow();
 
     for (const asset of [
@@ -94,16 +106,20 @@ describe("opaque framed-shot asset registry", () => {
     ).toThrow("test registry contains duplicate asset ID image.duplicate");
   });
 
-  it("authors facing from each shipped character frame", () => {
+  it("keeps canonical art camera-facing and battle idles directional", () => {
+    for (const id of ["image.tux.canonical", "image.viking.canonical"]) {
+      expect(imageAssets[id]?.framedShot.facing, id).toBe("camera");
+      expect(imageAssets[id]?.framedShot.mirrorPolicy, id).toBe("never");
+    }
     for (const id of [
-      "image.tux.canonical",
       "image.humpty.idle.a",
       "image.moses.idle.b",
-      "image.viking.canonical",
       "image.ned-kelly.idle.a",
       "image.grim-reaper.idle.b",
     ]) {
-      expect(imageAssets[id]?.framedShot.facing, id).toBe("camera");
+      expect(imageAssets[id]?.framedShot.facing, id).toBe("right");
+      expect(imageAssets[id]?.framedShot.mirrorPolicy, id).toBe("side-aware");
+      expect(imageAssets[id]?.framedShot.textPolicy, id).toBe("none");
     }
   });
 
@@ -128,6 +144,10 @@ describe("opaque framed-shot asset registry", () => {
         `${asset.id} does not match ${asset.framedShot.aspect}`,
       ).toBeCloseTo(aspectRatios[asset.framedShot.aspect], 3);
       expect(
+        { width: png.width, height: png.height },
+        `${asset.id} does not use the production canvas for ${asset.framedShot.aspect}`,
+      ).toEqual(exactDimensions[asset.framedShot.aspect]);
+      expect(
         [4, 6],
         `${asset.id} has an alpha-bearing PNG color type`,
       ).not.toContain(png.colorType);
@@ -139,7 +159,7 @@ describe("opaque framed-shot asset registry", () => {
   });
 
   it("rejects invalid crops and mismatched frame classes", () => {
-    const invalidCrop: FramedShotMetadataV1 = {
+    const invalidCrop: FramedShotMetadataV2 = {
       ...fallbackFramedShot,
       focalPoint: { x: 0.9, y: 0.5 },
       safeCrop: { x: 0.1, y: 0.1, width: 0.5, height: 0.8 },
@@ -148,13 +168,23 @@ describe("opaque framed-shot asset registry", () => {
       assertValidFramedShotMetadata("image.test.invalid-crop", invalidCrop),
     ).toThrow("focal point outside its safe crop");
 
-    const invalidAspect: FramedShotMetadataV1 = {
+    const invalidAspect: FramedShotMetadataV2 = {
       ...fallbackFramedShot,
       aspect: "16:9",
     };
     expect(() =>
       assertValidFramedShotMetadata("image.test.invalid-aspect", invalidAspect),
     ).toThrow("frame class portrait does not match 16:9");
+
+    const mirroredCopy: FramedShotMetadataV2 = {
+      ...fallbackFramedShot,
+      facing: "right",
+      mirrorPolicy: "side-aware",
+      textPolicy: "authored-copy",
+    };
+    expect(() =>
+      assertValidFramedShotMetadata("image.test.mirrored-copy", mirroredCopy),
+    ).toThrow("cannot mirror authored copy");
   });
 
   it("preserves the image fallback chain and supplies fallback metadata", () => {
@@ -168,5 +198,17 @@ describe("opaque framed-shot asset registry", () => {
     });
     expect(resolveImagePath("image.missing")).toBe(fallbackImagePath);
     expect(resolveFramedShotMetadata("image.missing")).toBe(fallbackFramedShot);
+    expect(resolveImageObjectPosition("image.tux.canonical")).toBe("50% 38%");
+    expect(
+      imageFallbackChain("image.intro.launch-roster.portrait").map(
+        ({ id }) => id,
+      ),
+    ).toEqual([
+      "image.intro.launch-roster.portrait",
+      "image.intro.launch-roster",
+      "image.story.first-run",
+      "image.arena.first-run",
+      "image.placeholder.generic",
+    ]);
   });
 });

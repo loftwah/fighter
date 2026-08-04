@@ -1,4 +1,6 @@
+import { missions } from "../content/initial-content";
 import type { SaveData } from "../persistence/save";
+import { tournamentDefinitions } from "../tournaments/catalog";
 
 export type FirstRunBattleNodeId = "story.first-run.02" | "story.first-run.05";
 
@@ -16,6 +18,20 @@ export interface FirstRunEncounter {
 }
 
 export const FIRST_RUN_ENDING_REWARD = 180;
+export const FIRST_RUN_REQUIRED_MISSION_IDS = [
+  "mission.fresh-ink",
+  "mission.invoice-denied",
+  "mission.print-it-personal",
+] as const;
+export const FIRST_RUN_REQUIRED_TROPHY_IDS = [
+  tournamentDefinitions["tournament.cheap-seats"]!.trophyId,
+];
+
+export interface FirstRunCompletionStatus {
+  ready: boolean;
+  incompleteMissionIds: string[];
+  missingTrophyIds: string[];
+}
 
 const firstRunNodeIds = [
   "story.first-run.00",
@@ -103,12 +119,44 @@ export function isFirstRunNodeReached(
   return currentIndex >= 0 && targetIndex >= 0 && currentIndex >= targetIndex;
 }
 
+export function firstRunCompletionStatus(
+  save: SaveData,
+): FirstRunCompletionStatus {
+  const incompleteMissionIds = FIRST_RUN_REQUIRED_MISSION_IDS.filter(
+    (missionId) => {
+      if (save.claimedMissionIds.includes(missionId)) {
+        return false;
+      }
+      const mission = missions.find((candidate) => candidate.id === missionId);
+      return (
+        !mission || (save.missionProgress[missionId] ?? 0) < mission.target
+      );
+    },
+  );
+  const missingTrophyIds = FIRST_RUN_REQUIRED_TROPHY_IDS.filter(
+    (trophyId) => !save.tournamentTrophyIds.includes(trophyId),
+  );
+  return {
+    ready: incompleteMissionIds.length === 0 && missingTrophyIds.length === 0,
+    incompleteMissionIds,
+    missingTrophyIds,
+  };
+}
+
 export function claimFirstRunEnding(sourceSave: SaveData): {
   claimed: boolean;
   save: SaveData;
+  blockedBy: FirstRunCompletionStatus | null;
 } {
   if (sourceSave.clearedNodeIds.includes("story.first-run.07")) {
-    return { claimed: false, save: sourceSave };
+    return { claimed: false, save: sourceSave, blockedBy: null };
+  }
+  if (sourceSave.currentNodeId !== "story.first-run.07") {
+    return { claimed: false, save: sourceSave, blockedBy: null };
+  }
+  const completion = firstRunCompletionStatus(sourceSave);
+  if (!completion.ready) {
+    return { claimed: false, save: sourceSave, blockedBy: completion };
   }
   const save = structuredClone(sourceSave);
   save.stamps += FIRST_RUN_ENDING_REWARD;
@@ -117,5 +165,5 @@ export function claimFirstRunEnding(sourceSave: SaveData): {
   if (!save.revealedRivalIds.includes("character.ned-kelly")) {
     save.revealedRivalIds.push("character.ned-kelly");
   }
-  return { claimed: true, save };
+  return { claimed: true, save, blockedBy: null };
 }

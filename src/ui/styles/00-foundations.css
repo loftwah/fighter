@@ -15,6 +15,13 @@
   --ink: #14151a;
   --paper-muted: #d8d1bf;
   --focus: #8de1ff;
+  --charge-green: #8eef5d;
+  --move-support: #55b96a;
+  --move-team-attack: #ff8a3d;
+  --move-team-stun: #d98cff;
+  --move-team-support: #4dd4c6;
+  --tier-silver: #b9c3cc;
+  --tier-gold: #e2b531;
   --display: "League Gothic", "Arial Narrow", sans-serif;
   --body: "Atkinson Hyperlegible", ui-sans-serif, sans-serif;
   --shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%);

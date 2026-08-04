@@ -1,10 +1,14 @@
-# Riot Relics view inventory
+# LOFTWAH FIGHTER view inventory
 
 Status: authoritative interface map for the current prototype.
 
 The application opens at a launcher. A game mode does not exist on screen until
 the player deliberately starts or resumes it. Global navigation and in-game
 navigation are separate.
+
+`docs/view-mockup-programme.md` owns the batched composition-review process.
+Mock-up choices do not change this inventory until an accepted answer is
+reconciled into the relevant authority and surface brief.
 
 Status terms: **implemented** is usable now, **partial** has a usable subset,
 and **planned** is an accepted contract that still needs implementation.
@@ -21,7 +25,7 @@ and **planned** is an accepted contract that still needs implementation.
 | View             | Status      | Purpose                                                   | Contains                                                                                        | Primary exits               |
 | ---------------- | ----------- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------- |
 | Main Menu        | Implemented | Choose what kind of game to play                          | Story Mode, Quick Fight, Tournament, current Collector summary, Profile, Settings, Achievements | Selected game setup/session |
-| Profile          | Implemented | Manage player identity and progression records            | Collector name, profile selector, story progress, collection, badges, achievement count         | Main Menu                   |
+| Profile          | Implemented | Manage player identity and progression records            | Collector name, profile selector, story progress, collection, Trophy cabinet, achievement count | Main Menu                   |
 | Achievements     | Implemented | Inspect retroactive profile awards                        | Unlocked and in-progress award tickets                                                          | Main Menu, Profile          |
 | Settings         | Implemented | Manage application behaviour and local data               | Difficulty, reduced motion, music/SFX/dialogue controls, local-data recovery/export information | Main Menu                   |
 | Storage Recovery | Implemented | Explain invalid local data without silently destroying it | Warning, backup download, safe-default action                                                   | Prior view                  |
@@ -49,20 +53,20 @@ report. They are intentionally not standalone routes.
 
 ## Story Mode views
 
-| View                          | Status              | Purpose                                        | Contains                                                                                                                     | Primary exits                          |
-| ----------------------------- | ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| Story Home                    | Implemented         | Continue the selected story object             | Current scene, dialogue, next action, complete node path                                                                     | Next node, Story navigation, Main Menu |
-| Character Selection           | Partial             | Select or confirm a 1–3 Relic Lineup           | Player Relics, loaners, opponent preview, synergy, visual class wheel, difficulty; Story currently confirms authored Lineups | Story Battle, Story Home               |
-| Accessory Selection           | Planned             | Select the one shared team Accessory           | Owned/loaned Accessories, effect, charge rule, selection state                                                               | Character Selection, Battle            |
-| Story Battle                  | Implemented         | Play an authored fight                         | Arena, both Lineups, health, Moves, player Charge Strip, timer, matchup, event feedback                                      | Result                                 |
-| Story Result                  | Implemented         | Explain outcome and progression                | Verdict, Stamps, XP, first-clear reward, report ID                                                                           | Retry, Story Home                      |
-| Collection and Lore           | Implemented         | Inspect discoveries and configure owned builds | Revealed lore, locked files, owned copies, levels, XP, Patches                                                               | Story navigation                       |
-| Character Points and Upgrades | Partial             | Allocate points and manage Moves               | Persisted XP/unspent points and tiers; direct allocation/reorder/upgrade controls still planned                              | Collection                             |
-| Modifications                 | Implemented in part | Equip per-Relic build modifiers                | Reusable Patches; shared team Accessories remain planned                                                                     | Collection, Selection                  |
-| Story Store                   | Implemented         | Buy story progression content                  | Story-gated rotating Relics and Patches, balance, story node continuation                                                    | Story navigation                       |
-| Story Missions                | Implemented         | Inspect and claim story objectives             | Mission requirements, progress, rewards, claim state                                                                         | Story navigation                       |
-| Story Tournament Node         | Implemented         | Play the authored tournament inside the story  | Cup bracket, locked Case, carried health, interlude drops                                                                    | Tournament Battle, Story Home          |
-| Story Ending                  | Implemented         | Archive the story run                          | Ending scene, badge, rival reveal, final reward                                                                              | Story Home, Main Menu                  |
+| View                          | Status              | Purpose                                        | Contains                                                                                                                     | Primary exits                                |
+| ----------------------------- | ------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Story Home                    | Implemented         | Continue the selected story object             | Current scene, dialogue, next action, complete node path                                                                     | Next node, Story navigation, Main Menu       |
+| Character Selection           | Partial             | Select or confirm a 1–3 Relic Lineup           | Player Relics, loaners, opponent preview, synergy, visual class wheel, difficulty; Story currently confirms authored Lineups | Story Battle, Story Home                     |
+| Accessory Selection           | Planned             | Select the one shared team Accessory           | Owned/loaned Accessories, effect, charge rule, selection state                                                               | Character Selection, Battle                  |
+| Story Battle                  | Implemented         | Play an authored fight                         | Arena, both Lineups, health, Moves, player Charge Strip, timer, matchup, event feedback                                      | Result                                       |
+| Story Result                  | Implemented         | Explain outcome and progression                | Verdict, Stamps, XP, first-clear reward, report ID                                                                           | Retry, Story Home                            |
+| Collection and Lore           | Implemented         | Inspect discoveries and configure owned builds | Revealed lore, locked files, owned copies, levels, XP, Patches                                                               | Story navigation                             |
+| Character Points and Upgrades | Partial             | Allocate points and manage Moves               | Persisted XP/unspent points and tiers; direct allocation/reorder/upgrade controls still planned                              | Collection                                   |
+| Modifications                 | Implemented in part | Equip per-Relic build modifiers                | Reusable Patches; shared team Accessories remain planned                                                                     | Collection, Selection                        |
+| Story Store                   | Implemented         | Buy story progression content                  | Story-gated rotating Relics and Patches, balance, story node continuation                                                    | Story navigation                             |
+| Story Missions                | Implemented         | Inspect and claim story objectives             | Mission requirements, progress, rewards, claim state                                                                         | Story navigation                             |
+| Story Tournament Node         | Implemented         | Play the authored tournament inside the story  | Cup bracket, locked Case, carried health, interlude drops                                                                    | Tournament Battle, Story Home                |
+| Story Ending                  | Implemented         | Verify and archive the story run               | Required Mission/Trophy checklist, ending scene, rival reveal, final reward, end-game Quick Fight link                       | Missions, Tournament, Quick Fight, Main Menu |
 
 Store and Missions exist only inside an active Story Mode session.
 
@@ -76,18 +80,18 @@ Store and Missions exist only inside an active Story Mode session.
 
 ## Tournament views
 
-| View                      | Status      | Purpose                                          | Contains                                                                           | Primary exits                              |
-| ------------------------- | ----------- | ------------------------------------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------ |
-| Tournament Lobby          | Implemented | Start or resume a standalone tournament object   | Tournament identity, Standard Build rules, current round, Case health, badge state | Tournament Battle, Main Menu               |
-| Tournament Case Selection | Planned     | Select a locked Case for a custom standalone run | Reusable character selector, Standard/Custom contract, Accessory                   | Tournament Lobby                           |
-| Tournament Interlude      | Implemented | Choose one persistent between-round effect       | Heal active, heal Case/revive, or next-round Charge                                | Next round, Main Menu                      |
-| Tournament Battle         | Implemented | Play the current authored round                  | Common battle surface plus round identity                                          | Tournament Result                          |
-| Tournament Result         | Implemented | Explain round/run outcome                        | Round verdict, XP/Stamps, Cup purse when complete                                  | Interlude, restart from Round 1, Main Menu |
+| View                      | Status      | Purpose                                          | Contains                                                                                                    | Primary exits                                       |
+| ------------------------- | ----------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Tournament Lobby          | Implemented | Start or resume a standalone tournament object   | Tournament identity, illustrated Trophy, Standard Build rules, current round, Case health, Trophy ownership | Tournament Battle, Main Menu                        |
+| Tournament Case Selection | Planned     | Select a locked Case for a custom standalone run | Reusable character selector, Standard/Custom contract, Accessory                                            | Tournament Lobby                                    |
+| Tournament Interlude      | Implemented | Choose one persistent between-round effect       | Heal active, heal Case/revive, or next-round Charge                                                         | Next round, Main Menu                               |
+| Tournament Battle         | Implemented | Play the current authored round                  | Common battle surface plus round identity                                                                   | Tournament Result                                   |
+| Tournament Result         | Implemented | Explain round/run outcome                        | Round verdict, XP/Stamps, Cup purse and one-time Trophy award when complete                                 | Interlude, restart from Round 1, Profile, Main Menu |
 
 ## Shared battle composition
 
 The battle surface is one full-stage viewport modelled on the proven
-action-battler structure in the supplied Teeny Titans 2 reference:
+action-battler structure in the supplied reference-game brief:
 
 1. A full-bleed Kinetic Print arena owns most of the viewport.
 2. Compact health readouts anchor the top corners and portrait Lineups hug the
@@ -116,7 +120,7 @@ action-battler structure in the supplied Teeny Titans 2 reference:
 
 ## Navigation rules
 
-- The Riot Relics wordmark returns to the Main Menu; it never silently starts a
+- The LOFTWAH FIGHTER wordmark returns to the Main Menu; it never silently starts a
   story.
 - Entering Story, Quick Fight, or Tournament is always an explicit action.
 - Leaving a mode returns to the Main Menu without deleting its persisted state.

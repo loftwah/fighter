@@ -1,4 +1,4 @@
-export const FRAMED_SHOT_CONTRACT_VERSION = 1 as const;
+export const FRAMED_SHOT_CONTRACT_VERSION = 2 as const;
 
 export type FramedShotFrameClass =
   "landscape" | "portrait" | "square" | "contact-sheet";
@@ -8,15 +8,23 @@ export type FramedShotAspect = "16:9" | "4:5" | "1:1" | "3:2";
 export type FramedShotFacing =
   "left" | "right" | "camera" | "none" | "multiple";
 
+export type FramedShotMirrorPolicy = "side-aware" | "never";
+
+export type FramedShotTextPolicy = "none" | "decorative-only" | "authored-copy";
+
 export type FramedShotRole =
   | "arena-establishing"
+  | "intro-establishing"
   | "story-establishing"
   | "tournament-establishing"
   | "character-canonical"
   | "character-idle"
   | "move-cut-in"
   | "reaction-sheet"
+  | "accessory"
+  | "modification"
   | "store-tile"
+  | "trophy"
   | "placeholder";
 
 export interface NormalizedPoint {
@@ -39,7 +47,7 @@ export interface NormalizedRect extends NormalizedPoint {
  * practical. Both use source-relative coordinates so renderers do not depend on
  * a particular generated resolution.
  */
-export interface FramedShotMetadataV1 {
+export interface FramedShotMetadataV2 {
   contractVersion: typeof FRAMED_SHOT_CONTRACT_VERSION;
   compositing: "opaque-frame";
   frameClass: FramedShotFrameClass;
@@ -47,6 +55,8 @@ export interface FramedShotMetadataV1 {
   focalPoint: NormalizedPoint;
   safeCrop: NormalizedRect;
   facing: FramedShotFacing;
+  mirrorPolicy: FramedShotMirrorPolicy;
+  textPolicy: FramedShotTextPolicy;
   shotRole: FramedShotRole;
 }
 
@@ -54,7 +64,7 @@ export interface ImageAsset {
   id: string;
   path: string;
   fallback: string | null;
-  framedShot: FramedShotMetadataV1;
+  framedShot: FramedShotMetadataV2;
 }
 
 const frameClassAspects: Record<FramedShotFrameClass, FramedShotAspect> = {
@@ -77,7 +87,11 @@ function framedShot(
   focalPoint: NormalizedPoint,
   safeCrop: NormalizedRect,
   facing: FramedShotFacing,
-): FramedShotMetadataV1 {
+  textPolicy: FramedShotTextPolicy = "none",
+  mirrorPolicy: FramedShotMirrorPolicy = facing === "left" || facing === "right"
+    ? "side-aware"
+    : "never",
+): FramedShotMetadataV2 {
   return {
     contractVersion: FRAMED_SHOT_CONTRACT_VERSION,
     compositing: "opaque-frame",
@@ -86,14 +100,19 @@ function framedShot(
     focalPoint,
     safeCrop,
     facing,
+    mirrorPolicy,
+    textPolicy,
     shotRole,
   };
 }
 
 const establishingFrame = (
   shotRole:
-    "arena-establishing" | "story-establishing" | "tournament-establishing",
-): FramedShotMetadataV1 =>
+    | "arena-establishing"
+    | "intro-establishing"
+    | "story-establishing"
+    | "tournament-establishing",
+): FramedShotMetadataV2 =>
   framedShot(
     "landscape",
     shotRole,
@@ -105,7 +124,7 @@ const establishingFrame = (
 const characterPortraitFrame = (
   shotRole: "character-canonical" | "character-idle",
   facing: "right" | "camera",
-): FramedShotMetadataV1 =>
+): FramedShotMetadataV2 =>
   framedShot(
     "portrait",
     shotRole,
@@ -114,13 +133,22 @@ const characterPortraitFrame = (
     facing,
   );
 
-const moveCutInFrame = (): FramedShotMetadataV1 =>
+const moveCutInFrame = (): FramedShotMetadataV2 =>
   framedShot(
     "landscape",
     "move-cut-in",
     { x: 0.46, y: 0.45 },
     { x: 0.06, y: 0.06, width: 0.88, height: 0.86 },
     "right",
+  );
+
+const trophyFrame = (): FramedShotMetadataV2 =>
+  framedShot(
+    "square",
+    "trophy",
+    { x: 0.5, y: 0.48 },
+    { x: 0.08, y: 0.06, width: 0.84, height: 0.88 },
+    "camera",
   );
 
 const svgDataUri = (source: string): string =>
@@ -147,46 +175,138 @@ export function createAssetRegistry<T extends { id: string }>(
   return Object.fromEntries(source.map((asset) => [asset.id, asset]));
 }
 
-export const imageAssetList = [
-  ...["tux", "humpty", "moses", "viking", "ned-kelly", "grim-reaper"].flatMap(
-    (id) => [
-      {
-        id: `image.${id}.canonical`,
-        path: `/assets/generated/launch-placeholder/${id}-canonical.png`,
-        fallback: "image.placeholder.generic",
-        framedShot: characterPortraitFrame("character-canonical", "camera"),
-      },
-      {
-        id: `image.${id}.idle.a`,
-        path: `/assets/generated/launch-placeholder/${id}-idle-a.png`,
-        fallback: `image.${id}.canonical`,
-        framedShot: characterPortraitFrame("character-idle", "camera"),
-      },
-      {
-        id: `image.${id}.idle.b`,
-        path: `/assets/generated/launch-placeholder/${id}-idle-b.png`,
-        fallback: `image.${id}.canonical`,
-        framedShot: characterPortraitFrame("character-idle", "camera"),
-      },
-    ],
+const launchRosterAssetManifest = launchArtContract.characters;
+
+const launchRosterImageAssets = launchRosterAssetManifest.flatMap(
+  ({ slug }) => [
+    {
+      id: `image.${slug}.canonical`,
+      path: `/assets/generated/launch-roster/${slug}/canonical.png`,
+      fallback: "image.placeholder.generic",
+      framedShot: characterPortraitFrame("character-canonical", "camera"),
+    },
+    {
+      id: `image.${slug}.idle.a`,
+      path: `/assets/generated/launch-roster/${slug}/idle-a.png`,
+      fallback: `image.${slug}.canonical`,
+      framedShot: characterPortraitFrame("character-idle", "right"),
+    },
+    {
+      id: `image.${slug}.idle.b`,
+      path: `/assets/generated/launch-roster/${slug}/idle-b.png`,
+      fallback: `image.${slug}.canonical`,
+      framedShot: characterPortraitFrame("character-idle", "right"),
+    },
+    {
+      id: `image.${slug}.reactions`,
+      path: `/assets/generated/launch-roster/${slug}/reactions.png`,
+      fallback: `image.${slug}.canonical`,
+      framedShot: framedShot(
+        "contact-sheet",
+        "reaction-sheet",
+        { x: 0.5, y: 0.5 },
+        fullFrameSafeCrop,
+        "multiple",
+      ),
+    },
+  ],
+);
+
+const accessoryImageAssets = launchArtContract.accessories.map(({ slug }) => ({
+  id: `image.accessory.${slug}`,
+  path: `/assets/generated/launch-roster/accessories/${slug}.png`,
+  fallback: "image.placeholder.generic",
+  framedShot: framedShot(
+    "square",
+    "accessory",
+    { x: 0.5, y: 0.5 },
+    { x: 0.06, y: 0.06, width: 0.88, height: 0.88 },
+    "none",
   ),
+}));
+
+const modificationImageAssets = launchArtContract.modifications.map(
+  ({ slug }) => ({
+    id: `image.modification.${slug}`,
+    path: `/assets/generated/launch-roster/modifications/${slug}.png`,
+    fallback: "image.placeholder.generic",
+    framedShot: framedShot(
+      "square",
+      "modification",
+      { x: 0.5, y: 0.5 },
+      { x: 0.06, y: 0.06, width: 0.88, height: 0.88 },
+      "none",
+    ),
+  }),
+);
+
+const trophyImageAssets = [
+  {
+    id: "image.trophy.wrong-door-cup",
+    path: "/assets/generated/trophies/wrong-door-cup.png",
+    fallback: "image.trophy.generic.gold-cup",
+    framedShot: trophyFrame(),
+  },
+  {
+    id: "image.trophy.generic.gold-cup",
+    path: "/assets/generated/trophies/generic-gold-cup.png",
+    fallback: "image.placeholder.generic",
+    framedShot: trophyFrame(),
+  },
+  {
+    id: "image.trophy.generic.silver-tower",
+    path: "/assets/generated/trophies/generic-silver-tower.png",
+    fallback: "image.trophy.generic.gold-cup",
+    framedShot: trophyFrame(),
+  },
+  {
+    id: "image.trophy.generic.bronze-chaos",
+    path: "/assets/generated/trophies/generic-bronze-chaos.png",
+    fallback: "image.trophy.generic.gold-cup",
+    framedShot: trophyFrame(),
+  },
+] satisfies readonly ImageAsset[];
+
+export const imageAssetList = [
+  ...launchRosterImageAssets,
+  ...accessoryImageAssets,
+  ...modificationImageAssets,
+  ...trophyImageAssets,
   {
     id: "image.arena.first-run",
-    path: "/assets/generated/arena-bg.png",
+    path: "/assets/generated/launch-roster/environments/arena.png",
     fallback: null,
     framedShot: establishingFrame("arena-establishing"),
   },
   {
     id: "image.story.first-run",
-    path: "/assets/generated/story-bg.png",
+    path: "/assets/generated/launch-roster/environments/story.png",
     fallback: "image.arena.first-run",
     framedShot: establishingFrame("story-establishing"),
   },
   {
     id: "image.tournament.cheap-seats",
-    path: "/assets/generated/tournament-bg.png",
+    path: "/assets/generated/launch-roster/environments/tournament.png",
     fallback: "image.arena.first-run",
     framedShot: establishingFrame("tournament-establishing"),
+  },
+  {
+    id: "image.intro.launch-roster",
+    path: "/assets/generated/launch-roster/environments/intro-launch-roster.png",
+    fallback: "image.story.first-run",
+    framedShot: establishingFrame("intro-establishing"),
+  },
+  {
+    id: "image.intro.launch-roster.portrait",
+    path: "/assets/generated/launch-roster/environments/intro-launch-roster-portrait.png",
+    fallback: "image.intro.launch-roster",
+    framedShot: framedShot(
+      "portrait",
+      "intro-establishing",
+      { x: 0.5, y: 0.42 },
+      { x: 0.08, y: 0.06, width: 0.84, height: 0.88 },
+      "multiple",
+    ),
   },
   {
     id: "image.mara-vex.canonical",
@@ -381,13 +501,42 @@ export function nextImageFallback(
   return { id: fallbackId, path: resolveImagePath(fallbackId) };
 }
 
+export function imageFallbackChain(
+  id: string,
+): Array<{ id: string; path: string }> {
+  const first = imageAssets[id]
+    ? { id, path: resolveImagePath(id) }
+    : { id: "image.placeholder.generic", path: placeholderClass };
+  const chain: Array<{ id: string; path: string }> = [];
+  const visited = new Set<string>();
+  let current: { id: string; path: string } | null = first;
+
+  while (current && !visited.has(current.id)) {
+    chain.push(current);
+    visited.add(current.id);
+    current = nextImageFallback(current.id);
+  }
+
+  return chain;
+}
+
 export interface PresentationAsset {
   id: string;
   path: string | null;
-  framedShot: FramedShotMetadataV1;
+  framedShot: FramedShotMetadataV2;
 }
 
+const launchRosterPresentationAssets = launchRosterAssetManifest.flatMap(
+  ({ slug, moves }) =>
+    moves.map((action) => ({
+      id: `presentation.${slug}.${action}`,
+      path: `/assets/generated/launch-roster/${slug}/actions/${action}.png`,
+      framedShot: moveCutInFrame(),
+    })),
+);
+
 export const presentationAssetList = [
+  ...launchRosterPresentationAssets,
   {
     id: "presentation.mara.quick",
     path: "/assets/generated/mara-vex-action-quick.png",
@@ -448,7 +597,7 @@ export const presentationAssetList = [
 export const presentationAssets: Record<string, PresentationAsset> =
   createAssetRegistry("presentation asset registry", presentationAssetList);
 
-export const fallbackFramedShot: FramedShotMetadataV1 = framedShot(
+export const fallbackFramedShot: FramedShotMetadataV2 = framedShot(
   "portrait",
   "placeholder",
   { x: 0.5, y: 0.42 },
@@ -456,12 +605,17 @@ export const fallbackFramedShot: FramedShotMetadataV1 = framedShot(
   "camera",
 );
 
-export function resolveFramedShotMetadata(id: string): FramedShotMetadataV1 {
+export function resolveFramedShotMetadata(id: string): FramedShotMetadataV2 {
   return (
     imageAssets[id]?.framedShot ??
     presentationAssets[id]?.framedShot ??
     fallbackFramedShot
   );
+}
+
+export function resolveImageObjectPosition(id: string): string {
+  const { focalPoint } = resolveFramedShotMetadata(id);
+  return `${Math.round(focalPoint.x * 100)}% ${Math.round(focalPoint.y * 100)}%`;
 }
 
 function assertNormalizedCoordinate(
@@ -478,13 +632,28 @@ function assertNormalizedCoordinate(
 
 export function assertValidFramedShotMetadata(
   assetId: string,
-  metadata: FramedShotMetadataV1,
+  metadata: FramedShotMetadataV2,
 ): void {
   if (metadata.contractVersion !== FRAMED_SHOT_CONTRACT_VERSION) {
     throw new Error(`${assetId} uses an unsupported framed-shot contract`);
   }
   if (metadata.compositing !== "opaque-frame") {
     throw new Error(`${assetId} must use opaque-frame compositing`);
+  }
+  if (
+    metadata.mirrorPolicy === "side-aware" &&
+    metadata.facing !== "left" &&
+    metadata.facing !== "right"
+  ) {
+    throw new Error(
+      `${assetId} uses side-aware mirroring without directional facing`,
+    );
+  }
+  if (
+    metadata.textPolicy === "authored-copy" &&
+    metadata.mirrorPolicy !== "never"
+  ) {
+    throw new Error(`${assetId} cannot mirror authored copy`);
   }
   if (frameClassAspects[metadata.frameClass] !== metadata.aspect) {
     throw new Error(
@@ -530,3 +699,4 @@ export function assertValidFramedShotRegistries(): void {
     assertValidFramedShotMetadata(asset.id, asset.framedShot);
   }
 }
+import launchArtContract from "./launch-art-contract.json";

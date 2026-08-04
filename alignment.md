@@ -1,5 +1,5 @@
 Conversation with Gemini
-Can you please deep dive teeny titans 2
+Can you please deep dive the reference game
 
 Explain
 
@@ -11,7 +11,7 @@ The character selection menu
 
 Actually just get as much of the specs we would need if we are making a similar game. I want all detail possibly at the most verbose level.
 
-Here is a comprehensive Game Design Document (GDD) specification for replicating the combat, progression, UI, and systemic mechanics of Teeny Titans 2 (Teen Titans GO Figure!).
+Here is a comprehensive Game Design Document (GDD) specification for replicating the combat, progression, UI, and systemic mechanics of the reference game (the external reference game).
 
 1. Core Architecture & Combat Loop
    The combat system is a 3v3 Real-Time Active Bar (ATB) Hybrid Battle System. Unlike turn-based RPGs, time flows continuously during combat.
@@ -67,7 +67,7 @@ Interruption Mechanic: If the figure receives damage or a specific "Interrupt Mo
 
 Bar Cursing & Hazards (Waffle/Tofu Mechanic):
 
-Certain abilities (e.g., Starfire’s Tofu / Silkie’s Waffles) temporarily replace enemy skill slots on their bar with harmless items (like Tofu or Waffles).
+Certain abilities (e.g., Reference striker’s Tofu / Reference mascot’s Waffles) temporarily replace enemy skill slots on their bar with harmless items (like Tofu or Waffles).
 
 The opponent must waste bar energy tapping and clearing these "garbage" slots before their real attacks become available again.
 
@@ -83,8 +83,8 @@ Status Effect (DoT/CC) Duration-based Inflicts damage or CC over time. Poison, B
 Channeled / Purple Held Charge Massive output, high risk of interruption. High-damage laser beam, multi-buff.
 Bar Sabotage Instant Alters opponent's active Battle Bar. Converts enemy Slot 1 & 2 to Tofu.
 Heal / Barrier Instant / Regeneration Restores HP or adds temporary shield points. Flat team heal, active figure barrier.
-Skill Customization & Swapping (Teeny Titans 2 Feature)
-Unlike the original game, Teeny Titans 2 allows Ability Swapping:
+Skill Customization & Swapping (the reference game Feature)
+Unlike the original game, the reference game allows Ability Swapping:
 
 Figures unlock alternate abilities as they level up.
 
@@ -94,17 +94,17 @@ Players can rearrange which ability sits in Slot 1, Slot 2, or Slot 3, altering 
    The Type Wheel System
    There are 6 distinct figure classes/types forming a circular paper-scissors-rock type advantage matrix:
 
-Martial Arts (e.g., Robin, Deathstroke)
+Martial Arts (e.g., Reference martial artist, Reference rival)
 
-Tech (e.g., Cyborg, Gizmo)
+Tech (e.g., Reference technologist, Reference saboteur)
 
-Dark Arts (e.g., Raven, Trigon)
+Dark Arts (e.g., Reference occultist, Reference demon)
 
-Super (e.g., Superman, Wonder Woman)
+Super (e.g., Reference powerhouse, Reference warrior)
 
-Beast (e.g., Beast Boy, Gorilla Grodd)
+Beast (e.g., Reference shapeshifter, Reference brute)
 
-Cute (e.g., Silkie, Cat Beast Boy)
+Cute (e.g., Reference mascot, Feline shapeshifter variant)
 
 Damage Multiplier Specs:
 
@@ -146,7 +146,7 @@ Provides high-impact, single-use active interventions during combat (e.g., insta
    +-----------------------------------------------------------------------+
    | ACTIVE SQUAD (3 V 3 COMBAT LOADOUT) |
    | +-------------------+ +-------------------+ +-------------------+ |
-   | | [1] ROBIN | | [2] CYBORG | | [3] RAVEN | |
+   | | [1] Reference martial artist | | [2] Reference technologist | | [3] Reference occultist | |
    | | Lv 12 Martial Arts| | Lv 10 Tech | | Lv 15 Dark Arts | |
    | +-------------------+ +-------------------+ +-------------------+ |
    +-----------------------------------------------------------------------+
@@ -184,7 +184,7 @@ Sockets: 1 Mod Chip Socket (Unlocks Lv 5) + 1 Accessory Slot.
 
 Collection Roster Grid (Bottom Panel):
 
-Displays all collected vs unowned figures with figure ID numbers (#01 Robin, #02 Cyborg, etc.).
+Displays all collected vs unowned figures with figure ID numbers (#01 Reference martial artist, #02 Reference technologist, etc.).
 
 Sorting/filtering toggles: Class Type, Level, Rarity, and Alphabetical.
 
@@ -226,11 +226,11 @@ Mid-Run Recovery: Players rely on consumable Tournament Tofus awarded between ro
 
 Accessory Limits: Each equipped accessory can only be used a set number of times per full tournament run.
 
-If you are developing a game based on this framework, starting with the Shared Battle Bar ATB engine and 3-Slot skill layout will immediately capture the exact feel and combat pacing of Teeny Titans 2. What specific aspects of the design would you like to explore further?
+If you are developing a game based on this framework, starting with the Shared Battle Bar ATB engine and 3-Slot skill layout will immediately capture the exact feel and combat pacing of the reference game. What specific aspects of the design would you like to explore further?
 
 I want any and all detail that I can get.
 
-Here is the master system specification and implementation architecture for a Teeny Titans 2 style game, covering every sub-system down to the math formulas, status effect pipelines, economy algorithms, and developer data schemas.
+Here is the master system specification and implementation architecture for a reference-game-style game, covering every sub-system down to the math formulas, status effect pipelines, economy algorithms, and developer data schemas.
 
 1. Mathematical Mechanics & Execution Engine
    +-------------------------------------------------------+
@@ -324,12 +324,12 @@ Defender Dodge Stat
 | v
 [Beast] <--- [Super] <--- [Dark Arts]
 Class Strong Against (+50% DMG) Weak Against (-25% DMG) Representative Figures
-Martial Arts Tech Beast Robin, Batgirl, Deathstroke, Nightwing
-Tech Cute Martial Arts Cyborg, Gizmo, Booster Gold, Toyman
-Cute Dark Arts Tech Silkie, Cat Beast Boy, Starfire, Lady Legasus
-Dark Arts Super Cute Raven, Trigon, Jinx, Brother Blood
-Super Beast Dark Arts Superman, Wonder Woman, Shazam, Supergirl
-Beast Martial Arts Super Beast Boy, Gorilla Grodd, Killer Croc
+Martial Arts Tech Beast Reference martial artist, Reference urban hero, Reference rival, Reference acrobat
+Tech Cute Martial Arts Reference technologist, Reference saboteur, Reference time hero, Reference inventor
+Cute Dark Arts Tech Reference mascot, Feline shapeshifter variant, Reference striker, Reference variant
+Dark Arts Super Cute Reference occultist, Reference demon, Reference hexer, Reference cultist
+Super Beast Dark Arts Reference powerhouse, Reference warrior, Reference champion, Reference flying hero
+Beast Martial Arts Super Reference shapeshifter, Reference brute, Reference reptile
 Shiny / Radical Repaint Modifiers
 Every figure model has 3 to 5 palette variants (Standard, Repaint 1, Repaint 2, Gold/Radical).
 
@@ -362,7 +362,7 @@ Power Drain Opponent Bar Instant Reduces opponent's active Battle Bar meter by a
 Waffle / Tofu Opponent Bar Persistent until used Replaces target's active Slot 1 or 2 with a dummy "Tofu/Waffle" icon. Tapping it costs full slot BP but does 0 damage and clears the hazard.
 Attack Up Friendly Team 10.0 seconds Increases team Damage Stat by +35%. Persists through character tags.
 Shield Active Ally Retained until broken Grants a temporary yellow barrier absorption pool equal to 25% of Max HP. 4. Exploration, World Map & Day/Night Cycle
-Beyond combat, the game uses an overworld hub system across iconic cities (Jump City, Gotham City, Metropolis).
+Beyond combat, the game uses an overworld hub system across iconic cities (Reference City A, Reference City B, Reference City C).
 
 +------------------------------------------------------------------------+
 | OVERWORLD GAME LOOP |
@@ -383,7 +383,7 @@ Unique "Hooded Mystery Figures" appear in alleyways offering rare blind boxes or
 
 Travel System:
 
-Travel between cities (Jump City ↔ Gotham City) costs Bus Tickets or 50 Coins and instantly advances world time by +6 Game Hours.
+Travel between cities (Reference City A ↔ Reference City B) costs Bus Tickets or 50 Coins and instantly advances world time by +6 Game Hours.
 
 5. Economy, Gacha & Toy Store Mechanics
    The economy centers around collecting, leveling, and customizing physical-style vinyl toy figures.
@@ -394,7 +394,7 @@ Coins (Soft Currency): Earned from winning battles, completing sidequests, and o
 Gold Tickets / Tokens (Hard Currency): Earned through tournament completions, achievements, or rare world drops. Used for guaranteed Legendary Gacha draws.
 
 Store Engine & Rarity Probability Tables
-When entering a Toy Store (e.g., Jump City Comics, Gotham Toys, S.T.A.R. Labs Shop), the store inventory populates 4 random figures based on weighted store tables:
+When entering a Toy Store (e.g., Reference City A Comics, Reference City B Toys, S.T.A.R. Labs Shop), the store inventory populates 4 random figures based on weighted store tables:
 
 [Store Trigger Enter] ---> [Fetch Store Rarity Table] ---> [Roll 4 Figure Slots] ---> [Apply Stock RNG]
 Figure Rarity Weight Pool Chance Base Coin Cost Level Drop Range
@@ -470,8 +470,8 @@ Freeze Ray: Instantly applies Freeze/Stun to active enemy for 4 seconds. Cooldow
 Figure Schema (figure_definition.json)
 JSON
 {
-"figure_id": "fig_robin_001",
-"name": "Robin",
+"figure_id": "fig_Reference martial artist_001",
+"name": "Reference martial artist",
 "class_type": "MARTIAL_ARTS",
 "base_stats": {
 "hp": 120,
@@ -544,28 +544,28 @@ JSON
 "world_state": {
 "current_city": "JUMP_CITY",
 "time_of_day_minutes": 14.5,
-"completed_quests": ["quest_intro_01", "quest_beat_gizmo"]
+"completed_quests": ["quest_intro_01", "quest_beat_Reference saboteur"]
 },
 "active_squad_figure_ids": [
-"fig_robin_001",
-"fig_cyborg_002",
-"fig_raven_003"
+"fig_Reference martial artist_001",
+"fig_Reference technologist_002",
+"fig_Reference occultist_003"
 ],
 "equipped_accessory_id": "acc_bat_signal",
 "inventory": {
-"owned_figures": ["fig_robin_001", "fig_cyborg_002", "fig_raven_003", "fig_silkie_008"],
+"owned_figures": ["fig_Reference martial artist_001", "fig_Reference technologist_002", "fig_Reference occultist_003", "fig_Reference mascot_008"],
 "mod_chips": ["chip_vampire_01", "chip_speed_02"],
 "accessories": ["acc_bat_signal", "acc_pizza"]
 }
 } 8. Complete HUD & Combat Interface Architecture
 +-----------------------------------------------------------------------------------+
-| [PAUSE] (ENEMY ACTIVE) STARFIRE [HP: ████████████-- 80%] (BENCH: [BEAST][RAVEN])|
+| [PAUSE] (ENEMY ACTIVE) Reference striker [HP: ████████████-- 80%] (BENCH: [BEAST][Reference occultist])|
 | [BUFF: ATK UP] |
 | |
 | [VS] |
 | |
-| (PLAYER ACTIVE) ROBIN [HP: ██████████████ 100%] |
-| [STATUS: NONE] (BENCH SWAP: [CYBORG] [SILKIE]) |
+| (PLAYER ACTIVE) Reference martial artist [HP: ██████████████ 100%] |
+| [STATUS: NONE] (BENCH SWAP: [Reference technologist] [Reference mascot]) |
 +-----------------------------------------------------------------------------------+
 | SHARED BATTLE BAR |
 | [ 0% -------------- (SLOT 1) -------------- (SLOT 2) -------------- (SLOT 3) 100% ]|
@@ -591,7 +591,7 @@ If swap cooldown is active, show circular radial fill overlay on bench icons.
 
 If ready, player active figure exits left, benched figure enters right with zero meter loss.
 
-Building your combat engine around this continuous shared meter, combined with class counters and slot hazard traps, will deliver the exact snappy, strategic gameplay loop that makes Teeny Titans 2 so addictive.
+Building your combat engine around this continuous shared meter, combined with class counters and slot hazard traps, will deliver the exact snappy, strategic gameplay loop that makes the reference game so addictive.
 
 Can you explain everything you possibly can about 6 of the characters, all the attacks, and what would happen in every customization scenario, and mod chips and examples of mod chips. All of the accessories and upgrades how we upgrade and how the shop works etc. Do we have any of that covered? I want verbose and detailed. The difference between my game and it is that I do quick match, tournament mode and story mode differently and we don't have the map and exploration. We have candy crush style levels for our story and we do it that way.
 
@@ -650,7 +650,7 @@ Dodge (%): Evasion chance (0 damage on trigger).
 
 Luck (%): Critical hit chance (1.5× damage multiplier).
 
-Character 1: Robin (Leader / Balanced)
+Character 1: Reference martial artist (Leader / Balanced)
 Class: Martial Arts
 
 Type Matchups: Strong vs Tech (1.5× DMG) | Weak vs Beast (0.75× DMG)
@@ -658,7 +658,7 @@ Type Matchups: Strong vs Tech (1.5× DMG) | Weak vs Beast (0.75× DMG)
 Base Stats (Level 1): HP: 110 | DMG: 24 | Dodge: 10% | Luck: 12%
 
                   +-----------------------------------+
-                  |           ROBIN LOADOUT           |
+                  |           Reference martial artist LOADOUT           |
                   +-----------------------------------+
                   | Slot 1 (33.3 BP): Batarang Throw  |
                   | Slot 2 (66.6 BP): Staff Spin      |
@@ -684,9 +684,9 @@ Base Power: 0 | Type: Instant Team Buff | Effect: Grants entire team +30% DMG an
 
 Decoy Grenade (Unlocked Lv 10 - Alt Slot 1/2): Defensive counter.
 
-Base Power: 10 | Type: Utility | Effect: Grants Robin 100% Dodge for the next incoming hit.
+Base Power: 10 | Type: Utility | Effect: Grants Reference martial artist 100% Dodge for the next incoming hit.
 
-Character 2: Cyborg (Ranged Heavy / Tech Disruption)
+Character 2: Reference technologist (Ranged Heavy / Tech Disruption)
 Class: Tech
 
 Type Matchups: Strong vs Cute (1.5× DMG) | Weak vs Martial Arts (0.75× DMG)
@@ -714,7 +714,7 @@ Booster Rocket (Unlocked Lv 10 - Alt Slot 2/3): Knockback attack.
 
 Base Power: 50 | Type: Melee Displacement | Effect: Forces the current active enemy figure to tag out randomly.
 
-Character 3: Raven (Dark Magic / CC & Life Steal)
+Character 3: Reference occultist (Dark Magic / CC & Life Steal)
 Class: Dark Arts
 
 Type Matchups: Strong vs Super (1.5× DMG) | Weak vs Cute (0.75× DMG)
@@ -728,7 +728,7 @@ Base Power: 16 | Type: Magic Ranged | Effect: 30% chance to inflict Silence for 
 
 Soul Drain (Default Slot 2): Vampiric beam.
 
-Base Power: 32 | Type: Life Steal | Effect: Heals Raven for 50% of damage dealt.
+Base Power: 32 | Type: Life Steal | Effect: Heals Reference occultist for 50% of damage dealt.
 
 Demon Transformation (Default Slot 3): Channeling ultimate.
 
@@ -736,13 +736,13 @@ Base Power: 90 | Type: AoE Magic | Charge Time: 1.5s | Effect: Hits entire enemy
 
 Shadow Shield (Unlocked Lv 7 - Alt Slot 1/2): Defense skill.
 
-Base Power: 0 | Type: Active Shield | Effect: Creates a barrier absorbing damage equal to 30% of Raven's Max HP.
+Base Power: 0 | Type: Active Shield | Effect: Creates a barrier absorbing damage equal to 30% of Reference occultist's Max HP.
 
 Portal Swap (Unlocked Lv 10 - Alt Slot 2/3): Bar sabotage.
 
 Base Power: 20 | Type: Manipulation | Effect: Drains −33.3 BP from the enemy Battle Bar and adds it to your own.
 
-Character 4: Starfire (Cute / Multi-Hit & Burn)
+Character 4: Reference striker (Cute / Multi-Hit & Burn)
 Class: Cute
 
 Type Matchups: Strong vs Dark Arts (1.5× DMG) | Weak vs Tech (0.75× DMG)
@@ -762,7 +762,7 @@ Starbeam Overload (Default Slot 3): Heavy energy barrage.
 
 Base Power: 80 | Type: Multi-Hit AoE | Effect: Applies Burn to all enemy benched figures.
 
-Silkie Hug (Unlocked Lv 7 - Alt Slot 1/2): Healing/Buff.
+Reference mascot Hug (Unlocked Lv 7 - Alt Slot 1/2): Healing/Buff.
 
 Base Power: 0 | Type: Team Heal | Effect: Restores 15% Max HP to active figure and applies Haste (+30% Bar Fill speed for 6s).
 
@@ -770,7 +770,7 @@ Eyeblast Burst (Unlocked Lv 10 - Alt Slot 2/3): Instant hit.
 
 Base Power: 55 | Type: Direct Energy | Effect: Bypasses enemy Shields and Armor buffs completely.
 
-Character 5: Beast Boy (Beast / Shape-Shifter Utility)
+Character 5: Reference shapeshifter (Beast / Shape-Shifter Utility)
 Class: Beast
 
 Type Matchups: Strong vs Martial Arts (1.5× DMG) | Weak vs Super (0.75× DMG)
@@ -798,7 +798,7 @@ Turtle Shell (Unlocked Lv 10 - Alt Slot 2/3): Defense stance.
 
 Base Power: 0 | Type: Defensive Stance | Effect: Reduces incoming damage by 70% for 6 seconds.
 
-Character 6: Wonder Woman (Super / Brawler & Tank)
+Character 6: Reference warrior (Super / Brawler & Tank)
 Class: Super
 
 Type Matchups: Strong vs Beast (1.5× DMG) | Weak vs Dark Arts (0.75× DMG)
@@ -812,7 +812,7 @@ Base Power: 16 | Type: Physical Utility | Effect: Pulls a benched enemy figure i
 
 Amazonian Shield Slam (Default Slot 2): Counter/Damage.
 
-Base Power: 38 | Type: Physical Melee | Effect: Grants Wonder Woman a temporary shield equal to 20% of damage dealt.
+Base Power: 38 | Type: Physical Melee | Effect: Grants Reference warrior a temporary shield equal to 20% of damage dealt.
 
 Divine Justice (Default Slot 3): Channeling ultimate.
 
@@ -922,7 +922,7 @@ Effective Power:
 
 Effect Chance/Duration: Stun chance drops to 20%, duration drops to 1.0s.
 
-Result: Allows Beast Boy to spam low-cost Stun attempts every 2 seconds at the cost of significantly reduced damage output.
+Result: Allows Reference shapeshifter to spam low-cost Stun attempts every 2 seconds at the cost of significantly reduced damage output.
 
 Scenario C: Leader Rally Moved from Slot 2 → Slot 1 (Fast Team Buff)
 Base Move: Leader Rally (+30% Team DMG for 8 seconds).
@@ -969,7 +969,7 @@ Mod Chip Master Catalog (10 Detailed Examples)
 | 6. Quick Charge Chip | Bar Manipulation | Increases personal Fill Speed +20%. |
 | 7. Regenerating Cuteness | Class-Exclusive | Cute Class Only: Heals 2 HP/sec. |
 | 8. Battery Pack Chip | Class-Exclusive | Tech Class Only: +15 BP on tag-in. |
-| 9. Cyborg's Ultimate Chip| Character Unique | Cyborg Only: Dances throw Waffles. |
+| 9. Reference technologist's Ultimate Chip| Character Unique | Reference technologist Only: Dances throw Waffles. |
 | 10. Necromancer Chip | Battle Passive | Revives with 20% HP on death (1x). |
 +-------------------------------------------------------------------------------------+
 Healthy Chip 2.0 (Stat Boost): Adds flat +30 HP to base stats. Simple survival boost.
@@ -988,7 +988,7 @@ Regenerating Cuteness Chip (Class-Exclusive - Cute Only): Figures belonging to t
 
 Battery Pack Chip (Class-Exclusive - Tech Only): When a Tech figure tags into combat, instantly gain +15 BP (half of Slot 1) to the active Battle Bar.
 
-Cyborg's Ultimate Chip (Character Exclusive - Cyborg): Whenever Cyborg executes a buff or dance ability, throwing 2 random Waffle hazards at the enemy's Battle Bar triggers automatically.
+Reference technologist's Ultimate Chip (Character Exclusive - Reference technologist): Whenever Reference technologist executes a buff or dance ability, throwing 2 random Waffle hazards at the enemy's Battle Bar triggers automatically.
 
 Necromancer Chip (Death Trigger): When the equipped figure's HP reaches 0, it resists knockout, revives with 20% Max HP, and gains 2 seconds of invulnerability (triggers once per battle).
 
@@ -1016,9 +1016,9 @@ Accessory Name Cooldown In-Battle Effect Description
 Bat-Signal 35 seconds Summons a tactical strike dealing 80 direct neutral damage to the active enemy.
 Giant Pizza Single Use / Battle Restores 40% Max HP to all 3 squad figures (active and benched).
 Freeze Ray 45 seconds Instantly applies Freeze/Stun to the active target for 3.5 seconds.
-Superman's Underpants 50 seconds Grants the active figure absolute Invulnerability for 5.0 seconds.
+Reference powerhouse's Underpants 50 seconds Grants the active figure absolute Invulnerability for 5.0 seconds.
 Waffle Iron 30 seconds Converts all enemy available Battle Bar slots (1, 2, and 3) into Waffle hazards.
-LexCorp Power Cell 40 seconds Instantly maxes out the shared Battle Bar to 100 BP (Slot 3 Full). 6. Upgrades & Progression Logic
+Corporate Power Cell 40 seconds Instantly maxes out the shared Battle Bar to 100 BP (Slot 3 Full). 6. Upgrades & Progression Logic
 Figure Leveling & XP Mechanics
 Figures gain XP by winning battles in Story Mode, Tournaments, or Quick Matches.
 
@@ -1070,7 +1070,7 @@ Level 15 & 20: Unlock Repaint Skin Customizations
 +----------------------------------------------------------------------------+ 7. Node-Based Shop System & Economy Integrations
 Without map exploration, shops are accessed directly via a permanent Shop Tab on the Main Menu, as well as dedicated Shop Nodes on the Saga Map.
 
-[ SAGA MAP NODE 05 ] ---> Unlocks "Gotham Toy Store Shop Tab"
+[ SAGA MAP NODE 05 ] ---> Unlocks "Reference City B Toy Store Shop Tab"
 |
 v
 +----------------------------------------------------------------------------+
@@ -1080,7 +1080,7 @@ v
 +----------------------------------------------------------------------------+
 | DAILY FEATURED ROTATION (REFRESHES IN: 14h 22m) |
 | +------------------+ +------------------+ +------------------+ |
-| | [FIG] ROBIN | | [CHIP] VAMPIRE | | [GADGET] PIZZA | |
+| | [FIG] Reference martial artist | | [CHIP] VAMPIRE | | [GADGET] PIZZA | |
 | | Cost: 150 Coins | | Cost: 300 Coins | | Cost: 500 Coins | |
 | +------------------+ +------------------+ +------------------+ |
 +----------------------------------------------------------------------------+
@@ -1108,9 +1108,9 @@ The shop features a daily rotating store shelf alongside random Blind Box Gacha 
 Store Rotation & Node Unlocks
 Restock Clock: Shop inventory refreshes automatically every 24 real-time hours (or instantly by spending 20 Coins).
 
-Saga Map Integration: Certain rare figures (e.g., Superman, Darkseid, Steppenwolf) are locked in the store stock until the player clears specific Saga Map milestones (e.g., "Clear Chapter 3 Boss Node to unlock Super-Class figures in the Shop").
+Saga Map Integration: Certain rare figures (e.g., Reference powerhouse, Darkseid, Steppenwolf) are locked in the store stock until the player clears specific Saga Map milestones (e.g., "Clear Chapter 3 Boss Node to unlock Super-Class figures in the Shop").
 
-By grounding the Battle Bar engine, dynamic 3-Slot ability customization, and Mod Chip socketing inside a clean Saga Map level node progression, your game retains all the rich strategic combat depth of Teeny Titans 2 while maintaining a streamlined, level-based mobile experience!
+By grounding the Battle Bar engine, dynamic 3-Slot ability customization, and Mod Chip socketing inside a clean Saga Map level node progression, your game retains all the rich strategic combat depth of the reference game while maintaining a streamlined, level-based mobile experience!
 
 Is everything we mentioned explained properly? Think about everything in this thread? Have we got everything I could possibly need if I was building something similar?
 
@@ -1125,7 +1125,7 @@ Type System: Closed 6-class matrix (Martial Arts, Tech, Cute, Dark Arts, Super, 
 
 Move Slot Customization Engine: Mathematical scaling formulas (1.0×,2.1×,3.8×) when moving abilities between Slot 1, Slot 2, and Slot 3, including real-world trade-off scenarios.
 
-Detailed Figure Roster: 6 end-to-end figure specifications with stats, base kits, and unlockable alternate abilities (Robin, Cyborg, Raven, Starfire, Beast Boy, Wonder Woman).
+Detailed Figure Roster: 6 end-to-end figure specifications with stats, base kits, and unlockable alternate abilities (Reference martial artist, Reference technologist, Reference occultist, Reference striker, Reference shapeshifter, Reference warrior).
 
 Customization & Mod Systems: Mod Chip socket mechanics, replacement rules, 10 catalog examples, and active squad Gadgets/Accessories.
 

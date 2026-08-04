@@ -27,39 +27,48 @@ Pasted text(53).txt
 Document
 We want this without their map and explore. We are doing that with levels and how we described it right?
 
-Here is the full breakdown of **Teeny Titans 2** (officially titled ***Teen Titans GO Figure!***).
+Here is the full breakdown of *the reference game* (officially titled **the external reference game**).
 
-This game builds heavily on the original *Teeny Titans* formula: a lighthearted, figure-collecting RPG that blends 3v3 real-time battle bar mechanics with open-world DC exploration.
+This game builds heavily on the original the reference series formula: a lighthearted, figure-collecting RPG that blends 3v3 real-time battle bar mechanics with open-world source franchise exploration.
 
 ---
 
 ## Game Overview & Progression (Start to End)
 
-* **Avatar Selection:** At the start of the game, you choose one of five Teen Titans as your overworld avatar: **Robin, Raven, Cyborg, Starfire, or Beast Boy**. Your choice changes overworld dialogue, special character-driven interactions, and unique voice acting.
-* **The Plot:** Someone is attempting to put the Teeny Titans toy business out of operation with counterfeit figures and shady sales tactics. You travel through the DC universe to uncover who is behind the conspiracy, earn championship badges, and reign supreme in competitive battle leagues.
+* **Avatar Selection:** At the start of the reference game, you choose one of
+five franchise protagonists as an overworld avatar. The choice changes
+overworld dialogue, character interactions, and voice acting.
+* **The Plot:** Someone is attempting to put the reference series toy business out of operation with counterfeit figures and shady sales tactics. You travel through the source-franchise universe to uncover who is behind the conspiracy, earn championship badges, and reign supreme in competitive battle leagues.
 * **The Core Loop:**
 
 $$\text{Explore Cities} \rightarrow \text{Buy/Find Figures} \rightarrow \text{Level/Upgrade Team} \rightarrow \text{Win Local Tournaments} \rightarrow \text{Unlock New Areas/Cities}$$
 
 
-* **End Game:** After defeating regional tournament champions across Jump City, Gotham City, and Metropolis, you battle through elite tournaments (like the Justice League or Legion of Doom events) to catch every collectible figure and claim the title of Mega Teeny Champion.
+* **End Game:** After defeating regional tournament champions, you battle
+through elite themed tournaments to complete the collection and claim the
+champion title.
 
 ---
 
 ## Map & Exploration
 
-Unlike the original game (which took place entirely in Jump City), *Teeny Titans 2* expands across three major DC hub worlds:
+Unlike the original game (which took place entirely in Reference City A), the reference game expands across three major source franchise hub worlds:
 
-* **Jump City:** The Titans' home turf featuring iconic spots like Titans Tower, Zippy's Pizza, and Lil' Alfred's Toy Cave.
-* **Gotham City:** A darker, rainier urban map featuring locations like the Batcave, Arkham Asylum, and Gotham toy stores.
-* **Metropolis:** A bright, high-rise city featuring LexCorp, the Daily Planet, and the Hall of Justice.
+* **Reference City A:** The protagonists' home turf, with several branded
+landmarks, shops, and a collection headquarters.
+* **Reference City B:** A darker, rainier urban map with lairs, institutions,
+  and themed toy stores.
+* **Reference City C:** A bright high-rise city with corporate, newsroom, and
+  heroic landmarks.
 
 ### Exploration Features
 
 * **Fast Travel:** Move quickly between neighborhoods and cities using sewer drains, space cabs, or transport stations.
 * **Dynamic Day/Night & Weather Systems:** Time continuously advances as you walk and battle. Certain stores close at night, while specific shady characters, nocturnal figures, or midnight tournaments only appear after dark.
 * **Scavenging:** You can tap trash cans, trees, water bodies, and street corners to collect dropped coins, free item boxes, tofu, or rare **Mod Chips**.
-* **NPC Interactions & Side Quests:** Dozens of classic DC characters (from Batman, Superman, and Wonder Woman down to niche villains like Condiment King) wander the streets. You can speak to them to receive quests or challenge them to duels.
+* **NPC Interactions & Side Quests:** Dozens of franchise Characters, from
+  leading heroes to niche villains, wander the streets. You can speak to them
+  for quests or challenge them to duels.
 
 ---
 
@@ -93,7 +102,7 @@ Every figure has **3 distinct ability slots** mapped directly to specific segmen
 
 ### Battle Accessories
 
-Before a fight, you equip one team accessory (e.g., the **Bat-Signal**, **Superman's Underpants**, or **Green Lantern Ring**). Over the course of the match, an accessory meter slowly builds up. Once full, activating it triggers a match-altering effect, such as team healing or massive burst damage.
+Before a fight, you equip one team accessory (e.g., the **Bat-Signal**, **Reference powerhouse's Underpants**, or **Green Lantern Ring**). Over the course of the match, an accessory meter slowly builds up. Once full, activating it triggers a match-altering effect, such as team healing or massive burst damage.
 
 ---
 
@@ -104,7 +113,7 @@ Shops are scattered everywhere, each specializing in different figure categories
 * **Inventory Rotation:** Shops restock their inventories as the in-game days cycle.
 * **Specialized Stores:**
 * *Bizarro Comics:* Focuses on villain and weird variant figures.
-* *Toyman / Lil' Alfred's:* High-tier hero stock.
+* *Reference inventor / Lil' Alfred's:* High-tier hero stock.
 * *Rainbow Raider:* Sells figure **Repaints** to customize paint jobs and alter cosmetic variants.
 * *24-Hour Shop & Sticky Joe:* Sells budget items, mystery boxes, and random consumables.
 
@@ -114,7 +123,8 @@ Shops are scattered everywhere, each specializing in different figure categories
 
 ## Upgrades, Mod Chips, and Customization
 
-Managing and upgrading your 100+ figure roster takes place inside **Titans Tower**:
+Managing and upgrading the 100-plus Character roster takes place inside a
+dedicated collection headquarters:
 
 ### 1. Stats & Leveling
 
@@ -146,7 +156,7 @@ The most important high-level conclusion is:
 
 This is a collectible squad battler with real-time battle-bar combat, character progression, a store, missions, tournaments, multiple story campaigns, and a distinctive static-image presentation built around animated rectangular and square panels.
 
-It deliberately borrows some of the appealing structural ideas from Teeny Titans, especially the battle bar, three-action characters, figure collection, upgrades, types, shops, tournaments and mod-style customisation. It deliberately removes open-world walking and exploration. The supplied Teeny Titans 2 breakdown is useful as system inspiration, but its cities, roaming NPCs, scavenging, day/night exploration and physical traversal are not part of this game. 
+It deliberately borrows some of the appealing structural ideas from the reference series, especially the battle bar, three-action characters, figure collection, upgrades, types, shops, tournaments and mod-style customisation. It deliberately removes open-world walking and exploration. The supplied reference-game breakdown is useful as system inspiration, but its cities, roaming NPCs, scavenging, day/night exploration and physical traversal are not part of this game.
 
 
 The earlier imported discussion also established that the visual limitation should become the game’s intentional style: static rectangular artwork, image swaps, zooms, slides, shake, hit-stop, flashes, sound and two-frame character motion instead of conventional animation. 
@@ -412,7 +422,7 @@ explorable hub cities
 
 manually finding quests in a physical environment
 
-Those systems were part of the Teeny Titans 2 inspiration, but they are not part of this project. 
+Those systems were part of the reference game inspiration, but they are not part of this project.
 
 
 Anything normally delivered through exploration is converted into structured authored content.
@@ -1014,7 +1024,7 @@ separate bars per fighter
 
 still require confirmation.
 
-The conversation leaned toward a Teeny Titans-style persistent team bar, but this should be explicitly confirmed before implementation.
+The conversation leaned toward a reference-game-style persistent team bar, but this should be explicitly confirmed before implementation.
 
 12. Character switching
 A squad may contain one, two or three characters.
@@ -1482,7 +1492,7 @@ unlock thresholds
 
 The exact level cap is not decided.
 
-The Teeny Titans reference had a level 20 cap, but this project should not assume that exact number.
+The the reference series reference had a level 20 cap, but this project should not assume that exact number.
 
 20.2 Allocated stats
 Players can distribute build points.
@@ -1620,7 +1630,7 @@ preferred music or presentation later
 22. Modification system
 The game may use mod chips or an original equivalent.
 
-The final terminology should not copy Teeny Titans exactly.
+The final terminology should not copy the reference series exactly.
 
 Possible concepts:
 
@@ -6690,7 +6700,7 @@ exact music precedence between character entrance, fight, tournament and story
 
 whether accessories are included in the MVP
 
-which alternate battle modes from Teeny Titans are worth adapting
+which alternate battle modes from the reference series are worth adapting
 
 exact visual treatment of rectangular panels and full-screen artwork
 

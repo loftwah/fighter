@@ -1,8 +1,13 @@
-# Untitled collectible battler — game design document
+# LOFTWAH FIGHTER V2 — game design document
 
-Status: authoritative for the current prototype  
-Development codename: **Riot Relics** (rejected as a release identity; retained
-only where migration-safe technical identifiers still use it)
+Status: **RATIFIED V2 PRODUCT AND RULES AUTHORITY**
+
+Player-facing title: **LOFTWAH FIGHTER**
+
+Repository identity: `loftwah/fighter`
+
+First intended release: **V2**
+
 Last design consolidation: 2026-07-31
 
 ## 1. Product statement
@@ -22,6 +27,11 @@ fight → earn → upgrade → collect → unlock → fight again
 ```
 
 Story, dialogue, shops, missions, rewards, choices, and tournaments are authored nodes from `00` to `n`. There is no walkable overworld.
+
+The first-session emotional test is deliberately untechnical: the player
+should finish the benchmark and think, “That was actually pretty fun.” Battle
+clarity, meaningful decisions, Character identity, and the urge to rematch are
+the evidence behind that reaction.
 
 ## 2. Working language
 
@@ -71,10 +81,18 @@ not forced onto a launch Character it does not honestly describe. The first
 appropriate antagonist can introduce it.
 
 Every public release must record the source and rights status of each Character
-interpretation. Characters based on protected marks, recognisable modern
-designs, living cultures, or religious figures require explicit review. The art
-pipeline creates a house interpretation and never treats a familiar source
-image as reusable production art.
+interpretation. No subject category requires owner pre-approval before draft
+production, but protected marks, recognisable modern designs, living cultures,
+and religious figures still receive explicit provenance, rights, cultural-care,
+and shipping review. The art pipeline creates a house interpretation and never
+treats a familiar source image as reusable production art.
+
+Agents own draft worldbuilding, biographies, dialogue, locations, Tournament
+themes, and Story outlines. The target is extensive, deliberate, adult dark
+comedy driven by Character behaviour, social friction, escalation, and
+surprising consequences. It may be sharp or profane where the Character earns
+it; generic swearing, copied catchphrases, and imitation plots are not a voice.
+Owner corrections refine that work rather than requiring the owner to author it.
 
 ## 4. Modes
 
@@ -86,8 +104,17 @@ and Settings only.
 Before the Main Menu, the application may play an ordered, skippable startup
 sequence made from text, registered images, and registered video. A visible
 waiting state separates that sequence from the launcher and is reused for
-genuine arena construction. Startup content never creates or resumes a game
-session by itself.
+genuine arena construction. The opening beat remains readable until the player
+advances or skips it; it never disappears on a timer. Its brief handoff names
+the Main Menu rather than claiming a fight is loading. Startup content never
+creates or resumes a game session by itself.
+
+Every player-facing battle passes through a mode-appropriate **Fight Setup**
+surface before arena construction. Quick Fight edits both Lineups, Story shows
+owned and authored-loan access plus any forced composition, and Tournament
+selects the deployed Lineup and starter from the locked Tournament Roster.
+These surfaces share confirmation language even when a mode deliberately locks
+some choices.
 
 ### Story Mode
 
@@ -100,6 +127,16 @@ session by itself.
 - Collection, Store, Missions, story Lineup, and authored story tournaments are
   scoped to an active Story Mode session. Store and Missions are not global
   Main Menu destinations.
+- Each Story definition declares the Missions and Tournament Trophies required
+  for its ending. Reaching the final node is not completion by itself: the
+  ending unlocks only when every declared requirement is complete.
+- After the canonical Story is complete, Quick Fight remains the unrestricted
+  end-game sandbox. This is a state of the existing mode, not a fourth mode.
+- Player-facing numbered levels are battles, Tournaments, and later authored
+  boss fights. Dialogue, rewards, choices, mission hooks, stores, and other
+  interstitial nodes keep stable internal IDs but do not need to display a
+  level number. The path may use a compact level-progression presentation, but
+  it never becomes a walkable map.
 
 ### Quick Fight
 
@@ -112,6 +149,13 @@ session by itself.
 - It is a sandbox and does not require ownership.
 - Quick Fight never changes Story progress, Stamps, XP, Missions, ownership, or
   tournament runs.
+- The selected Profile records fights played, wins, losses, last seed, and the
+  last two Lineups. This is history, not progression or a reward source.
+- Story completion may relabel Quick Fight as the end-game sandbox, but never
+  restricts its roster, rules, rematches, or matchup controls.
+- The first V2 benchmark defaults to Standard-build Viking against
+  Standard-build Grim Reaper with Second Wind versus Dead Air and seed
+  `3844240869`.
 
 ### Tournament Mode
 
@@ -124,10 +168,21 @@ session by itself.
 - Modifications cannot be changed during the tournament.
 - Interstitial nodes can heal, heal the Tournament Roster, revive, grant starting Charge, stun the next enemy, open a store, or give a reward.
 - Losing a fight ends the run. A tournament can be restarted and replayed indefinitely.
+- A loss clears the run and the next attempt begins at Round 1. Participants
+  still receive the authored loss XP; there is no rematch inside the failed run.
+- Activating the selected team Accessory exhausts it for the remainder of that
+  Tournament run. Restarting or completing the run restores availability.
 - Standalone tournaments can be customised; Story tournaments are authored.
 - A standalone tournament uses Standard Builds unless its authored or Custom
   rules explicitly provide another locked Tournament Roster build. A Story tournament uses
   owned or authored-loan builds.
+- Every authored Tournament names exactly one registered Trophy with an opaque
+  image asset, name, description, and accessible alternative text.
+- The first win permanently adds that Trophy to the selected Player profile.
+  Replays can pay their authored repeat rewards, but cannot duplicate ownership.
+- Custom Tournaments may select from registered generic Trophy designs. Generic
+  designs are reusable presentation options; each completed custom Tournament
+  still records its own authored award identity when custom persistence ships.
 
 ### Achievements
 
@@ -137,6 +192,8 @@ session by itself.
   an award added in a later build can unlock retroactively.
 - Achievements do not grant combat power unless an authored reward explicitly
   says so.
+- The Profile includes a Trophy cabinet derived from durable Tournament Trophy
+  ownership. Trophy collection is also available to achievement rules.
 
 ### Challenge Mode
 
@@ -187,6 +244,17 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
   Charge, statuses, pending Moves, AI, and Phaser presentation time do not
   advance.
 
+Difficulty changes AI judgement and reaction opportunity without changing
+Story access or progression rewards:
+
+- **Easy** — deliberately difficult to lose; the opponent leaves generous
+  windows and avoids consistently optimal pressure.
+- **Normal** — forgiving when the player engages with the fight, but prolonged
+  inaction or repeatedly poor choices can lose.
+- **Hard** — a fair, active fight with useful AI decisions and room to recover.
+- **Brutal** — the same legal information and rules with the opponent using its
+  strongest available judgement and shortest readable reaction window.
+
 ### 5.2 Charge Strips
 
 - Each team owns an independent Charge Strip from 0 to 100.
@@ -194,19 +262,39 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 - Switching never resets it.
 - Both sides begin at 0 Charge unless an authored encounter, Modification, or
   tournament Drop supplies an explicit opening bonus.
-- Base fill speed is `8 + Tempo × 0.4` Charge per second. A three-copy Echo
+- Base fill speed is `5 + Tempo × 0.4` Charge per second. A three-copy Echo
   Lineup multiplies that result by `1.08`. The current Tempo range therefore
-  fills a complete Strip in roughly 8.6–10.4 seconds before other effects. A
-  middle-Tempo Character reaches a 25-cost Move in about 2.5 seconds, a 50-cost
-  Move in about 5 seconds, and a 95-cost Move in about 9.5 seconds.
+  fills a complete Strip in roughly 11.6–15.2 seconds before other effects. A
+  middle-Tempo Character reaches a 25-cost Move in about 3.6 seconds, a 50-cost
+  Move in about 7.1 seconds, and a 95-cost Move in about 13.6 seconds.
 - The local player's Charge Strip is the primary combat control. It is large,
   persistent, and visually dominant beneath the arena.
 - The active Character's three Move controls are circular nodes anchored directly
   above their cost positions on the Strip. A node becomes explicitly ready
   when the fill reaches it; readiness never relies on colour alone.
+- Each side has a compact readiness marker attached to its Health readout.
+  While waiting it names the next Move and exact Charge remaining; when a Move
+  becomes usable the player marker switches to `YOUR MOVE`, identifies the
+  green controls, and lists the available number keys, while the opponent
+  marker switches to `OPPONENT READY`. The arena art recedes during player
+  decision time so the player marker, Strip, and usable Moves own the hierarchy.
+- The two most recent combat events sit in a reserved `FIGHT FEED` strip
+  immediately beneath the player's Charge Strip. They do not float over the
+  arena or obscure either resource console.
+- Player and opponent information never share ambiguous labels. Readouts say
+  `YOUR FIGHTER` and `OPPONENT`; blocking presentations say `YOUR MOVE` or
+  `OPPONENT MOVE` before naming the Character and Move.
+- Both Strips show their current whole-number Charge and effective
+  Charge-per-second rate. The player's larger Strip also exposes 0, 25, 50, 75,
+  and 100 scale marks so the retained 0–100 rules range reads as usable space.
 - Player-facing Move tiers are Normal, Tier 1, and Tier 2. Persisted
   `stock`/`gold`/`platinum` identifiers remain compatible: Normal has the base
   outline, Tier 1 has a silver outline, and Tier 2 has a gold outline.
+- Every Move declares one primary tactical category: Attack, Team attack, Stun,
+  Team stun, Support, Team support, Charge control, or Special. The inner Move
+  band and visible label communicate tier; a separate outer spot-colour band
+  and visible label communicate category. Pause exposes the complete key.
+  Colour is never the only carrier of either meaning.
 - Tempo, statuses, Modifications, scenario rules, and Moves may change fill speed, add Charge, drain Charge, or freeze the Strip.
 - Default centre Move costs are 25, 50, and 82. Reordering uses the nine
   positions `1L`, `1`, `1H`, `2L`, `2`, `2H`, `3L`, `3`, `3H`.
@@ -232,12 +320,16 @@ Initial position model:
 ### 5.3 Moves
 
 - Every combat-ready Character has three Move definitions.
-- A Move is flavour, audiovisual references, a timing model, targeting, and an ordered list of reusable effects.
+- A Move is flavour, one player-readable primary tactical category, audiovisual
+  references, a timing model, targeting, and an ordered list of reusable
+  effects. Category is authored content rather than inferred from effects, so
+  unusual hybrid Moves still make one deliberate promise to the player.
 - Minimum effects are damage, healing, stun, attack, defence, Evasion, and
   Fortune modification, damage-over-time, healing-over-time, lifesteal,
   Charge gain/drain, timed Charge-rate modification, cleanse, consumable
   shields, switch lock, timed reflection, counter-on-dodge, multi-hit,
-  undodgeable and shield-piercing damage, and charge-up.
+  stackable next-damaging-Move Power, undodgeable and shield-piercing damage,
+  and charge-up.
 - Targets are separate from effect types: self, active ally, all allies, active enemy, or all enemies.
 - A Move may contain multiple effects. The engine resolves them in declared order.
 - Attached effects may declare `requiresHit`; those effects are skipped when
@@ -248,6 +340,10 @@ Initial position model:
 - Damage effects may explicitly be undodgeable, pierce shields, or return a
   declared fraction of damage actually dealt as health. These properties remain
   reusable Move data rather than character-specific rules.
+- Next-Move Power is a consumable status rather than a timed attack buff.
+  Repeated applications stack. The complete stack applies to every hit in the
+  next damaging Move and is consumed once that Move's ordered effects finish,
+  even if its damage is dodged.
 - A shield is a timed pool. Incoming non-piercing damage consumes the oldest
   active pool before health; a depleted pool is removed immediately.
 - Reflection returns an authored fraction of post-shield health damage. An
@@ -262,6 +358,14 @@ Initial position model:
   another dodge counter. Defeats are emitted once after the reaction queue
   drains, then both sides select a living active Character.
 - Predicted non-random base output is visible before selection. Critical hits, dodge, and variance can change the final result.
+- A damaging Move's seal shows its current predicted attack points, not merely
+  its Charge cost. Stackable Power raises every applicable attack number
+  immediately; attack reductions lower those numbers immediately. The seal
+  keeps the exact Charge cost alongside the changing attack value, and marks
+  the direction and size of an active increase or reduction without relying on
+  colour. Neutral attack points remain still; increased and reduced points use
+  visually distinct rings, `+N` or `−N` labels, and reduced-motion-safe static
+  treatments.
 
 Resolution order:
 
@@ -276,6 +380,11 @@ validate → lock target → spend Charge → start/charge → resolve hits
 - Damage or stun interrupts a charging Character by default.
 - Dodge avoids the hit and therefore does not interrupt.
 - A Modification or effect may grant interruption resistance.
+- Interruption is a data-authored Move timing policy. The current charge-up
+  family spends Charge on commitment and refunds none when interrupted. Other
+  refund or staged policies may be added only as explicit reusable schema
+  values with deterministic tests; they are not inferred from colour or copied
+  from an `UNKNOWN EXACT` source observation.
 - Starting, resolving, dodging, interrupting, and reacting to a Move creates a
   readable presentation lock. An instant Move receives about 2.1 seconds, a
   charged Move's impact about 1.8 seconds, and a defeat about 2.6 seconds,
@@ -289,7 +398,17 @@ validate → lock target → spend Charge → start/charge → resolve hits
   not optional decorative timing.
 - The opponent's normal reaction delay restarts after presentation releases. It
   cannot spend the hidden pause preparing a command and act on the first active
-  frame.
+  frame. Baseline decision windows are 1.8 seconds on Easy, 1.4 seconds on
+  Normal, 0.9 seconds on Hard, and 0.6 seconds on Brutal.
+- Health, both Charge Strips, and every deployed Lineup portrait remain
+  full-strength and readable throughout a Move presentation. The latest damage,
+  healing, status, or defeat outcome remains as a compact visible receipt after
+  the cut-in clears.
+- Each active Character's Health and its team's Charge Strip form one combat
+  console: opponent information is grouped across the upper field and player
+  information is grouped across the lower Move-and-Charge field. The player
+  never has to look at a separate arena corner to compare their Health and
+  Charge.
 - Periodic damage and regeneration ticks update health and semantic output
   with a compact non-blocking arena float instead of creating another
   attack-presentation lock. A defeat caused by a periodic tick still receives
@@ -304,7 +423,13 @@ validate → lock target → spend Charge → start/charge → resolve hits
 - Switching cannot dodge an already committed Move; its target or target set is
   captured when the Move commits. A defeated single target causes the Move to
   fizzle unless the Move explicitly defines another retarget policy.
-- Individual health and statuses remain on benched Characters.
+- Individual health and statuses remain on benched Characters. Every deployed
+  Character stays visible at the edge of the arena with numeric Health and a
+  small Health track, including during Move presentation.
+- Every Lineup ticket also exposes an `Attacks` disclosure. Its closed label
+  summarises all three upgrade tiers; opening or hovering it shows each attack
+  name, Charge cost, and `Normal`, `Tier 1`, or `Tier 2` label without replacing
+  the persistent portrait or Health.
 - Status durations continue to tick while benched.
 - A status remains effective through the complete simulation slice in which its
   timer reaches zero, then expires. This prevents a one-second stun or
@@ -356,6 +481,12 @@ Team-damage and team-healing Moves distribute their authored pool across living 
 
 Dodge normally prevents an entire hit. Multi-hit Moves roll dodge and critical independently per hit.
 
+Randomness stays bounded, seeded, and reportable. The result explanation names
+critical hits and dodges when they occurred and explicitly says when neither
+decided the fight. It also names the decisive Move, leading damage sources,
+Type edge, and recorded player Move/switch choices. It never invents a cause
+that the Battle Report cannot support.
+
 ## 6. Combat Types and Team Traits
 
 Combat Type controls only matchup effectiveness. The six-Type wheel is:
@@ -367,7 +498,7 @@ Brawler → Beast → Oddball → Arcane → Sharpshooter → Tech → Brawler
 An arrow means “strong against.” The mnemonic is: training controls a Beast;
 instinct catches an Oddball; nonsense disrupts Arcane; tricks outwit a
 Sharpshooter; range disables Tech; and Tech keeps a Brawler out. This is the
-functional Teeny Titans 2 class cycle with original product-facing labels:
+functional reference-game class cycle with original product-facing labels:
 Brawler maps to Martial Arts, Beast to Beast, Oddball to Cute, Arcane to Dark
 Arts, Sharpshooter to Super, and Tech to Tech. A Type is weak to the Type
 pointing at it. Typeless Characters are uncommon and ignore the wheel. Moves
@@ -396,6 +527,12 @@ Trait scoring is deterministic:
 
 Exact duplicate Characters are allowed. A three-copy “Echo Lineup” gains 8%
 faster Charge fill as a separate authored synergy.
+
+V2 also includes data-authored named Character combinations. Their exact bonus
+and conflict-priority grammar remains a recorded research row until it can be
+implemented without weakening the six independent Team Traits or inventing an
+unsupported source constant. A named combination must always show its members,
+activation requirement, exact effect, and priority behaviour before battle.
 
 All synergies are shown before battle and never rely on colour alone.
 
@@ -432,6 +569,10 @@ Defence is a temporary combat modifier, not a sixth allocated stat. Defence Down
   damage, healing, periodic effects, shields, Charge changes, timed Charge-rate
   effects, buff/debuff magnitude, switch locks, and stun duration. Cleanse and
   boolean hit properties remain binary.
+- A Move may declare cumulative Tier 1 or Tier 2 binary properties in data.
+  This is used when the defining upgrade is qualitative, such as making a
+  returning-weapon hit undodgeable. The ordinary numeric multiplier still
+  applies, and a property unlocked at Tier 1 remains active at Tier 2.
 - Reordering and upgrading unlock at level 10.
 - Upgrades never make a Move worse, are previewed exactly, and are permanent for that owned copy.
 - Advancing one Move by one tier consumes one explicitly selected duplicate of
@@ -472,6 +613,9 @@ Initial Modifications:
 - Locked stock is hidden or shown as a silhouette until revealed.
 - Owned Characters and Modifications can be sold for their current full listed
   value in the prototype.
+- Deterministic local rotation is the V2 rule until measured evidence supports
+  another honest local-first schedule. Device-clock manipulation must not create
+  false scarcity or remove paid-for value.
 - Purchased Characters are usually level 2–10; specific offers declare the
   level.
 - Duplicates are allowed and keep independent levels, tiers, allocations, and
@@ -485,23 +629,27 @@ Initial missions:
 
 - **Unexpected Company** — own two distinct Characters.
 - **History Settled** — defeat Ned Kelly once.
-- **Run It Back** — after losing to a named opponent, return and defeat that
-  opponent.
+- **Run It Back** — win the two authored First Run Story fights.
 
 Mission progress can count on a loss when the objective describes an action actually completed, such as dealing damage. Win objectives never count on a loss.
 
 ## 10. Initial story: “First Run”
 
-| Node | Type       | Title                  | Purpose                              |
-| ---- | ---------- | ---------------------- | ------------------------------------ |
-| `00` | dialogue   | Wrong Door             | Introduce the impossible invitation  |
-| `01` | reward     | Axe First              | Lend and then grant Viking           |
-| `02` | battle     | History Disagrees      | Tutorial fight against Ned Kelly     |
-| `03` | store      | Lost Property          | Reveal rotating stock and equipment  |
-| `04` | mission    | Side Quests Happened   | Unlock the three initial missions    |
-| `05` | battle     | Open Source Backup     | Teach two-Character shared Charge    |
-| `06` | tournament | The Wrong Door Cup     | Three-round launch-roster tournament |
-| `07` | reward     | This Explained Nothing | Currency, rival reveal, ending panel |
+| Node | Type       | Title                  | Purpose                                                |
+| ---- | ---------- | ---------------------- | ------------------------------------------------------ |
+| `00` | dialogue   | Wrong Door             | Introduce the impossible invitation                    |
+| `01` | reward     | Axe First              | Lend and then grant Viking                             |
+| `02` | battle     | History Disagrees      | Tutorial fight against Ned Kelly                       |
+| `03` | store      | Lost Property          | Reveal rotating stock and equipment                    |
+| `04` | mission    | Side Quests Happened   | Unlock the three initial missions                      |
+| `05` | battle     | Open Source Backup     | Teach two-Character shared Charge                      |
+| `06` | tournament | The Wrong Door Cup     | Three-round launch-roster tournament                   |
+| `07` | reward     | This Explained Nothing | Completion check, currency, rival reveal, ending panel |
+
+First Run completes only when all three initial Missions are complete and the
+Wrong Door Cup Trophy has been collected. The final reward cannot be claimed
+from node position alone. Completion exposes Quick Fight as the open-ended
+post-Story sandbox.
 
 ## 11. Initial tournament: “The Wrong Door Cup”
 
@@ -512,9 +660,11 @@ Mission progress can count on a loss when the objective describes an action actu
 4. Interstitial store or revive offer when applicable.
 5. Final against Ned Kelly and Grim Reaper.
 
-Rewards are a tournament badge, Stamps, XP, and a chance to reveal a rare store offer.
-The champion badge is unique. Replays remain a progression activity: a completed
-replay pays its authored Stamp purse and battle XP again.
+The first victory awards the unique **Wrong Door Cup** Trophy, its registered
+image, Stamps, XP, and a chance to reveal a rare store offer. The Trophy is
+shown permanently on the selected Profile and is required for First Run
+completion. Replays remain a progression activity: a completed replay pays its
+authored Stamp purse and battle XP again without duplicating the Trophy.
 
 ## 12. Presentation
 
@@ -541,12 +691,41 @@ statuses, target state, action names, damage values, countdowns, focus, and
 availability—always remains code-native and semantic. It is never baked into
 generated artwork.
 
-The current implementation uses an underground risograph fight bill crossed
-with a collectible archive drawer. That identity and the Riot Relics name have
-been rejected as release direction. `DESIGN.md` continues to document what is
-implemented until a replacement is selected, built, verified, and documented;
-`docs/art-direction-discovery.md` records the preference discovery, and
-`docs/visual-direction-v2.md` records the accepted replacement target.
+Battle presentation is split into four explicit effect classes:
+
+- **gameplay-active** owns costs, damage, statuses, legal commands, seeded
+  outcomes, and AI;
+- **interaction-critical** owns the stable locations, reading order, touch
+  geometry, focus, and labels for Health, Charge, Lineups, Moves, readiness,
+  Accessory, pickups, timer, Pause, and the fight feed;
+- **presentation-active** owns the blocking presentation lock because it
+  freezes simulation and changes wall-clock feel even though it cannot change
+  deterministic combat state;
+- **cosmetic** owns crops, temporary panel arrangements, zooms, wipes, impact
+  framing, and other visual choreography that neither moves controls nor
+  changes the Battle Report.
+
+Development Settings may expose cosmetic Battle styles for direct comparison.
+The launch experiment choices are **Kinetic Print**, a single dominant moving
+plate, and **Comic Cutaways**, three staggered lead/action/reaction frames.
+Both consume the same semantic events, interaction shell, reduced-motion
+preference, and presentation-lock duration. Gameplay experiments remain named
+fixed-seed Developer Lab scenarios so they cannot contaminate normal fights or
+progression.
+
+The launch roster's implemented bitmap direction is **Saturday-Night Toybox**:
+bright cartoon–anime collectible forms, character-dependent proportions, heavy
+controlled ink, simple cel shading, large colour masses, and light tactile
+texture. Each of the six launch Characters has canonical art, a compatible
+two-frame idle pair, a six-reaction sheet, and three opponent-free Move
+cut-ins. A responsive six-Character ensemble opens the game, and arena, Story,
+and Tournament use matching establishing plates.
+
+The interface still retains parts of the older underground-print structure
+while its broader palette and material replacement is completed. The rejected
+loftwah/fighter identity and name are not the raster-art target.
+`docs/visual-direction-v2.md` defines the accepted bitmap direction and
+`DESIGN.md` records the currently implemented combined system.
 
 ## 13. Audio
 
@@ -578,14 +757,18 @@ implemented until a replacement is selected, built, verified, and documented;
 - Autosave after battles, purchases, upgrades, and story progress.
 - Preferences are separate from progression and survive progression wipes.
 - Settings owns accessibility, audio, difficulty, and local-data management.
+  Development builds add explicitly classified local presentation experiments;
+  these are not progression settings or combat-rule switches.
 - Save export/import is deferred until the schema stabilises.
+- Quick Fight history is profile-owned and additively migrated with zeroed
+  counts for older compatible V2 saves.
 - Reduced motion, keyboard navigation, touch targets, subtitles, volume
   categories, readable contrast, and redundant Type/Trait/status labels are
   required.
 
-## 15. Current MVP
+## 15. V2 release baseline
 
-The current build should prove:
+`docs/v2-release-spec.md` owns the complete release contract. V2 proves:
 
 - story node to squad confirmation to playable battle to reward;
 - the accepted six-Character launch roster with three Moves each;
@@ -598,16 +781,37 @@ The current build should prove:
 - real generated art, existing music, and silent SFX/dialogue fallbacks;
 - content validation and automated domain tests.
 
-It does not include the full campaign, final balance, backend, multiplayer, monetisation, mobile packaging, ElevenLabs output, or open-world systems.
+The six launch kits are calibrated against one proven role from each source
+class, as recorded in `docs/launch-roster-calibration.md`. Viking is the
+default forgiving leader benchmark: **Battle Boast** banks stackable
+next-attack Power, **Axe First** is an instant returning-weapon attack whose
+Tier 1 enhancement is undodgeable, and **Berserker Oath** is the strongest
+default attack with secondary Stun and a longer enhanced stun. These original
+labels own the shipped content; source labels remain research evidence only.
+The remaining five calibration rows are release gates rather than optional
+future roster breadth.
+
+It does not include a broad Story or Tournament catalogue, more than the six
+launch Characters, produced SFX/dialogue, PWA installation, final balance,
+backend, multiplayer, monetisation, mobile packaging, ElevenLabs output, or
+open-world systems.
 
 ## 16. Explicitly open decisions
 
-- Final product name and permanent terminology.
 - Final product-specific names for Character, Lineup, Move, Modification, and
   currency.
 - Final Combat Type and Team Trait numeric balance after playtesting.
-- Long-term mobile orientation.
+- Final orientation preference, while portrait and landscape remain supported.
 - Final story-path topology and whether hidden nodes exist.
-- Exact Quick Fight progression rewards.
+- Exact named-combination bonus and priority grammar; the capability itself is
+  accepted for V2.
+- Exact source timing, AI weights, Drop frequency, and Store rotation values
+  that remain `UNKNOWN EXACT`; V2 uses measured original baselines.
 - Final visual approval and future character/story-specific visual variance.
-- Save export timing, PWA timing, analytics, observability provider, and cloud-save design.
+- The implemented Battle spatial candidate remains subject to owner playtest.
+  The revised Main Menu, navigation, and Shared Fight Setup remain separate
+  screenshot-led approval batches rather than accepted current production
+  layouts.
+- Analytics and observability provider, cloud-save design, and account identity.
+  Multiplayer rules remain deliberately deferred until V2.4; PWA, account,
+  native, and online milestone timing is fixed by `docs/release-roadmap.md`.

@@ -17,6 +17,7 @@ import {
   createBattle,
   forfeitBattle,
   predictedDamage,
+  predictedBaseDamage,
   requestAction,
   requestAccessory,
   requestPickup,
@@ -29,10 +30,11 @@ import {
   difficultyAiDelay,
   isAlive,
   POSITION_RULES,
+  teamChargePerSecond,
+  TIER_MULTIPLIERS,
   typeMultiplier,
 } from "../combat/rules";
 import type {
-  ActionDefinition,
   ActionPosition,
   BattleCommand,
   BattleEvent,
@@ -45,6 +47,7 @@ import type {
   Transition,
 } from "../combat/types";
 import { createStandardBuild } from "../combat/standard-build";
+import { quickFightSeed } from "../combat/quick-fight-seed";
 import {
   appendBattleTick,
   appendBattleTransition,
@@ -57,6 +60,7 @@ import {
 import {
   combatContent,
   missions,
+  quickFightDefaults,
   storyNodes,
 } from "../content/initial-content";
 import { startupSequence } from "../content/startup-content";
@@ -69,7 +73,11 @@ import {
   holdAiDecisionClock,
 } from "../game/presentation-timing";
 import { evaluateMissionProgress } from "../missions/evaluate";
-import { nextImageFallback, resolveImagePath } from "../assets/registry";
+import {
+  nextImageFallback,
+  resolveImageObjectPosition,
+  resolveImagePath,
+} from "../assets/registry";
 import {
   acceptSafeDefaults,
   collectCorruptBackups,
@@ -115,6 +123,7 @@ import {
   cheapSeatsEncounter,
   cheapSeatsPlayerIds,
   createCheapSeatsRun,
+  exhaustTournamentAccessoriesFromEvents,
   lockCheapSeatsCase,
   normaliseCheapSeatsRun,
   recordCheapSeatsResult,
@@ -122,8 +131,9 @@ import {
   selectCheapSeatsDeployment,
   type CheapSeatsDrop,
 } from "../tournaments/cheap-seats";
+import { awardTournamentTrophy } from "../tournaments/catalog";
 import {
-  applyDevStartingHealth,
+  applyDevScenarioState,
   defaultDevScenario,
   devBuildsForSide,
   findDevScenario,
@@ -132,9 +142,20 @@ import {
   type DevBattleScenario,
   type DevMoveTier,
 } from "../dev/scenarios";
+import {
+  battleDecisionGuidance,
+  battlePresentationGuidance,
+  opponentDecisionGuidance,
+} from "../ui/battle-guidance";
+import { renderBenchMoveDisclosure } from "../ui/battle-bench";
 import { escapeHtml, formatLabel, formatTime } from "../ui/format";
 import {
+  moveCategoryDetail,
+  renderMoveCategoryKey,
+} from "../ui/move-category-key";
+import {
   renderStartupScreen,
+  startupAdvanceDelay,
   type StartupStage,
 } from "../ui/screens/startup-screen";
 import { renderAchievementsScreen } from "../ui/screens/achievements-screen";
@@ -154,6 +175,7 @@ import {
   type BattleScreenModel,
 } from "../ui/screens/battle-screen";
 import { renderDifficultyOptions } from "../ui/components/difficulty-options";
+import { renderBattleResultExplanation } from "../ui/battle-result-explanation";
 import { traitBonusLabel } from "../ui/components/trait-synergy";
 import {
   renderAppHeader,
@@ -161,6 +183,18 @@ import {
   type AppShellModel,
 } from "../ui/shell/app-shell";
 import { renderStorageWarning } from "../ui/shell/storage-warning";
+import {
+  actionResolutionFeedback,
+  actionOutputSummary,
+  empowerStatusSummary,
+  moveSealOutput,
+} from "../ui/combat-output";
+import {
+  loadDevExperiments,
+  saveDevExperiments,
+  type BattlePresentationStyle,
+  type DevExperimentSelections,
+} from "../dev/experiments";
 
 interface BattleRewardView {
   won: boolean;
@@ -174,58 +208,24 @@ interface BattleRewardView {
 const CUP_COMPLETION_BONUS = 240;
 const DEV_TOOLS_ENABLED = import.meta.env.DEV;
 
-function actionEffectSummary(action: ActionDefinition): string {
-  const labels: Partial<
-    Record<ActionDefinition["effects"][number]["kind"], string>
-  > = {
-    heal: "Heal",
-    damageOverTime: "DoT",
-    healOverTime: "Regen",
-    stun: "Stun",
-    modifyAttack: "Power",
-    modifyDefence: "Defence",
-    modifyEvasion: "Evasion",
-    modifyFortune: "Fortune",
-    switchLock: "Switch lock",
-    reflectDamage: "Reflect",
-    counterOnDodge: "Counter",
-    bar: "Charge",
-    modifyChargeRate: "Charge rate",
-    shield: "Shield",
-    cleanse: "Cleanse",
-  };
-  const reactionPriority = new Map([
-    ["Counter", 0],
-    ["Reflect", 0],
-  ]);
-  return Array.from(
-    new Set(
-      action.effects
-        .filter((effect) => effect.kind !== "damage")
-        .map((effect) => labels[effect.kind] ?? formatLabel(effect.kind)),
-    ),
-  )
-    .sort(
-      (left, right) =>
-        (reactionPriority.get(left) ?? 1) - (reactionPriority.get(right) ?? 1),
-    )
-    .join(" + ");
-}
-
 function renderCombatStatus(status: StatusState): string {
   const seconds = Math.max(1, Math.ceil(status.remainingMs / 1_000));
   const label =
-    status.kind === "reflection"
-      ? `Reflect ${Math.round(status.magnitude * 100)}% · ${seconds}s`
-      : status.kind === "dodgeCounter"
-        ? `Counter · ${status.remainingTriggers ?? 1}× · ${seconds}s`
-        : formatLabel(status.kind);
+    status.kind === "empower"
+      ? `Next Move +${Math.round(status.magnitude * 100)}%`
+      : status.kind === "reflection"
+        ? `Reflect ${Math.round(status.magnitude * 100)}% · ${seconds}s`
+        : status.kind === "dodgeCounter"
+          ? `Counter · ${status.remainingTriggers ?? 1}× · ${seconds}s`
+          : formatLabel(status.kind);
   const description =
-    status.kind === "reflection"
-      ? `Reflect ${Math.round(status.magnitude * 100)} percent of health damage, ${seconds} seconds remaining`
-      : status.kind === "dodgeCounter"
-        ? `Dodge counter ready, ${status.remainingTriggers ?? 1} trigger remaining, ${seconds} seconds remaining`
-        : `${formatLabel(status.kind)}, ${seconds} seconds remaining`;
+    status.kind === "empower"
+      ? `Next damaging Move gains ${Math.round(status.magnitude * 100)} percent Power; stacks combine`
+      : status.kind === "reflection"
+        ? `Reflect ${Math.round(status.magnitude * 100)} percent of health damage, ${seconds} seconds remaining`
+        : status.kind === "dodgeCounter"
+          ? `Dodge counter ready, ${status.remainingTriggers ?? 1} trigger remaining, ${seconds} seconds remaining`
+          : `${formatLabel(status.kind)}, ${seconds} seconds remaining`;
   return `<span data-status-kind="${status.kind}" aria-label="${description}">${label}</span>`;
 }
 
@@ -238,6 +238,7 @@ export class App {
   #route: Route = "menu";
   #sessionMode: SessionMode = "menu";
   #preferences: Preferences;
+  #devExperiments: DevExperimentSelections;
   #save: SaveData;
   #audio: AudioManager;
   #battle: BattleState | null = null;
@@ -253,10 +254,10 @@ export class App {
   #isTournamentFight = false;
   #isQuickFight = false;
   #isDevFight = false;
-  #quickPlayerIds = ["character.viking", "character.ned-kelly"];
-  #quickEnemyIds = ["character.tux", "character.humpty"];
-  #quickPlayerAccessoryId = "accessory.press-pass";
-  #quickEnemyAccessoryId = "accessory.dead-air";
+  #quickPlayerIds: string[] = [...quickFightDefaults.playerIds];
+  #quickEnemyIds: string[] = [...quickFightDefaults.enemyIds];
+  #quickPlayerAccessoryId: string = quickFightDefaults.playerAccessoryId;
+  #quickEnemyAccessoryId: string = quickFightDefaults.enemyAccessoryId;
   #devScenario: DevBattleScenario | null = null;
   #devDraft: DevBattleScenario = structuredClone(defaultDevScenario);
   #battleControllers: Record<Side, BattleControllerKind> = {
@@ -272,6 +273,9 @@ export class App {
   #devInspectorOpen = false;
   #battleOverlayOpener: HTMLElement | null = null;
   #battleTimeScale = 1;
+  #battleInspectionTimer = 0;
+  #battleInspectionTarget: HTMLElement | null = null;
+  #suppressBattleInspectionClick: HTMLElement | null = null;
   #actionTraySignature = "";
   #recentBattleReports: BattleReport[] = [];
   #tournamentDraftDeploymentIds: string[] = [];
@@ -293,7 +297,17 @@ export class App {
 
   constructor(root: HTMLElement) {
     this.#root = root;
+    for (const [property, assetId] of [
+      ["--art-story", "image.story.first-run"],
+      ["--art-tournament", "image.tournament.cheap-seats"],
+    ] as const) {
+      this.setCssImageWithFallback(property, assetId);
+    }
     this.#preferences = loadPreferences(localStorage);
+    this.#devExperiments = loadDevExperiments(
+      localStorage,
+      DEV_TOOLS_ENABLED ? window.location.search : "",
+    );
     this.#save = loadFirstRunSave(
       localStorage,
       loadActiveSaveSlot(localStorage),
@@ -304,7 +318,10 @@ export class App {
     this.#root.addEventListener("click", this.onClick);
     this.#root.addEventListener("change", this.onChange);
     this.#root.addEventListener("input", this.onInput);
+    this.#root.addEventListener("pointerdown", this.onBattlePointerDown);
     this.#root.addEventListener("error", this.onMediaError, true);
+    window.addEventListener("pointerup", this.onBattlePointerEnd);
+    window.addEventListener("pointercancel", this.onBattlePointerEnd);
     window.addEventListener("keydown", this.onKeyDown);
   }
 
@@ -316,19 +333,97 @@ export class App {
   destroy(): void {
     cancelAnimationFrame(this.#animationFrame);
     window.clearTimeout(this.#battleCountdownTimer);
+    window.clearTimeout(this.#battleInspectionTimer);
     window.clearTimeout(this.#startupTimer);
     this.#phaserGame?.destroy(true);
     this.#audio.destroy();
     this.#root.removeEventListener("click", this.onClick);
     this.#root.removeEventListener("change", this.onChange);
     this.#root.removeEventListener("input", this.onInput);
+    this.#root.removeEventListener("pointerdown", this.onBattlePointerDown);
     this.#root.removeEventListener("error", this.onMediaError, true);
+    window.removeEventListener("pointerup", this.onBattlePointerEnd);
+    window.removeEventListener("pointercancel", this.onBattlePointerEnd);
     window.removeEventListener("keydown", this.onKeyDown);
+  }
+
+  private onBattlePointerDown = (event: PointerEvent): void => {
+    if (
+      this.#route !== "battle" ||
+      event.pointerType === "mouse" ||
+      event.button !== 0
+    ) {
+      return;
+    }
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-battle-inspectable]")
+        : null;
+    if (!target) {
+      return;
+    }
+    window.clearTimeout(this.#battleInspectionTimer);
+    this.closeBattleInspections(target);
+    this.#battleInspectionTarget = target;
+    this.#battleInspectionTimer = window.setTimeout(() => {
+      target.classList.add("is-inspecting");
+      target.setAttribute("aria-expanded", "true");
+      this.#suppressBattleInspectionClick = target;
+      this.#battleInspectionTimer = 0;
+    }, 480);
+  };
+
+  private onBattlePointerEnd = (): void => {
+    window.clearTimeout(this.#battleInspectionTimer);
+    this.#battleInspectionTimer = 0;
+    const target = this.#battleInspectionTarget;
+    this.#battleInspectionTarget = null;
+    if (!target?.classList.contains("is-inspecting")) {
+      return;
+    }
+    window.setTimeout(() => {
+      this.closeBattleInspections();
+    }, 180);
+    window.setTimeout(() => {
+      if (this.#suppressBattleInspectionClick === target) {
+        this.#suppressBattleInspectionClick = null;
+      }
+    }, 650);
+  };
+
+  private closeBattleInspections(except?: HTMLElement): void {
+    for (const target of this.#root.querySelectorAll<HTMLElement>(
+      "[data-battle-inspectable].is-inspecting",
+    )) {
+      if (target === except) {
+        continue;
+      }
+      target.classList.remove("is-inspecting");
+      target.setAttribute("aria-expanded", "false");
+    }
+  }
+
+  private toggleBattleInspection(target: HTMLElement): void {
+    const opening = !target.classList.contains("is-inspecting");
+    this.closeBattleInspections(opening ? target : undefined);
+    target.classList.toggle("is-inspecting", opening);
+    target.setAttribute("aria-expanded", String(opening));
   }
 
   private onMediaError = (event: Event): void => {
     const target = event.target;
     if (!(target instanceof HTMLImageElement) || !target.dataset.assetId) {
+      return;
+    }
+    const pictureSources = target
+      .closest("picture")
+      ?.querySelectorAll("source");
+    if (pictureSources?.length) {
+      pictureSources.forEach((source) => source.remove());
+      const authoredFallback = target.getAttribute("src");
+      if (authoredFallback) {
+        target.src = authoredFallback;
+      }
       return;
     }
     const fallback = nextImageFallback(target.dataset.assetId);
@@ -338,6 +433,24 @@ export class App {
     target.dataset.assetId = fallback.id;
     target.src = fallback.path;
   };
+
+  private setCssImageWithFallback(property: string, assetId: string): void {
+    const visited = new Set<string>();
+    const tryAsset = (id: string, path: string): void => {
+      if (visited.has(id)) return;
+      visited.add(id);
+      this.#root.style.setProperty(property, `url("${path}")`);
+      const probe = new Image();
+      probe.addEventListener("error", () => {
+        const fallback = nextImageFallback(id);
+        if (fallback) {
+          tryAsset(fallback.id, fallback.path);
+        }
+      });
+      probe.src = path;
+    };
+    tryAsset(assetId, resolveImagePath(assetId));
+  }
 
   private onKeyDown = (event: KeyboardEvent): void => {
     if (this.#route !== "battle" || !this.#battle) {
@@ -404,6 +517,12 @@ export class App {
     }
     const command = target.closest<HTMLElement>("[data-command]");
     if (!command?.dataset.command) {
+      this.closeBattleInspections();
+      return;
+    }
+    if (this.#suppressBattleInspectionClick === command) {
+      event.preventDefault();
+      this.#suppressBattleInspectionClick = null;
       return;
     }
     switch (command.dataset.command) {
@@ -487,9 +606,16 @@ export class App {
         }
         break;
       case "battle-accessory":
+        if (command.getAttribute("aria-disabled") === "true") {
+          this.toggleBattleInspection(command);
+          break;
+        }
         this.playerAccessory(
           command.dataset.side === "enemy" ? "enemy" : "player",
         );
+        break;
+      case "inspect-battle-detail":
+        this.toggleBattleInspection(command);
         break;
       case "battle-pickup":
         if (command.dataset.pickupId) {
@@ -531,6 +657,12 @@ export class App {
           command.dataset.side === "enemy" ? "enemy" : "player",
           Number(command.dataset.amount) || 25,
         );
+        break;
+      case "dev-set-speed":
+        this.setDevBattleSpeed(Number(command.dataset.speed) || 1);
+        break;
+      case "hide-battle-overlay":
+        this.hideBattleOverlayForCapture();
         break;
       case "dev-copy-state":
         void this.copyBattleState();
@@ -837,6 +969,18 @@ export class App {
       this.#battleScene?.setReducedMotion(target.checked);
     }
     if (
+      DEV_TOOLS_ENABLED &&
+      target.name === "experiment.battlePresentationStyle" &&
+      target instanceof HTMLSelectElement
+    ) {
+      this.#devExperiments.battlePresentationStyle =
+        target.value as BattlePresentationStyle;
+      saveDevExperiments(localStorage, this.#devExperiments);
+      this.announce(
+        `Battle visual style set to ${target.selectedOptions[0]?.textContent ?? target.value}.`,
+      );
+    }
+    if (
       target.name === "musicPlaybackEnabled" &&
       target instanceof HTMLInputElement
     ) {
@@ -1059,12 +1203,23 @@ export class App {
         {
           const ending = claimFirstRunEnding(this.#save);
           if (!ending.claimed) {
+            if (ending.blockedBy) {
+              const missionCount = ending.blockedBy.incompleteMissionIds.length;
+              const trophyCount = ending.blockedBy.missingTrophyIds.length;
+              this.announce(
+                `First Run still needs ${missionCount} Mission${
+                  missionCount === 1 ? "" : "s"
+                } and ${trophyCount} Tournament Troph${
+                  trophyCount === 1 ? "y" : "ies"
+                }.`,
+              );
+            }
             break;
           }
           this.#save = saveSlot(localStorage, ending.save);
           this.render();
           this.announce(
-            `First Run complete. ${FIRST_RUN_ENDING_REWARD} Stamps and the Ned Kelly rival file were added.`,
+            `First Run complete. ${FIRST_RUN_ENDING_REWARD} Stamps and the Ned Kelly rival file were added. Quick Fight is the end-game sandbox.`,
           );
         }
         break;
@@ -1171,26 +1326,16 @@ export class App {
 
   private scheduleStartupAdvance(): void {
     window.clearTimeout(this.#startupTimer);
-    if (this.#startupStage === "ready") {
-      return;
-    }
-    const delay =
-      this.#startupStage === "loading"
-        ? this.#preferences.reducedMotion
-          ? 120
-          : 650
-        : startupSequence[this.#startupBeatIndex]?.durationMs;
-    if (delay === undefined) {
-      this.enterStartupLoading();
+    const delay = startupAdvanceDelay(
+      this.#startupStage,
+      this.#preferences.reducedMotion,
+    );
+    if (delay === null) {
       return;
     }
     this.#startupTimer = window.setTimeout(() => {
-      if (this.#startupStage === "loading") {
-        this.#startupStage = "ready";
-        this.render();
-        return;
-      }
-      this.advanceStartup();
+      this.#startupStage = "ready";
+      this.render();
     }, delay);
   }
 
@@ -1223,7 +1368,7 @@ export class App {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "riot-relics-corrupt-save-backup.json";
+    link.download = "loftwah-fighter-corrupt-save-backup.json";
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -1246,7 +1391,7 @@ export class App {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `riot-relics-profile-${this.#save.slot}.json`;
+    link.download = `loftwah-fighter-profile-${this.#save.slot}.json`;
     link.click();
     URL.revokeObjectURL(url);
   }
@@ -1378,6 +1523,8 @@ export class App {
           difficultyOptions: renderDifficultyOptions(
             this.#preferences.difficulty,
           ),
+          devToolsEnabled: DEV_TOOLS_ENABLED,
+          experiments: this.#devExperiments,
         });
       case "dev":
         return DEV_TOOLS_ENABLED
@@ -1546,6 +1693,7 @@ export class App {
       ),
       musicPlaybackEnabled: this.#preferences.musicPlaybackEnabled,
       devToolsEnabled: DEV_TOOLS_ENABLED,
+      presentationStyle: this.#devExperiments.battlePresentationStyle,
     };
   }
 
@@ -1558,27 +1706,32 @@ export class App {
     ) {
       return;
     }
-    this.#phaserGame = createBattleGame(canvasParent, this.#battle, (scene) => {
-      this.#battleScene = scene;
-      scene.setReducedMotion(this.#preferences.reducedMotion);
-      if (this.#battle) {
-        scene.setSnapshot(this.#battle);
-      }
-      this.#lastFrameAt = performance.now();
-      scene.setSimulationPaused(this.#battlePaused);
-      const loading = this.#root.querySelector<HTMLElement>(
-        "[data-battle-loading]",
-      );
-      if (loading) {
-        loading.hidden = true;
-      }
-      if (this.#isDevFight && this.#battlePaused) {
-        this.activateBattle();
-        this.updateBattleOverlay();
-      } else {
-        this.startBattleCountdown();
-      }
-    });
+    this.#phaserGame = createBattleGame(
+      canvasParent,
+      this.#battle,
+      this.#devExperiments.battlePresentationStyle,
+      (scene) => {
+        this.#battleScene = scene;
+        scene.setReducedMotion(this.#preferences.reducedMotion);
+        if (this.#battle) {
+          scene.setSnapshot(this.#battle);
+        }
+        this.#lastFrameAt = performance.now();
+        scene.setSimulationPaused(this.#battlePaused);
+        const loading = this.#root.querySelector<HTMLElement>(
+          "[data-battle-loading]",
+        );
+        if (loading) {
+          loading.hidden = true;
+        }
+        if (this.#isDevFight && this.#battlePaused) {
+          this.activateBattle();
+          this.updateBattleOverlay();
+        } else {
+          this.startBattleCountdown();
+        }
+      },
+    );
   }
 
   private startBattleCountdown(): void {
@@ -1593,10 +1746,16 @@ export class App {
     const panel = this.#root.querySelector<HTMLElement>(
       "[data-battle-countdown]",
     );
+    const versus = this.#root.querySelector<HTMLElement>(
+      "[data-battle-versus-intro]",
+    );
     const label = panel?.querySelector<HTMLElement>("[data-countdown-label]");
     const note = panel?.querySelector<HTMLElement>("span");
     if (panel) {
-      panel.hidden = false;
+      panel.hidden = true;
+    }
+    if (versus) {
+      versus.hidden = false;
     }
 
     let index = 0;
@@ -1608,6 +1767,12 @@ export class App {
       if (!beat) {
         this.activateBattle();
         return;
+      }
+      if (versus) {
+        versus.hidden = true;
+      }
+      if (panel) {
+        panel.hidden = false;
       }
       if (label) {
         label.textContent = beat.label;
@@ -1623,7 +1788,7 @@ export class App {
       this.#battleCountdownTimer = window.setTimeout(showBeat, beat.durationMs);
     };
 
-    showBeat();
+    this.#battleCountdownTimer = window.setTimeout(showBeat, 1_600);
   }
 
   private activateBattle(): void {
@@ -1640,6 +1805,12 @@ export class App {
     if (countdown) {
       countdown.hidden = true;
     }
+    const versus = this.#root.querySelector<HTMLElement>(
+      "[data-battle-versus-intro]",
+    );
+    if (versus) {
+      versus.hidden = true;
+    }
     const pause = this.#root.querySelector<HTMLButtonElement>(
       '[data-command="pause-battle"]',
     );
@@ -1647,7 +1818,6 @@ export class App {
       pause.disabled = false;
     }
     this.updateBattleView();
-    this.announce("Fight.");
   }
 
   private setBattlePhase(
@@ -1676,6 +1846,14 @@ export class App {
     if (presentation) {
       presentation.hidden = phase !== "presenting";
     }
+    if (phase !== "presenting") {
+      const impactVerdict = screen.querySelector<HTMLElement>(
+        "[data-battle-impact-verdict]",
+      );
+      if (impactVerdict) {
+        impactVerdict.hidden = true;
+      }
+    }
   }
 
   private isBattlePresentationLocked(now = performance.now()): boolean {
@@ -1700,19 +1878,76 @@ export class App {
           candidate.type === "actionCharged") &&
         candidate.actionId,
     );
+    const accessoryEvent = events.find(
+      (candidate) => candidate.type === "accessoryActivated",
+    );
+    const presentation = this.#root.querySelector<HTMLElement>(
+      "[data-battle-presentation-state]",
+    );
+    const sideLabel = this.#root.querySelector<HTMLElement>(
+      "[data-battle-presentation-side]",
+    );
     const title = this.#root.querySelector<HTMLElement>(
       "[data-battle-presentation-title]",
     );
+    const instruction = this.#root.querySelector<HTMLElement>(
+      "[data-battle-presentation-instruction]",
+    );
+    const impactVerdict = this.#root.querySelector<HTMLElement>(
+      "[data-battle-impact-verdict]",
+    );
+    const action = event?.actionId
+      ? combatContent.actions[event.actionId]
+      : undefined;
+    const accessory = accessoryEvent?.message
+      ? combatContent.accessories[accessoryEvent.message]
+      : undefined;
+    const presentationEvent = event ?? accessoryEvent;
+    const guidance = battlePresentationGuidance({
+      side: presentationEvent?.side ?? "neutral",
+      characterName: this.characterNameFromInstance(
+        presentationEvent?.sourceId,
+      ),
+      moveName: action?.name ?? accessory?.name ?? "Battle update",
+      kind: accessoryEvent && !event ? "accessory" : "move",
+    });
+    if (presentation) {
+      presentation.dataset.presentationSide = guidance.side;
+    }
+    if (sideLabel) {
+      sideLabel.textContent = guidance.title;
+    }
     if (title) {
-      const action = event?.actionId
-        ? combatContent.actions[event.actionId]
-        : undefined;
-      const source = this.characterNameFromInstance(event?.sourceId);
-      title.textContent = action
-        ? `${source} · ${action.name}`
-        : events.some((candidate) => candidate.type === "accessoryActivated")
-          ? "Accessory in progress"
-          : "Move in progress";
+      title.textContent = guidance.detail;
+    }
+    if (instruction) {
+      instruction.textContent = guidance.instruction;
+    }
+    if (impactVerdict) {
+      if (action) {
+        const feedback = actionResolutionFeedback(action, events);
+        if (!feedback) {
+          impactVerdict.hidden = true;
+        } else {
+          impactVerdict.dataset.impactTone = feedback.tone;
+          impactVerdict.dataset.presentationSide = guidance.side;
+          const label = impactVerdict.querySelector<HTMLElement>(
+            "[data-battle-impact-label]",
+          );
+          const detail = impactVerdict.querySelector<HTMLElement>(
+            "[data-battle-impact-detail]",
+          );
+          if (label) {
+            label.textContent = feedback.label;
+          }
+          if (detail) {
+            detail.textContent = feedback.detail;
+          }
+          impactVerdict.hidden = false;
+        }
+      } else {
+        impactVerdict.hidden = true;
+      }
     }
     this.setBattlePhase("presenting");
     this.updateBench("player");
@@ -2007,20 +2242,12 @@ export class App {
       : quick
         ? this.quickFightBuilds(enemyIds, "enemy")
         : undefined;
-    const quickSeed = [
-      ...this.#quickPlayerIds,
-      this.#quickPlayerAccessoryId,
-      "versus",
-      ...this.#quickEnemyIds,
-      this.#quickEnemyAccessoryId,
-    ]
-      .join(".")
-      .split("")
-      .reduce(
-        (seed, character) =>
-          Math.imul(seed ^ character.charCodeAt(0), 16_777_619) >>> 0,
-        2_026_100,
-      );
+    const quickSeed = quickFightSeed({
+      playerIds: this.#quickPlayerIds,
+      enemyIds: this.#quickEnemyIds,
+      playerAccessoryId: this.#quickPlayerAccessoryId,
+      enemyAccessoryId: this.#quickEnemyAccessoryId,
+    });
     const created = createBattle(
       {
         playerCharacterIds: playerIds,
@@ -2040,7 +2267,13 @@ export class App {
             : (devScenario.playerAccessoryId ?? "accessory.press-pass")
           : quick
             ? this.#quickPlayerAccessoryId
-            : "accessory.press-pass",
+            : tournament
+              ? tournamentRun.exhaustedAccessoryIds.includes(
+                  "accessory.press-pass",
+                )
+                ? undefined
+                : "accessory.press-pass"
+              : "accessory.press-pass",
         enemyAccessoryId: devScenario
           ? devScenario.enemyAccessoryId === null
             ? undefined
@@ -2061,7 +2294,7 @@ export class App {
       combatContent,
     );
     const initialState = devScenario
-      ? applyDevStartingHealth(created.state, devScenario)
+      ? applyDevScenarioState(created.state, devScenario)
       : tournament
         ? restoreCaseHealth(created.state, tournamentRun)
         : created.state;
@@ -2174,6 +2407,7 @@ export class App {
     this.archiveCurrentBattleReport();
     cancelAnimationFrame(this.#animationFrame);
     window.clearTimeout(this.#battleCountdownTimer);
+    window.clearTimeout(this.#battleInspectionTimer);
     this.#animationFrame = 0;
     this.#battleCountdownTimer = 0;
     this.#battlePresentationLockedUntil = 0;
@@ -2190,6 +2424,9 @@ export class App {
     this.#pauseMenuOpen = false;
     this.#devInspectorOpen = false;
     this.#battleOverlayOpener = null;
+    this.#battleInspectionTimer = 0;
+    this.#battleInspectionTarget = null;
+    this.#suppressBattleInspectionClick = null;
     this.#actionTraySignature = "";
     this.#musicContext = null;
   }
@@ -2358,6 +2595,40 @@ export class App {
     if (focusTarget?.isConnected) {
       focusTarget.focus({ preventScroll: true });
     }
+  }
+
+  private hideBattleOverlayForCapture(): void {
+    if (!DEV_TOOLS_ENABLED || !this.#battle || !this.#battlePaused) {
+      return;
+    }
+    this.#pauseMenuOpen = false;
+    this.#devInspectorOpen = false;
+    this.updateBattleOverlay();
+    this.#battleOverlayOpener = null;
+    this.announce("Frozen battle view. Press Escape to reopen the pause menu.");
+  }
+
+  private setDevBattleSpeed(requestedScale: number): void {
+    if (!DEV_TOOLS_ENABLED || !this.#battle) {
+      return;
+    }
+    const allowedScales = [0.25, 0.5, 1, 2] as const;
+    const scale = allowedScales.includes(
+      requestedScale as (typeof allowedScales)[number],
+    )
+      ? requestedScale
+      : 1;
+    this.#battleTimeScale = scale;
+    this.#lastFrameAt = performance.now();
+    if (this.#battleReport) {
+      this.#battleReport = recordBattleDebugAction(
+        this.#battleReport,
+        this.#battle,
+        { action: "setSpeed", amount: scale },
+      );
+    }
+    this.updateBattleOverlay();
+    this.announce(`Simulation speed set to ${scale} times.`);
   }
 
   private captureBattleOverlayOpener(): void {
@@ -2576,6 +2847,7 @@ export class App {
                   this.#battle.elapsedMs,
                 )} ms</dd></div>
                 <div><dt>RNG state</dt><dd>${this.#battle.rngState}</dd></div>
+                <div><dt>Speed</dt><dd>${this.#battleTimeScale}×</dd></div>
                 <div><dt>Player Charge</dt><dd>${Math.floor(
                   this.#battle.player.bar,
                 )}</dd></div>
@@ -2589,6 +2861,20 @@ export class App {
                 <button data-command="dev-add-charge" data-side="player" data-amount="25">Player +25 Charge</button>
                 <button data-command="dev-add-charge" data-side="enemy" data-amount="25">Enemy +25 Charge</button>
               </div>
+              <fieldset class="dev-speed-controls">
+                <legend>Simulation speed</legend>
+                ${[0.25, 0.5, 1, 2]
+                  .map(
+                    (speed) => `
+                      <button
+                        data-command="dev-set-speed"
+                        data-speed="${speed}"
+                        aria-pressed="${this.#battleTimeScale === speed}"
+                      >${speed}×</button>
+                    `,
+                  )
+                  .join("")}
+              </fieldset>
             </section>
             <section>
               <h3>Recent semantic events</h3>
@@ -2625,6 +2911,7 @@ export class App {
           <p>
             Charge, statuses, pending Moves, AI, the timer, and arena motion are stopped.
           </p>
+          ${renderMoveCategoryKey()}
           <div class="pause-actions">
             <button class="primary-action" data-command="resume-battle">Resume</button>
             <button data-command="restart-battle">Restart fight</button>
@@ -2632,6 +2919,7 @@ export class App {
               DEV_TOOLS_ENABLED
                 ? `
                   <button data-command="open-dev-inspector">Inspect battle</button>
+                  <button data-command="hide-battle-overlay">View frozen battle</button>
                   <button data-command="enter-dev">Open Developer Lab</button>
                 `
                 : ""
@@ -2669,6 +2957,19 @@ export class App {
           : appendBattleTick(this.#battleReport, simulationDeltaMs, transition);
     }
     this.#battle = transition.state;
+    if (
+      transition.events.some(
+        (event) =>
+          event.type === "damageApplied" ||
+          event.type === "healingApplied" ||
+          event.type === "characterDefeated",
+      )
+    ) {
+      this.updateTeamReadout("player");
+      this.updateTeamReadout("enemy");
+      this.updateBench("player");
+      this.updateBench("enemy");
+    }
     this.updateChargeRails();
     const presentationMs = battlePresentationDuration(transition.events);
     if (!this.#battlePaused && presentationMs > 0 && previousState) {
@@ -2680,6 +2981,7 @@ export class App {
       );
       this.lockBattlePresentation(presentationMs, transition.events);
       this.updateActions();
+      this.updateOpponentDecisionGuidance();
     } else {
       if (
         !this.#battlePaused &&
@@ -2693,13 +2995,8 @@ export class App {
     for (const event of transition.events) {
       if (event.type === "actionStarted" && event.actionId) {
         const audioId = combatContent.actions[event.actionId]?.audioId;
-        const action = combatContent.actions[event.actionId];
-        const source = this.characterNameFromInstance(event.sourceId);
         if (audioId) {
           this.#audio.playSfx(audioId);
-        }
-        if (action) {
-          this.announce(`${source} uses ${action.name}.`);
         }
       }
     }
@@ -2837,7 +3134,11 @@ export class App {
       }
       if (event.type === "damageApplied" && !event.reactionKind) {
         const target = this.characterNameFromInstance(event.targetId);
-        message = `${target} took ${event.amount ?? 0}.`;
+        message = `${target} took ${event.amount ?? 0} damage.`;
+      }
+      if (event.type === "healingApplied") {
+        const target = this.characterNameFromInstance(event.targetId);
+        message = `${target} recovered ${event.amount ?? 0} Health.`;
       }
       if (event.type === "characterDodged") {
         message = `${this.characterNameFromInstance(event.targetId)} dodged clean.`;
@@ -2880,11 +3181,14 @@ export class App {
       if (event.type === "statusApplied" && event.message === "stun") {
         message = `${this.characterNameFromInstance(event.targetId)} is stunned.`;
       }
+      if (event.type === "characterDefeated") {
+        message = `${this.characterNameFromInstance(event.targetId)} is out.`;
+      }
       if (message) {
         this.#eventLog.unshift(message);
       }
     }
-    this.#eventLog = this.#eventLog.slice(0, 1);
+    this.#eventLog = this.#eventLog.slice(0, 2);
   }
 
   private characterNameFromInstance(instanceId?: string): string {
@@ -2920,6 +3224,7 @@ export class App {
     this.updateAccessories();
     this.updatePickups();
     this.updateMatchup();
+    this.updateBattleVersusIntro();
     const log = this.#root.querySelector<HTMLElement>("[data-combat-log]");
     if (log) {
       this.setStableMarkup(
@@ -2930,6 +3235,34 @@ export class App {
       );
     }
     this.updateNowPlaying();
+  }
+
+  private updateBattleVersusIntro(): void {
+    if (!this.#battle) {
+      return;
+    }
+    for (const side of ["player", "enemy"] as const) {
+      const team = this.#battle[side];
+      const combatant = team.squad[team.activeIndex]!;
+      const character = combatContent.characters[combatant.characterId]!;
+      const target = this.#root.querySelector<HTMLElement>(
+        `[data-matchup-${side}]`,
+      );
+      if (!target) {
+        continue;
+      }
+      this.setStableMarkup(
+        target,
+        `<img
+          src="${resolveImagePath(character.portraitAssetId)}"
+          data-asset-id="${character.portraitAssetId}"
+          style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
+          alt=""
+        />
+        <span>${side === "player" ? "Your fighter" : "Opponent"}</span>
+        <strong>${escapeHtml(character.name)}</strong>`,
+      );
+    }
   }
 
   private updateTeamReadout(side: "player" | "enemy"): void {
@@ -2950,8 +3283,14 @@ export class App {
     const pendingAction = pending
       ? combatContent.actions[pending.actionId]
       : undefined;
+    const empowerSummary = empowerStatusSummary(combatant.statuses);
     const statusLabels = [
-      ...combatant.statuses.map(renderCombatStatus),
+      empowerSummary
+        ? `<span data-status-kind="empower" aria-label="${empowerSummary.description}">${empowerSummary.label}</span>`
+        : null,
+      ...combatant.statuses
+        .filter((status) => status.kind !== "empower")
+        .map(renderCombatStatus),
       ...team.statuses.map(
         (status) =>
           `<span data-status-kind="${status.kind}">${
@@ -2964,7 +3303,9 @@ export class App {
                   : "Charge boosted"
           }</span>`,
       ),
-    ].join("");
+    ]
+      .filter(Boolean)
+      .join("");
     const activeTraitLabels = CHARACTER_TRAITS.filter(
       (trait) => team.traitBonuses[trait] > 0,
     )
@@ -2979,14 +3320,16 @@ export class App {
     const markup = `
       <div class="readout-heading">
         <div>
-          <span>${side === "player" ? "Active Character" : "Target Character"}</span>
+          <span>${side === "player" ? "Your Fighter" : "Opponent"}</span>
           <strong>${character.name}</strong>
         </div>
         <span class="type-mark">${formatLabel(character.typeId)}</span>
       </div>
       <div class="meter-label">
         <span>Health</span>
-        <strong>${combatant.currentHealth}/${combatant.maxHealth}</strong>
+        <strong>${combatant.currentHealth} / ${combatant.maxHealth} · ${Math.round(
+          healthPercent,
+        )}%</strong>
       </div>
       <div
         class="meter health-meter"
@@ -3049,6 +3392,14 @@ export class App {
           Math.min(1, exactValue / 100),
         )})`;
       }
+      const rateLabel = this.#root.querySelector<HTMLElement>(
+        `[data-${side}-charge-rate]`,
+      );
+      if (rateLabel) {
+        const rate = teamChargePerSecond(this.#battle[side]);
+        rateLabel.textContent =
+          rate > 0 ? `+${rate.toFixed(1)} / sec` : "Stopped";
+      }
     }
   }
 
@@ -3063,49 +3414,91 @@ export class App {
     if (!target) {
       return;
     }
+    const openLoadoutIds = new Set(
+      [...target.querySelectorAll<HTMLDetailsElement>(".bench-loadout[open]")]
+        .map((details) => details.dataset.instanceId)
+        .filter((id): id is string => Boolean(id)),
+    );
     const markup = team.squad
       .map((combatant, index) => {
         const character = combatContent.characters[combatant.characterId]!;
         const active = index === team.activeIndex;
         const alive = isAlive(combatant);
+        const stateLabel = active ? "active" : alive ? "ready" : "out";
         const art = resolveImagePath(character.portraitAssetId);
+        const healthScale = Math.max(
+          0,
+          Math.min(1, combatant.currentHealth / combatant.maxHealth),
+        );
         const body = `
           <span class="bench-art is-${character.typeId}">
-            <img src="${art}" data-asset-id="${character.portraitAssetId}" alt="" />
+            <img
+              src="${art}"
+              data-asset-id="${character.portraitAssetId}"
+              width="128"
+              height="128"
+              style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
+              alt=""
+            />
           </span>
           <span class="bench-copy">
             <strong>${character.name}</strong>
             <small>${formatLabel(character.typeId)} · ${combatant.currentHealth} HP</small>
           </span>
-          <span class="bench-state">${active ? "ACTIVE" : alive ? "READY" : "OUT"}</span>
+          <span class="bench-state">
+            <strong>${active ? "ACTIVE" : alive ? "READY" : "OUT"}</strong>
+            <small>${combatant.currentHealth}/${combatant.maxHealth}</small>
+          </span>
+          <span
+            class="bench-health"
+            role="meter"
+            aria-label="${character.name} health"
+            aria-valuemin="0"
+            aria-valuemax="${combatant.maxHealth}"
+            aria-valuenow="${combatant.currentHealth}"
+          ><span style="--meter-scale:${healthScale}"></span></span>
         `;
+        const moveDisclosure = renderBenchMoveDisclosure(combatant);
         if (side === "player") {
           const inputLocked =
             !this.#battleReady ||
             this.#battlePaused ||
             this.isBattlePresentationLocked();
           return `
-            <button
-              class="bench-ticket ${active ? "is-active" : ""}"
-              data-command="battle-switch"
-              data-side="${side}"
-              data-index="${index}"
-              ${
-                active ||
-                !alive ||
-                inputLocked ||
-                this.#battle?.outcome !== "active"
-                  ? "disabled"
-                  : ""
-              }
-              aria-label="Switch to ${character.name}, ${combatant.currentHealth} health"
-            >${body}</button>
+            <article class="bench-slot">
+              <button
+                class="bench-ticket ${active ? "is-active" : ""}"
+                data-command="battle-switch"
+                data-side="${side}"
+                data-index="${index}"
+                ${
+                  active ||
+                  !alive ||
+                  inputLocked ||
+                  this.#battle?.outcome !== "active"
+                    ? "disabled"
+                    : ""
+                }
+                aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${active || !alive ? "" : ". Switch to this fighter"}"
+              >${body}</button>
+              ${moveDisclosure}
+            </article>
           `;
         }
-        return `<div class="bench-ticket ${active ? "is-active" : ""}">${body}</div>`;
+        return `
+          <article class="bench-slot">
+            <div class="bench-ticket ${active ? "is-active" : ""}">${body}</div>
+            ${moveDisclosure}
+          </article>
+        `;
       })
       .join("");
     this.setStableMarkup(target, markup);
+    for (const details of target.querySelectorAll<HTMLDetailsElement>(
+      ".bench-loadout",
+    )) {
+      details.open = openLoadoutIds.has(details.dataset.instanceId ?? "");
+    }
   }
 
   private updateActions(): void {
@@ -3122,7 +3515,7 @@ export class App {
       .map((actionId) => active.actionTiers[actionId] ?? "stock")
       .join(":")}`;
     if (signature !== this.#actionTraySignature) {
-      tray.innerHTML = active.actionIds
+      const moveButtons = active.actionIds
         .map((actionId, index) => {
           const action = combatContent.actions[actionId]!;
           const rule =
@@ -3140,6 +3533,7 @@ export class App {
               : tier === "gold"
                 ? "Tier 1"
                 : "Normal";
+          const category = moveCategoryDetail(action.category);
           const hasReaction = action.effects.some(
             (effect) =>
               effect.kind === "reflectDamage" ||
@@ -3153,22 +3547,26 @@ export class App {
               data-side="player"
               data-action-id="${action.id}"
               data-action-index="${index}"
+              data-action-category="${category.id}"
+              data-battle-inspectable
+              aria-expanded="false"
               aria-disabled="true"
             >
               <span class="charge-move-seal">
                 <span class="charge-move-key">${index + 1}</span>
-                <strong>${rule.cost}</strong>
-                <small>Charge</small>
+                <strong data-action-value>${rule.cost}</strong>
+                <small data-action-value-label>Charge</small>
+                <span class="charge-move-delta" data-action-delta hidden></span>
               </span>
               <span class="charge-move-name">${escapeHtml(action.name)}</span>
               <span class="charge-move-state" data-action-state>Waiting</span>
+              <span class="charge-move-role">${category.shortLabel}</span>
               <span class="charge-move-tier">${tierLabel}</span>
-              <span class="charge-move-output" data-action-output>—</span>
               <span class="action-tooltip" role="tooltip">
                 <strong>${escapeHtml(action.name)}</strong>
                 <span>${escapeHtml(action.description)}</span>
                 <small>
-                  Cost ${rule.cost} ·
+                  ${category.label} · Cost ${rule.cost} ·
                   <span data-action-estimate>—</span> ·
                   ${
                     action.chargeMs > 0
@@ -3181,11 +3579,25 @@ export class App {
           `;
         })
         .join("");
+      const thresholdAnchors = active.actionIds
+        .map((actionId) => {
+          const action = combatContent.actions[actionId]!;
+          const rule =
+            POSITION_RULES[actionPositionForCombatant(active, action)];
+          return `<i
+            class="charge-action-anchor"
+            style="--action-threshold:${rule.cost}%"
+            data-action-category="${moveCategoryDetail(action.category).id}"
+          ></i>`;
+        })
+        .join("");
+      tray.innerHTML = `${moveButtons}<span class="charge-action-anchors" aria-hidden="true">${thresholdAnchors}</span>`;
       this.#actionTraySignature = signature;
     }
     for (const [index, actionId] of active.actionIds.entries()) {
       const action = combatContent.actions[actionId]!;
       const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+      const tier = active.actionTiers[action.id] ?? "stock";
       const button = tray.querySelector<HTMLButtonElement>(
         `[data-action-index="${index}"]`,
       );
@@ -3218,17 +3630,28 @@ export class App {
         action.id,
         combatContent,
       );
+      const baseEstimate = predictedBaseDamage(
+        this.#battle,
+        "player",
+        action.id,
+        combatContent,
+      );
       const remainingCharge = Math.max(
         0,
         Math.ceil(rule.cost - this.#battle.player.bar),
       );
-      const effectSummary = actionEffectSummary(action);
-      const outputSummary = [
-        estimate > 0 ? `Hit ${estimate}` : null,
-        effectSummary || null,
-      ]
-        .filter(Boolean)
-        .join(" + ");
+      const outputSummary = actionOutputSummary(
+        action,
+        estimate,
+        rule.multiplier * TIER_MULTIPLIERS[tier],
+      );
+      const sealOutput = moveSealOutput(
+        action,
+        estimate,
+        baseEstimate,
+        rule.cost,
+        rule.multiplier * TIER_MULTIPLIERS[tier],
+      );
       const stateLabel = charging
         ? `Charging ${Math.max(0, pending.remainingMs / 1000).toFixed(1)}s`
         : !this.#battleReady
@@ -3242,26 +3665,47 @@ export class App {
                 : moveBlocked
                   ? "Blocked"
                   : available
-                    ? `READY · PRESS ${index + 1}`
+                    ? `READY · ${index + 1}`
                     : this.#battle.outcome === "active"
                       ? `${remainingCharge} to go`
                       : "Fight ended";
       button.classList.toggle("is-available", available);
       button.classList.toggle("is-unavailable", !available);
       button.classList.toggle("is-charging", charging);
+      button.classList.toggle(
+        "is-output-boosted",
+        sealOutput.tone === "boosted",
+      );
+      button.classList.toggle(
+        "is-output-reduced",
+        sealOutput.tone === "reduced",
+      );
+      button.dataset.actionOutputTone = sealOutput.tone;
       button.setAttribute("aria-disabled", String(!available));
       button.setAttribute(
         "aria-label",
-        `${action.name}. ${stateLabel}. Costs ${rule.cost} Charge. ${
+        `${action.name}. ${moveCategoryDetail(action.category).label}. ${stateLabel}. Costs ${rule.cost} Charge. ${
           outputSummary ? `${outputSummary}.` : "Applies an effect."
+        } ${
+          sealOutput.tone === "boosted"
+            ? `Boosted by ${estimate - baseEstimate} attack points.`
+            : sealOutput.tone === "reduced"
+              ? `Reduced by ${baseEstimate - estimate} attack points.`
+              : ""
         }`,
       );
       const state = button.querySelector<HTMLElement>("[data-action-state]");
       const estimateLabel = button.querySelector<HTMLElement>(
         "[data-action-estimate]",
       );
-      const outputLabel = button.querySelector<HTMLElement>(
-        "[data-action-output]",
+      const actionValue = button.querySelector<HTMLElement>(
+        "[data-action-value]",
+      );
+      const actionValueLabel = button.querySelector<HTMLElement>(
+        "[data-action-value-label]",
+      );
+      const actionDelta = button.querySelector<HTMLElement>(
+        "[data-action-delta]",
       );
       if (state) {
         state.textContent = stateLabel;
@@ -3270,9 +3714,89 @@ export class App {
         estimateLabel.textContent =
           estimate > 0 ? `predicted hit ${estimate}` : "effect";
       }
-      if (outputLabel) {
-        outputLabel.textContent = outputSummary;
+      if (actionValue) {
+        actionValue.textContent = sealOutput.value;
       }
+      if (actionValueLabel) {
+        actionValueLabel.textContent = sealOutput.label;
+      }
+      if (actionDelta) {
+        actionDelta.textContent = sealOutput.delta ?? "";
+        actionDelta.hidden = sealOutput.delta === null;
+        actionDelta.setAttribute("aria-hidden", "true");
+      }
+    }
+    this.updateBattleDecisionGuidance();
+  }
+
+  private updateBattleDecisionGuidance(): void {
+    if (!this.#battle) {
+      return;
+    }
+    const active = this.#battle.player.squad[this.#battle.player.activeIndex]!;
+    const character = combatContent.characters[active.characterId]!;
+    const pending = this.#battle.pendingActions.player;
+    const guidance = battleDecisionGuidance({
+      battleReady: this.#battleReady,
+      paused: this.#battlePaused,
+      presenting: this.isBattlePresentationLocked(),
+      outcomeActive: this.#battle.outcome === "active",
+      activeCharacterName: character.name,
+      bar: this.#battle.player.bar,
+      pendingMoveName: pending
+        ? (combatContent.actions[pending.actionId]?.name ?? "Move")
+        : null,
+      stunned: active.statuses.some(
+        (status) => status.kind === "stun" && status.remainingMs > 0,
+      ),
+      moves: active.actionIds.map((actionId, index) => {
+        const action = combatContent.actions[actionId]!;
+        const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+        return {
+          key: index + 1,
+          name: action.name,
+          cost: rule.cost,
+          blocked: this.#battle!.player.statuses.some(
+            (status) =>
+              status.kind === "moveBlock" &&
+              status.slotIndex === index &&
+              status.remainingMs > 0,
+          ),
+        };
+      }),
+    });
+    const screen = this.#root.querySelector<HTMLElement>(".battle-stage");
+    if (screen) {
+      screen.dataset.playerDecision = guidance.state;
+    }
+    const cue = this.#root.querySelector<HTMLElement>(
+      "[data-battle-decision-cue]",
+    );
+    if (!cue) {
+      return;
+    }
+    const key = `${guidance.state}:${guidance.title}:${guidance.detail}`;
+    const previousKey = cue.dataset.decisionKey;
+    if (previousKey === key) {
+      return;
+    }
+    cue.dataset.decisionKey = key;
+    cue.dataset.decisionState = guidance.state;
+    cue.setAttribute("aria-label", `${guidance.title}. ${guidance.detail}.`);
+    const title = cue.querySelector<HTMLElement>(
+      "[data-battle-decision-title]",
+    );
+    const detail = cue.querySelector<HTMLElement>(
+      "[data-battle-decision-detail]",
+    );
+    if (title) {
+      title.textContent = guidance.title;
+    }
+    if (detail) {
+      detail.textContent = guidance.detail;
+    }
+    if (guidance.state === "ready") {
+      this.announce(`${guidance.title}. ${guidance.detail}.`);
     }
   }
 
@@ -3296,6 +3820,20 @@ export class App {
       .map((actionId, index) => {
         const action = combatContent.actions[actionId]!;
         const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+        const tier = active.actionTiers[action.id] ?? "stock";
+        const tierClass =
+          tier === "platinum"
+            ? "tier-2"
+            : tier === "gold"
+              ? "tier-1"
+              : "tier-normal";
+        const tierLabel =
+          tier === "platinum"
+            ? "Tier 2"
+            : tier === "gold"
+              ? "Tier 1"
+              : "Normal";
+        const category = moveCategoryDetail(action.category);
         const blocked = team.statuses.some(
           (status) =>
             status.kind === "moveBlock" &&
@@ -3320,20 +3858,109 @@ export class App {
                 ? "Ready"
                 : `${Math.max(0, Math.ceil(rule.cost - team.bar))} to go`;
         return `
-          <span
-            class="enemy-charge-node ${ready ? "is-ready" : ""} ${charging ? "is-charging" : ""}"
+          <button
+            type="button"
+            class="enemy-charge-node ${tierClass} ${ready ? "is-ready" : ""} ${charging ? "is-charging" : ""}"
             style="--enemy-action-threshold:${rule.cost}%"
+            data-action-category="${category.id}"
+            data-command="inspect-battle-detail"
+            data-battle-inspectable
             title="${escapeHtml(action.name)} · ${state}"
-            aria-label="Opponent Move ${index + 1}, ${action.name}, costs ${rule.cost} Charge, ${state}"
+            aria-label="Opponent Move ${index + 1}, ${action.name}. ${category.label}. ${tierLabel}. Costs ${rule.cost} Charge. ${state}."
+            aria-expanded="false"
           >
-            <small>${index + 1}</small>
-            <strong>${rule.cost}</strong>
-            <em>${ready ? "READY" : charging ? "CAST" : blocked ? "BLOCK" : "WAIT"}</em>
-          </span>
+            <span class="enemy-move-seal">
+              <small>${index + 1}</small>
+              <strong>${rule.cost}</strong>
+            </span>
+            <span class="enemy-move-name">${escapeHtml(action.name)}</span>
+            <span class="enemy-move-meta">
+              <b>${category.shortLabel}</b>
+              <i>${tierLabel}</i>
+            </span>
+            <em>${ready ? "READY" : charging ? "CAST" : blocked ? "BLOCKED" : state}</em>
+            <span class="battle-info-tooltip" role="tooltip">
+              <strong>${escapeHtml(action.name)}</strong>
+              <span>${escapeHtml(action.description)}</span>
+              <small>${category.label} · ${tierLabel} · ${rule.cost} Charge · ${state}</small>
+            </span>
+          </button>
         `;
       })
       .join("");
-    this.setStableMarkup(tray, markup);
+    if (
+      !tray.querySelector(".enemy-charge-node.is-inspecting") &&
+      !tray.contains(document.activeElement)
+    ) {
+      this.setStableMarkup(tray, markup);
+    }
+    this.updateOpponentDecisionGuidance();
+  }
+
+  private updateOpponentDecisionGuidance(): void {
+    if (!this.#battle) {
+      return;
+    }
+    const team = this.#battle.enemy;
+    const active = team.squad[team.activeIndex]!;
+    const character = combatContent.characters[active.characterId]!;
+    const pending = this.#battle.pendingActions.enemy;
+    const guidance = opponentDecisionGuidance({
+      battleReady: this.#battleReady,
+      paused: this.#battlePaused,
+      presenting: this.isBattlePresentationLocked(),
+      outcomeActive: this.#battle.outcome === "active",
+      activeCharacterName: character.name,
+      bar: team.bar,
+      pendingMoveName: pending
+        ? (combatContent.actions[pending.actionId]?.name ?? "Move")
+        : null,
+      stunned: active.statuses.some(
+        (status) => status.kind === "stun" && status.remainingMs > 0,
+      ),
+      moves: active.actionIds.map((actionId, index) => {
+        const action = combatContent.actions[actionId]!;
+        const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+        return {
+          key: index + 1,
+          name: action.name,
+          cost: rule.cost,
+          blocked: team.statuses.some(
+            (status) =>
+              status.kind === "moveBlock" &&
+              status.slotIndex === index &&
+              status.remainingMs > 0,
+          ),
+        };
+      }),
+    });
+    const screen = this.#root.querySelector<HTMLElement>(".battle-stage");
+    if (screen) {
+      screen.dataset.enemyDecision = guidance.state;
+    }
+    const cue = this.#root.querySelector<HTMLElement>(
+      "[data-enemy-decision-cue]",
+    );
+    if (!cue) {
+      return;
+    }
+    const key = `${guidance.state}:${guidance.title}:${guidance.detail}`;
+    if (cue.dataset.decisionKey === key) {
+      return;
+    }
+    cue.dataset.decisionKey = key;
+    cue.dataset.decisionState = guidance.state;
+    cue.setAttribute("aria-label", `${guidance.title}. ${guidance.detail}.`);
+    const title = cue.querySelector<HTMLElement>("[data-enemy-decision-title]");
+    const detail = cue.querySelector<HTMLElement>(
+      "[data-enemy-decision-detail]",
+    );
+    if (title) {
+      title.textContent = guidance.title;
+    }
+    if (detail) {
+      detail.textContent = guidance.detail;
+    }
   }
 
   private updateAccessories(): void {
@@ -3352,10 +3979,14 @@ export class App {
         continue;
       }
       if (!state || !definition) {
+        target.classList.add("is-empty");
+        target.classList.remove("is-ready");
+        target.style.removeProperty("--accessory-charge");
         target.textContent = "No Accessory";
         target.setAttribute("aria-disabled", "true");
         continue;
       }
+      target.classList.remove("is-empty");
       const active = this.#battle[side].squad[this.#battle[side].activeIndex]!;
       const ready =
         state.charge >= 100 &&
@@ -3369,10 +4000,31 @@ export class App {
             !this.#battlePaused &&
             !this.isBattlePresentationLocked()));
       target.classList.toggle("is-ready", controlReady);
+      target.style.setProperty(
+        "--accessory-charge",
+        `${Math.max(0, Math.min(100, state.charge))}%`,
+      );
+      const readiness = controlReady
+        ? side === "player"
+          ? "READY · ACTIVATE"
+          : "OPPONENT READY"
+        : `${Math.ceil(100 - state.charge)} TO READY`;
       target.innerHTML = `
+        <img
+          src="${resolveImagePath(definition.imageAssetId)}"
+          data-asset-id="${definition.imageAssetId}"
+          width="64"
+          height="64"
+          alt=""
+        />
         <span>${escapeHtml(definition.name)}</span>
         <strong>${Math.floor(state.charge)}%</strong>
-        <small>${controlReady ? "READY" : "Accessory"}</small>
+        <small>${readiness}</small>
+        <span class="battle-info-tooltip" role="tooltip">
+          <strong>${escapeHtml(definition.name)}</strong>
+          <span>${escapeHtml(definition.description)}</span>
+          <small>Accessory Charge ${Math.floor(state.charge)} / 100</small>
+        </span>
       `;
       target.setAttribute(
         "aria-label",
@@ -3380,7 +4032,10 @@ export class App {
           controlReady ? "Ready to activate." : definition.description
         }`,
       );
-      target.setAttribute("aria-disabled", String(!controlReady));
+      target.setAttribute(
+        "aria-disabled",
+        String(side === "player" ? !controlReady : false),
+      );
     }
   }
 
@@ -3653,14 +4308,10 @@ export class App {
     const opponentIds =
       reportEnemy?.map((participant) => participant.characterId) ??
       this.#battle.enemy.squad.map((combatant) => combatant.characterId);
-    const vengeanceTargetId =
-      opponentIds.find((opponentId) =>
-        this.#save.lossesTo.includes(opponentId),
-      ) ??
+    const recordedLossTargetId =
       opponentIds.find((opponentId) => opponentId === "character.ned-kelly") ??
       opponentIds[0] ??
       "character.ned-kelly";
-    const previouslyLost = this.#save.lossesTo.includes(vengeanceTargetId);
     if (!sandboxFight) {
       this.#save.missionProgress["mission.invoice-denied"] =
         evaluateMissionProgress(
@@ -3668,17 +4319,17 @@ export class App {
           this.#save.missionProgress["mission.invoice-denied"] ?? 0,
           { type: "battleEnded", won, opponentCharacterIds: opponentIds },
         );
-      this.#save.missionProgress["mission.print-it-personal"] =
-        evaluateMissionProgress(
-          "mission.print-it-personal",
-          this.#save.missionProgress["mission.print-it-personal"] ?? 0,
-          {
-            type: "vengeanceResolved",
-            opponentCharacterId: vengeanceTargetId,
-            previouslyLost,
-            won,
-          },
-        );
+      if (!this.#isTournamentFight && this.#sessionMode === "story") {
+        this.#save.missionProgress["mission.print-it-personal"] =
+          evaluateMissionProgress(
+            "mission.print-it-personal",
+            this.#save.missionProgress["mission.print-it-personal"] ?? 0,
+            {
+              type: "storyBattleEnded",
+              won,
+            },
+          );
+      }
     }
     if (won && !this.#isTournamentFight && !sandboxFight) {
       if (!this.#save.clearedNodeIds.includes(storyEncounter.nodeId)) {
@@ -3692,16 +4343,24 @@ export class App {
           [],
           this.#sessionMode === "story" ? "story" : "standalone",
         );
-      const result = recordCheapSeatsResult(run, this.#battle, won);
+      const runWithAccessoryUse = exhaustTournamentAccessoriesFromEvents(
+        run,
+        this.#battleReport?.events ?? [],
+      );
+      const result = recordCheapSeatsResult(
+        runWithAccessoryUse,
+        this.#battle,
+        won,
+      );
       if (result.status === "lost") {
         this.setActiveTournamentRun(null);
       } else if (result.status === "complete") {
         this.setActiveTournamentRun(null);
-        if (
-          !this.#save.tournamentBadges.includes("badge.cheap-seats-champion")
-        ) {
-          this.#save.tournamentBadges.push("badge.cheap-seats-champion");
-        }
+        const trophyAward = awardTournamentTrophy(
+          this.#save.tournamentTrophyIds,
+          run.tournamentId,
+        );
+        this.#save.tournamentTrophyIds = trophyAward.trophyIds;
         if (run.origin === "story") {
           if (!this.#save.clearedNodeIds.includes("story.first-run.06")) {
             this.#save.clearedNodeIds.push("story.first-run.06");
@@ -3718,11 +4377,25 @@ export class App {
       !won &&
       !this.#isTournamentFight &&
       !sandboxFight &&
-      !this.#save.lossesTo.includes(vengeanceTargetId)
+      !this.#save.lossesTo.includes(recordedLossTargetId)
     ) {
-      this.#save.lossesTo.push(vengeanceTargetId);
+      this.#save.lossesTo.push(recordedLossTargetId);
     }
-    if (!sandboxFight) {
+    if (this.#isQuickFight) {
+      this.#save.quickFightRecord = {
+        fightsPlayed: this.#save.quickFightRecord.fightsPlayed + 1,
+        wins: this.#save.quickFightRecord.wins + (won ? 1 : 0),
+        losses: this.#save.quickFightRecord.losses + (won ? 0 : 1),
+        lastSeed: this.#battle.seed,
+        lastPlayerCharacterIds: this.#battle.player.squad.map(
+          (combatant) => combatant.characterId,
+        ),
+        lastOpponentCharacterIds: this.#battle.enemy.squad.map(
+          (combatant) => combatant.characterId,
+        ),
+      };
+      this.#save = saveSlot(localStorage, this.#save);
+    } else if (!sandboxFight) {
       this.#save = saveSlot(localStorage, this.#save);
     }
     this.archiveCurrentBattleReport();
@@ -3743,6 +4416,13 @@ export class App {
     if (!panel) {
       return;
     }
+    const resultExplanation = this.#battleReport
+      ? renderBattleResultExplanation(this.#battleReport, combatContent)
+      : "";
+    const playerDecisionCount =
+      this.#battleReport?.decisions.filter(
+        (decision) => decision.side === "player",
+      ).length ?? 0;
     for (const element of this.#root.querySelectorAll<HTMLElement>(
       ".battle-rail, .battle-drawer",
     )) {
@@ -3761,12 +4441,12 @@ export class App {
               : this.#isDevFight
                 ? `${this.#devScenario?.name ?? "Development scenario"}: player side wins.`
                 : this.#isQuickFight
-                  ? `${combatContent.characters[this.#quickPlayerIds[0]!]!.name}'s Lineup wins the sandbox.`
+                  ? "Your Lineup wins."
                   : storyEncounter.victoryTitle
             : this.#isDevFight
               ? `${this.#devScenario?.name ?? "Development scenario"}: enemy side wins.`
               : this.#isQuickFight
-                ? `${combatContent.characters[this.#quickEnemyIds[0]!]!.name}'s Lineup wins the sandbox.`
+                ? "The opposing Lineup wins."
                 : "Partial credit. Full grudge."
         }</h2>
         <p>
@@ -3774,19 +4454,19 @@ export class App {
             this.#battleReward.won
               ? this.#isTournamentFight
                 ? this.#cupCompletedThisBattle
-                  ? "The Roster survived all three rounds. Your champion badge and final purse are recorded."
+                  ? "The Roster survived all three rounds. Your Tournament Trophy is on your Profile and the final purse is recorded."
                   : "Roster health is saved. Return to the Cup and choose one drop before the next round."
                 : this.#isDevFight
                   ? "The scenario ended in the isolated development sandbox. The report is retained for inspection and progression was not changed."
                   : this.#isQuickFight
-                    ? "Quick Fight ends here. Story progress, Stamps, XP, Missions, and unlocks were not changed."
+                    ? "Quick Fight is over. Rematch or change either Lineup; Story progress stays untouched."
                     : storyEncounter.victoryCopy
               : this.#isTournamentFight
                 ? "The loss closes this Roster. Partial XP is paid; retry opens a fresh run from Round 1."
                 : this.#isDevFight
                   ? "The scenario ended in the isolated development sandbox. Inspect or export the report, then rerun the same seed."
                   : this.#isQuickFight
-                    ? "Quick Fight ends here. Change the matchup or run the same deterministic rematch."
+                    ? "Quick Fight is over. Rematch or change either Lineup; Story progress stays untouched."
                     : "Losses still pay partial XP. Level, adjust, and make it personal."
           }
         </p>
@@ -3818,10 +4498,11 @@ export class App {
               </dl>
             `
         }
+        ${resultExplanation}
         <p class="battle-report-note">
           Report ${this.#battleReport?.encounterId ?? "battle"} · seed ${
             this.#battleReport?.seed ?? this.#battle?.seed ?? 0
-          } · ${this.#battleReport?.decisions.length ?? 0} player decisions recorded
+          } · ${playerDecisionCount} player decisions recorded
         </p>
         <div class="result-actions">
           ${

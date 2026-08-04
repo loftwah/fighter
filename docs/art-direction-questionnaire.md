@@ -22,7 +22,7 @@ words are inadequate.
    visual feeling you genuinely want near this project.
 7. Name up to five references that resemble the current work but represent the
    wrong direction.
-8. From Teeny Titans 2, which qualities do you want to preserve beyond the
+8. From the reference game, which qualities do you want to preserve beyond the
    battle layout: proportions, colour, animation timing, character appeal,
    humour, clarity, toy collecting, or something else?
 9. Should characters look like chibi figures, stylised superheroes, anime

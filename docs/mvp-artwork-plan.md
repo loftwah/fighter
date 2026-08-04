@@ -1,5 +1,38 @@
 # MVP artwork plan
 
+## Current launch-roster production package
+
+The accepted bright crossover-toybox direction now ships as a complete
+six-Character raster package:
+
+| Ingredient                            | Count | Runtime status                 |
+| ------------------------------------- | ----: | ------------------------------ |
+| Canonical Character plates            |     6 | registered                     |
+| Idle A/B Character plates             |    12 | registered and crossfaded      |
+| Character reaction sheets             |     6 | registered and event-driven    |
+| Opponent-free Move cut-ins            |    18 | registered one per launch Move |
+| Arena, Story, Tournament environments |     3 | registered                     |
+| Responsive startup ensembles          |     2 | registered                     |
+
+That is 47 opaque production PNGs built from 41 reviewed sources. Canonical
+sources intentionally produce both canonical and idle-A outputs.
+
+Build with:
+
+```sh
+mise run assets:launch-roster
+```
+
+The task refuses existing outputs. After explicit review of replacement
+sources, rebuild with:
+
+```sh
+mise run assets:launch-roster -- --force
+```
+
+The full source-to-output and prompt record is
+`docs/launch-roster-art-production.md`.
+
 ## Historical implemented composition
 
 North-star comp: `.impeccable/mocks/battle-collector-drawer.png`

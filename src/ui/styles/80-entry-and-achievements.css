@@ -39,6 +39,31 @@
   filter: saturate(0.9) contrast(1.08);
 }
 
+.startup-picture {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--indigo-deep);
+}
+
+.startup-picture::before {
+  position: absolute;
+  inset: -3rem;
+  background:
+    linear-gradient(rgb(7 16 31 / 44%), rgb(7 16 31 / 44%)),
+    var(--startup-backdrop) center / cover no-repeat;
+  content: "";
+  filter: blur(1.6rem) saturate(0.8);
+  transform: scale(1.05);
+}
+
+.startup-picture .startup-media {
+  position: relative;
+  z-index: 1;
+  object-fit: cover;
+}
+
 .startup-type-field {
   display: grid;
   min-height: 100svh;
@@ -90,6 +115,10 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+}
+
+.startup-actions > .primary-action:only-child {
+  width: min(100%, 24rem);
 }
 
 .startup-progress {
@@ -284,12 +313,14 @@
 
 @media (max-width: 760px) {
   .startup-intro {
+    height: 100dvh;
+    min-height: 0;
     grid-template-columns: 1fr;
-    grid-template-rows: 52svh 1fr;
+    grid-template-rows: 47svh minmax(0, 53svh);
   }
 
   .startup-intro::after {
-    top: 49%;
+    top: 44%;
     right: -10%;
     bottom: auto;
     left: -10%;
@@ -300,13 +331,17 @@
 
   .startup-media,
   .startup-type-field {
-    height: 52svh;
-    min-height: 18rem;
+    height: 47svh;
+    min-height: 0;
+  }
+
+  .startup-picture .startup-media {
+    object-position: var(--startup-portrait-position, 50% 42%);
   }
 
   .startup-ink {
     align-content: start;
-    padding: 2.4rem 1.1rem 4rem;
+    padding: 1.8rem 1.1rem 1rem;
   }
 
   .startup-ink h1 {

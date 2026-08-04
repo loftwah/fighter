@@ -661,3 +661,26 @@
   font-weight: 700;
   text-transform: uppercase;
 }
+
+.result-explanation {
+  border-block: 3px dashed var(--ink);
+  padding-block: 0.75rem;
+}
+
+.result-explanation h3,
+.result-explanation p {
+  margin: 0;
+}
+
+.result-explanation h3 {
+  font-family: var(--display);
+  font-size: 2.4rem;
+  text-transform: uppercase;
+}
+
+.result-explanation ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.55rem 0 0;
+  padding-inline-start: 1.25rem;
+}

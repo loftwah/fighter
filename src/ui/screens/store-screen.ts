@@ -77,8 +77,17 @@ function renderOfferLabel(
 ): string {
   const canAfford = save.stamps >= offer.price;
   const canBuy = canAfford && !(offer.kind === "patch" && alreadyOwned);
+  const imageAssetId =
+    offer.kind === "character"
+      ? combatContent.characters[offer.itemId]?.portraitAssetId
+      : findPatch(offer.itemId)?.imageAssetId;
   return `
     <article class="offer-label tone-${index % 3}">
+      ${
+        imageAssetId
+          ? `<img class="offer-art" src="${resolveImagePath(imageAssetId)}" data-asset-id="${imageAssetId}" alt="" />`
+          : ""
+      }
       <div>
         <span>${offer.rarity} · ${
           offer.kind === "patch" ? "modification" : offer.kind
@@ -112,3 +121,5 @@ function renderOfferLabel(
     </article>
   `;
 }
+import { resolveImagePath } from "../../assets/registry";
+import { combatContent } from "../../content/initial-content";

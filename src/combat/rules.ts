@@ -2,6 +2,7 @@ import type {
   ActionDefinition,
   ActionPosition,
   ActionTier,
+  ActionTierProperties,
   BattleState,
   CharacterDefinition,
   CharacterTrait,
@@ -9,6 +10,7 @@ import type {
   CombatantState,
   Difficulty,
   Side,
+  TeamState,
   TraitBonusRecord,
   TraitScoreRecord,
 } from "./types";
@@ -33,6 +35,22 @@ export const TIER_MULTIPLIERS: Record<ActionTier, number> = {
   gold: 1.16,
   platinum: 1.34,
 };
+
+export function actionTierProperties(
+  action: ActionDefinition,
+  tier: ActionTier,
+): ActionTierProperties {
+  if (tier === "stock") {
+    return {};
+  }
+  if (tier === "gold") {
+    return { ...action.tierProperties?.gold };
+  }
+  return {
+    ...action.tierProperties?.gold,
+    ...action.tierProperties?.platinum,
+  };
+}
 
 export function actionPositionForSlot(
   authoredPosition: ActionPosition,
@@ -64,12 +82,27 @@ export function actionPositionForCombatant(
   return actionPositionForSlot(action.position, slotIndex);
 }
 
-export const BASE_CHARGE_PER_SECOND = 8;
+export const BASE_CHARGE_PER_SECOND = 5;
 export const TEMPO_CHARGE_PER_SECOND = 0.4;
 
 export function chargePerSecond(tempo: number, echoBonus = false): number {
   const base = BASE_CHARGE_PER_SECOND + tempo * TEMPO_CHARGE_PER_SECOND;
   return base * (echoBonus ? 1.08 : 1);
+}
+
+export function teamChargePerSecond(team: TeamState): number {
+  const active = team.squad[team.activeIndex];
+  if (!active || hasStatus(active, "stun")) {
+    return 0;
+  }
+  const statusMultiplier = team.statuses
+    .filter((status) => status.kind === "chargeRate")
+    .reduce((multiplier, status) => multiplier * status.multiplier, 1);
+  return (
+    chargePerSecond(active.stats.tempo, team.echoChargeBonus) *
+    (1 + team.traitBonuses.mythic) *
+    statusMultiplier
+  );
 }
 
 export const COMBAT_TYPE_WHEEL = [
@@ -162,10 +195,10 @@ export function monsterDamageMultiplier(bonuses: TraitBonusRecord): number {
 
 export function difficultyAiDelay(difficulty: Difficulty): number {
   return {
-    easy: 1300,
-    normal: 850,
-    hard: 520,
-    brutal: 320,
+    easy: 1_800,
+    normal: 1_400,
+    hard: 900,
+    brutal: 600,
   }[difficulty];
 }
 
@@ -195,7 +228,8 @@ export function statusMagnitude(
     | "fortune"
     | "shield"
     | "reflection"
-    | "dodgeCounter",
+    | "dodgeCounter"
+    | "empower",
 ): number {
   return combatant.statuses
     .filter((status) => status.kind === kind)

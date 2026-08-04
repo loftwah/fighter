@@ -1,14 +1,14 @@
-# Teeny Titans 2 battle-capability parity audit
+# Reference-game battle-capability parity audit
 
 Status: source-backed implementation audit  
 Reviewed: 2026-07-30
 
 ## Scope and evidence
 
-This document audits the figure-fighting mode in _Teen Titans GO Figure!_
-(_Teeny Titans 2_) as a functional reference. It does not authorise copying its
+This document audits the figure-fighting mode in the external reference game as
+a functional reference. It does not authorise copying its
 characters, names, writing, art, UI, exact balance values, or protected audiovisual
-material. Riot Relics keeps its own Type labels, content, presentation, and
+material. loftwah/fighter keeps its own Type labels, content, presentation, and
 forgiving progression rules.
 
 Evidence confidence:
@@ -21,32 +21,36 @@ Evidence confidence:
 
 The public record is good enough to establish the capability surface, but not
 the original game's exact formulas, durations, AI weights, or every move's
-resolution order. Those values remain authored Riot Relics balance.
+resolution order. Those values remain authored loftwah/fighter balance.
 
 Primary and contemporary sources:
 
-- [Grumpyface v1.0.3 and v1.1.4 notes](https://grumpyfaceblog.tumblr.com/post/177072839828/teeny-titans-2-new-v103-bugfix-patch-released)
-- [Official Cartoon Network gameplay video](https://www.youtube.com/watch?v=jxMyQ0lqU9A)
-- [TouchArcade hands-on preview](https://toucharcade.com/2018/06/21/teen-titans-go-figure-teeny-titans-2-hands-on-preview-another-day-in-jump-city)
-- [TouchArcade review](https://toucharcade.com/2018/07/19/teen-titans-go-figure-review-remember-the-titans/)
-- [Pocket Gamer battle guide](https://www.pocketgamer.com/teen-titans-go-figure/teen-titans-go-figure-cheats-and-tips-essential-tips-for-battling/)
-- [Pocket Gamer review](https://www.pocketgamer.com/teen-titans-go-figure/review/)
-- [Contemporary battle-system review mirror](https://www.sickgaming.net/thread-85872.html)
-- [Community Move catalogue](https://www.reddit.com/r/teenytitans/comments/14w3xqp/complete_fig_list_with_abilities_and_gold_shiny/)
-- [Community Mod Chip catalogue](https://www.reddit.com/r/teenytitans/comments/16x6a91/list_of_all_chips_and_their_effects_tt2/)
-- [Teeny Titans Mod Chips reference](https://teeny-titans-the-game.fandom.com/wiki/Mod_Chips)
+- Developer v1.0.3 and v1.1.4 notes.
+- [Official original publisher gameplay video](https://www.youtube.com/watch?v=jxMyQ0lqU9A)
+- Contemporary hands-on preview.
+- Contemporary launch review.
+- Contemporary battle guide.
+- Contemporary systems review.
+- Contemporary battle-system review mirror.
+- Community Move catalogue.
+- Community Modification catalogue.
+- Community Modification reference.
 
 Representative character documentation:
 
-- [Robin: damage, stacking Power, stun](https://teeny-titans-the-game.fandom.com/wiki/Robin_%28figure%29)
-- [Cyborg: HP-for-Charge and team damage](https://teeny-titans-the-game.fandom.com/wiki/Cyborg)
-- [Gizmo: stackable damage-over-time and combined control](https://teeny-titans-the-game.fandom.com/wiki/Gizmo_%28figure%29)
-- [Beast Boy: transform, replacement Moves, staged attack](https://teeny-titans-the-game.fandom.com/wiki/Beast_Boy_%28figure%29)
-- [See-More: interruptible casting, cleanse and enemy dispel](https://teeny-titans-the-game.fandom.com/wiki/See-More_%28figure%29)
+- Reference example: damage, stacking Power, stun.
+- Reference example: Health-for-Charge and team damage.
+- Reference example: stackable damage-over-time and combined control.
+- Reference example: transform, replacement Moves, staged attack.
+- Reference example: interruptible casting, cleanse, and enemy dispel.
+
+Direct external-game naming and URLs were intentionally removed from
+project-facing documentation on 2026-07-31. Git history retains the research
+trail when provenance must be re-audited.
 
 ## Executive finding
 
-Riot Relics now has the correct fundamental shape: one active fighter from a
+loftwah/fighter now has the correct fundamental shape: one active fighter from a
 one-to-three-character Lineup, an independent shared Charge Strip per side,
 three cost thresholds, switching, classes, seeded dodge/critical results,
 charge-up interruption, full presentation pauses, team defeat, tournament
@@ -65,32 +69,32 @@ A first complete team Accessory contract and opponent Move-threshold rail were
 implemented during this audit. Their remaining depth is recorded below.
 
 The correct goal is capability parity, not a one-for-one clone of every figure.
-Once a reusable effect or trigger exists, original Riot Relics characters can
+Once a reusable effect or trigger exists, original loftwah/fighter characters can
 combine it in their own authored ways.
 
 ## Core loop matrix
 
-| Reference capability                                | Confidence          | Riot Relics | Decision or remaining work                                                                                   |
-| --------------------------------------------------- | ------------------- | ----------- | ------------------------------------------------------------------------------------------------------------ |
-| One to three fighters, one active                   | High                | Implemented | Shared domain engine supports 1–3 per side                                                                   |
-| Independent continuously filling side bars          | High                | Implemented | Tempo produces a smooth side-level Charge rate                                                               |
-| Three Move thresholds per active fighter            | High                | Implemented | Nine Low/Standard/High positions map to three bands                                                          |
-| Earlier is cheaper/weaker; later is dearer/stronger | High                | Implemented | Position cost and output multiplier are authoritative                                                        |
-| Move reordering changes bar placement               | High                | Implemented | Collection controls update threshold and output immediately                                                  |
-| Shared bar retained while switching                 | High                | Implemented | Health and statuses remain character-owned                                                                   |
-| Free switching                                      | High                | Implemented | Stun, pending cast, and switch lock can prevent it                                                           |
-| AI uses switching                                   | High                | Partial     | Basic support-to-pressure switch added; class/health planning remains                                        |
-| Player chooses the starting active fighter          | High                | Partial     | First selected entry starts; selection flow needs an explicit starter control                                |
-| Opponent bar and Move thresholds are visible        | High                | Implemented | Current enemy nodes expose cost and Ready/Wait/Cast state                                                    |
-| `3 → 2 → 1 → FIGHT` start                           | Medium-high         | Implemented | Simulation stays stopped through countdown                                                                   |
-| Battle pauses during attack presentation            | High                | Implemented | Input, AI, clock, bars, statuses, and pending casts stop; 2–3 second reference-calibrated holds are explicit |
-| Symmetric rules for player and AI                   | High                | Partial     | Same engine and content; both use Accessories, but AI strategy remains basic                                 |
-| Whole-team elimination                              | High                | Implemented | Automatic next living fighter enters                                                                         |
-| Semantic forfeit                                    | Product requirement | Implemented | Active tournament Restart/Leave now closes the current Case                                                  |
+| Reference capability                                | Confidence          | loftwah/fighter | Decision or remaining work                                                                                   |
+| --------------------------------------------------- | ------------------- | --------------- | ------------------------------------------------------------------------------------------------------------ |
+| One to three fighters, one active                   | High                | Implemented     | Shared domain engine supports 1–3 per side                                                                   |
+| Independent continuously filling side bars          | High                | Implemented     | Tempo produces a smooth side-level Charge rate                                                               |
+| Three Move thresholds per active fighter            | High                | Implemented     | Nine Low/Standard/High positions map to three bands                                                          |
+| Earlier is cheaper/weaker; later is dearer/stronger | High                | Implemented     | Position cost and output multiplier are authoritative                                                        |
+| Move reordering changes bar placement               | High                | Implemented     | Collection controls update threshold and output immediately                                                  |
+| Shared bar retained while switching                 | High                | Implemented     | Health and statuses remain character-owned                                                                   |
+| Free switching                                      | High                | Implemented     | Stun, pending cast, and switch lock can prevent it                                                           |
+| AI uses switching                                   | High                | Partial         | Basic support-to-pressure switch added; class/health planning remains                                        |
+| Player chooses the starting active fighter          | High                | Partial         | First selected entry starts; selection flow needs an explicit starter control                                |
+| Opponent bar and Move thresholds are visible        | High                | Implemented     | Current enemy nodes expose cost and Ready/Wait/Cast state                                                    |
+| `3 → 2 → 1 → FIGHT` start                           | Medium-high         | Implemented     | Simulation stays stopped through countdown                                                                   |
+| Battle pauses during attack presentation            | High                | Implemented     | Input, AI, clock, bars, statuses, and pending casts stop; 2–3 second reference-calibrated holds are explicit |
+| Symmetric rules for player and AI                   | High                | Partial         | Same engine and content; both use Accessories, but AI strategy remains basic                                 |
+| Whole-team elimination                              | High                | Implemented     | Automatic next living fighter enters                                                                         |
+| Semantic forfeit                                    | Product requirement | Implemented     | Active tournament Restart/Leave now closes the current Case                                                  |
 
 ## Timing, interruption, and targeting
 
-| Capability                                                | Confidence      | Riot Relics            | Gap                                                                     |
+| Capability                                                | Confidence      | loftwah/fighter        | Gap                                                                     |
 | --------------------------------------------------------- | --------------- | ---------------------- | ----------------------------------------------------------------------- |
 | Per-Move cast time after spending bar                     | High            | Implemented            | —                                                                       |
 | Damage or stun interrupts a cast                          | High            | Implemented            | —                                                                       |
@@ -103,7 +107,7 @@ combine it in their own authored ways.
 
 ## Reusable Move and status vocabulary
 
-| Effect family                                  | Reference examples                               | Riot Relics                                                                      |
+| Effect family                                  | Reference examples                               | loftwah/fighter                                                                  |
 | ---------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
 | Single-target damage                           | Basic strikes and projectiles                    | Implemented                                                                      |
 | Multi-hit damage                               | Rapid strikes and barrages                       | Implemented                                                                      |
@@ -151,7 +155,7 @@ The six shipped Relics now exercise a useful first slice of the vocabulary:
 
 | Relic         | Current playable kit                                                                                         |
 | ------------- | ------------------------------------------------------------------------------------------------------------ |
-| Viking        | Quick damage; charged damage plus hit-gated stun; charged multi-hit finisher plus self Power                 |
+| Viking        | Stackable next-Move Power; dependable returning hit with an undodgeable upgrade; strongest hit plus stun     |
 | Ned Kelly     | Quick damage; consumable shield plus Charge refund; charged damage, stun, and switch lock                    |
 | Tux           | Damage plus allied Charge; damage plus enemy Charge drain and slow; whole-team damage                        |
 | Moses         | Immediate heal plus regeneration; low damage plus defence reduction; whole-team heal and cleanse             |
@@ -168,7 +172,7 @@ assumptions.
 
 ## Character-build systems
 
-| System                             | Reference behaviour                                    | Riot Relics                                                                             |
+| System                             | Reference behaviour                                    | loftwah/fighter                                                                         |
 | ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
 | Four core displayed stats          | Health, Power, Dodge, Luck                             | Adapted to Vitality, Power, Evasion, Fortune, plus Tempo                                |
 | Six-class advantage wheel          | Martial → Beast → Cute → Dark → Super → Tech           | Implemented with original labels and reference-equivalent relationships                 |
@@ -198,7 +202,7 @@ Reference behaviour is high confidence:
 - examples freeze the opposing bar, increase team health, shield the team, or
   block an opposing Move.
 
-Riot Relics now implements the structural layer separately from per-character
+loftwah/fighter now implements the structural layer separately from per-character
 Patches:
 
 - stable data definitions;
@@ -237,7 +241,7 @@ combat. Reported powers include healing, shielding, damage increase, immediate
 Charge, bar speed, enemy freeze, and cleanse. These are interactive pickups,
 not passive rewards.
 
-Riot Relics now has a deterministic launch slice:
+loftwah/fighter now has a deterministic launch slice:
 
 - successful damaging Moves may produce a side-owned Battery, Repair, or Surge;
 - drop RNG is derived from the match seed but separated from combat RNG;
@@ -255,7 +259,7 @@ architecture.
 
 ## Tournament differences
 
-| Capability                                         | Riot Relics                                                                              |
+| Capability                                         | loftwah/fighter                                                                          |
 | -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
 | Normal battle engine reused                        | Implemented                                                                              |
 | Multi-round authored ladder                        | Implemented                                                                              |
@@ -270,7 +274,7 @@ architecture.
 
 ## AI acceptance target
 
-Exact reference AI weights are undocumented, so Riot Relics should meet a
+Exact reference AI weights are undocumented, so loftwah/fighter should meet a
 behavioural contract instead:
 
 1. never choose an illegal command;
@@ -363,7 +367,7 @@ sixth allocated stat.
 
 Live browser measurement showed the prior implementation locked the simulation
 correctly but exposed an instant attack for only about 0.95 seconds. The
-[official Cartoon Network gameplay preview](https://www.youtube.com/watch?v=wxRtSyYKt8M)
+[official original publisher gameplay preview](https://www.youtube.com/watch?v=wxRtSyYKt8M)
 shows representative attack sequences occupying roughly two to three seconds.
 The runtime now uses longer action, impact, Accessory, and defeat holds; stretches
 the cut-in/impact motion to fill them; and displays the acting Character and Move
@@ -371,6 +375,16 @@ with an explicit paused-state label. The Neutral 1v1 development scenario is
 also now a mirrored Tux matchup with no Accessories and zero starting Charge,
 so it exposes the unmodified base Charge loop. The opponent's reaction delay
 restarts when every presentation lock releases.
+
+## 2026-07-31 decision-readability correction
+
+Live play showed that correct timing was still difficult to understand over the
+high-contrast rectangular art. The battle now uses a persistent state cue:
+`CHARGING` names the next threshold, `YOUR MOVE` names the usable controls, and
+every cut-in identifies `YOUR MOVE` or `OPPONENT MOVE`. Decision-time art and
+unavailable controls recede; player-ready Moves alone use green, while
+opponent-ready telegraphs use tomato. This preserves the opaque-art constraint
+while restoring the reference game's obvious choose-versus-watch rhythm.
 
 ## Recommended implementation order
 

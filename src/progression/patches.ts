@@ -16,6 +16,7 @@ export interface PatchDefinition {
   id: string;
   name: string;
   description: string;
+  imageAssetId: string;
   effect: PatchEffect;
 }
 
@@ -23,12 +24,14 @@ export const patches: PatchDefinition[] = [
   {
     id: "patch.hot-start",
     name: "Hot Start",
+    imageAssetId: "image.modification.hot-start",
     description: "Add 18 opening Charge to the shared Strip.",
     effect: { kind: "openingCharge", amount: 18 },
   },
   {
     id: "patch.no-flinch",
     name: "No Flinch",
+    imageAssetId: "image.modification.no-flinch",
     description:
       "Gain a 50% seeded chance for a charging Move to resist interruption.",
     effect: { kind: "interruptionResistance", chance: 0.5 },
@@ -36,12 +39,14 @@ export const patches: PatchDefinition[] = [
   {
     id: "patch.heavy-ink",
     name: "Power Band",
+    imageAssetId: "image.modification.power-band",
     description: "Add 3 effective Power.",
     effect: { kind: "stat", stat: "power", amount: 3 },
   },
   {
     id: "patch.lucky-misprint",
     name: "Lucky Charm",
+    imageAssetId: "image.modification.lucky-charm",
     description: "Add 4 effective Fortune.",
     effect: { kind: "stat", stat: "fortune", amount: 4 },
   },

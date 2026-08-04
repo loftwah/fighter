@@ -6,7 +6,7 @@ import type {
   Difficulty,
   Side,
 } from "../combat/types";
-import { combatContent } from "../content/initial-content";
+import { combatContent, quickFightDefaults } from "../content/initial-content";
 import { findPatch, patches } from "../progression/patches";
 
 export type BattleControllerKind = "human-local" | "ai";
@@ -30,6 +30,8 @@ export interface DevBattleScenario {
   enemyStartingBar: number;
   playerHealthRatio: number;
   enemyHealthRatio: number;
+  playerStartingEmpowerStacks?: number;
+  playerStartingAttackModifier?: number;
   seed: number;
   difficulty: Difficulty;
   timeLimitMs: number;
@@ -77,6 +79,8 @@ export const devBattleScenarioSchema = z.object({
   enemyStartingBar: z.number().min(0).max(100),
   playerHealthRatio: z.number().min(0.01).max(1),
   enemyHealthRatio: z.number().min(0.01).max(1),
+  playerStartingEmpowerStacks: z.number().int().min(0).max(4).optional(),
+  playerStartingAttackModifier: z.number().min(-0.9).max(1).optional(),
   seed: z.number().int().min(0),
   difficulty: z.enum(["easy", "normal", "hard", "brutal"]),
   timeLimitMs: z.number().int().min(1_000).max(600_000),
@@ -91,6 +95,31 @@ const scenario = (value: DevBattleScenario): DevBattleScenario =>
   devBattleScenarioSchema.parse(value);
 
 export const devBattleScenarios = [
+  scenario({
+    id: "v2.viking-acceptance",
+    name: "V2 Viking Acceptance",
+    description:
+      "The fixed-seed first Quick Fight: bank Power, land the axe, then commit the finisher.",
+    playerCharacterIds: [...quickFightDefaults.playerIds],
+    enemyCharacterIds: [...quickFightDefaults.enemyIds],
+    playerLevel: 10,
+    enemyLevel: 10,
+    playerTier: "normal",
+    enemyTier: "normal",
+    playerPatchId: null,
+    enemyPatchId: null,
+    playerAccessoryId: quickFightDefaults.playerAccessoryId,
+    enemyAccessoryId: quickFightDefaults.enemyAccessoryId,
+    playerStartingBar: 0,
+    enemyStartingBar: 0,
+    playerHealthRatio: 1,
+    enemyHealthRatio: 1,
+    seed: quickFightDefaults.seed,
+    difficulty: "normal",
+    timeLimitMs: 90_000,
+    startPaused: false,
+    controllers: { player: "human-local", enemy: "ai" },
+  }),
   scenario({
     id: "dev.neutral-1v1",
     name: "Neutral 1v1",
@@ -193,6 +222,58 @@ export const devBattleScenarios = [
     controllers: { player: "human-local", enemy: "ai" },
   }),
   scenario({
+    id: "dev.boosted-attacks",
+    name: "Boosted Attacks",
+    description:
+      "Two banked Battle Boast stacks with no usable attack, for boosted prediction and affordability checks.",
+    playerCharacterIds: ["character.viking"],
+    enemyCharacterIds: ["character.grim-reaper"],
+    playerLevel: 10,
+    enemyLevel: 10,
+    playerTier: "normal",
+    enemyTier: "normal",
+    playerPatchId: null,
+    enemyPatchId: null,
+    playerAccessoryId: null,
+    enemyAccessoryId: null,
+    playerStartingBar: 0,
+    enemyStartingBar: 0,
+    playerHealthRatio: 1,
+    enemyHealthRatio: 1,
+    playerStartingEmpowerStacks: 2,
+    seed: 20_261_107,
+    difficulty: "normal",
+    timeLimitMs: 90_000,
+    startPaused: true,
+    controllers: { player: "human-local", enemy: "ai" },
+  }),
+  scenario({
+    id: "dev.reduced-attacks",
+    name: "Reduced Attacks",
+    description:
+      "A visible Power reduction across both attacks, including an unaffordable finisher.",
+    playerCharacterIds: ["character.viking"],
+    enemyCharacterIds: ["character.grim-reaper"],
+    playerLevel: 10,
+    enemyLevel: 10,
+    playerTier: "normal",
+    enemyTier: "normal",
+    playerPatchId: null,
+    enemyPatchId: null,
+    playerAccessoryId: null,
+    enemyAccessoryId: null,
+    playerStartingBar: 40,
+    enemyStartingBar: 0,
+    playerHealthRatio: 1,
+    enemyHealthRatio: 1,
+    playerStartingAttackModifier: -0.25,
+    seed: 20_261_108,
+    difficulty: "normal",
+    timeLimitMs: 90_000,
+    startPaused: true,
+    controllers: { player: "human-local", enemy: "ai" },
+  }),
+  scenario({
     id: "dev.timeout",
     name: "Timeout",
     description: "A five-second near-tie for timeout and result verification.",
@@ -244,7 +325,7 @@ export const devBattleScenarios = [
 ] as const satisfies readonly DevBattleScenario[];
 
 export const defaultDevScenario: DevBattleScenario = structuredClone(
-  devBattleScenarios[0],
+  devBattleScenarios.find((scenario) => scenario.id === "dev.neutral-1v1")!,
 );
 
 export function actionTierForDevTier(tier: DevMoveTier): ActionTier {
@@ -305,7 +386,7 @@ export function devBuildsForSide(
   });
 }
 
-export function applyDevStartingHealth(
+export function applyDevScenarioState(
   sourceState: BattleState,
   scenarioDefinition: DevBattleScenario,
 ): BattleState {
@@ -320,6 +401,33 @@ export function applyDevStartingHealth(
         1,
         Math.round(combatant.maxHealth * ratio),
       );
+    }
+  }
+  const player = state.player.squad[state.player.activeIndex];
+  if (player) {
+    const durationMs = state.timeLimitMs + 1_000;
+    for (
+      let stack = 0;
+      stack < (scenarioDefinition.playerStartingEmpowerStacks ?? 0);
+      stack += 1
+    ) {
+      player.statuses.push({
+        id: `dev.${scenarioDefinition.id}.empower.${stack}`,
+        kind: "empower",
+        magnitude: 0.28,
+        remainingMs: durationMs,
+        sourceId: player.instanceId,
+        sourceSide: "player",
+        actionId: "action.viking.shield-bash",
+      });
+    }
+    if (scenarioDefinition.playerStartingAttackModifier) {
+      player.statuses.push({
+        id: `dev.${scenarioDefinition.id}.attack`,
+        kind: "attack",
+        magnitude: scenarioDefinition.playerStartingAttackModifier,
+        remainingMs: durationMs,
+      });
     }
   }
   return state;

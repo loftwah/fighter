@@ -20,7 +20,7 @@ cute, funny, mixture that embodies the energy of TV shows like Rick and Morty, T
 
 Who should it feel made for: children, teenagers, nostalgic adults, families, or another audience?
 
-nostalgic adults probably. Teeny Titans 2 is something I found because I was a dad and my kid liked Teen Titans Go and it was something I could also enjoy.
+nostalgic adults probably. the reference game is something I found because I was a dad and my kid liked the source franchise Go and it was something I could also enjoy.
 
 How sharp can the humour be: gentle, mischievous, absurd, mean rivalry, or mostly serious?
 
@@ -28,19 +28,19 @@ Use the internet and research and go as crazy as we want/that you can with this.
 
 Name up to five games, cartoons, comics, films, artists, toys, or brands that feel close to what you want.
 
-Teeny Titans 2 is the exact game we are basing this on. The only difference is how we orchestrate the story, tournaments and quick play. Teeny Titans 2 used a map that you explore as the character. We have to do this with mostly still images and whatever the code/css can produce.
+the reference game is the exact game we are basing this on. The only difference is how we orchestrate the story, tournaments and quick play. the reference game used a map that you explore as the character. We have to do this with mostly still images and whatever the code/css can produce.
 
 Name references that strongly represent the wrong direction.
 
-Riot Relics lol. Sorry that's all I can think. The art style we have and the colours I just can't roll with.
+loftwah/fighter lol. Sorry that's all I can think. The art style we have and the colours I just can't roll with.
 
-Beyond its layout, what should we preserve from Teeny Titans 2: proportions, colour, clarity, humour, toy collecting, animation timing, or something else?
+Beyond its layout, what should we preserve from the reference game: proportions, colour, clarity, humour, toy collecting, animation timing, or something else?
 
 proprtions don't matter because we have our own art style
 as above for colour but what they did kinda worked
 clarity can be the same (don't know what this actually means)
 humour I think we want to push it a little bit further
-toy collecting should be similar but if something makes more sense for our way of doing things then yeah. we aren't walking around on a map buying toys like in teeny titans 2, we are doing the candy crush style level system thing.
+toy collecting should be similar but if something makes more sense for our way of doing things then yeah. we aren't walking around on a map buying toys like in the reference game, we are doing the candy crush style level system thing.
 animation is our own way of doing things. We are going to have a lot less animation and I was under the impression we would generate an image or two for each different thing the characters can do and we'd have a system that weaves it together to make it kind of resemble anime and where the background of the images doesn't matter. We have to figure out a good way of doing this.
 
 Should characters resemble chibi figures, superheroes, anime fighters, vinyl toys, cartoons, 3D collectibles, or another form?
@@ -93,7 +93,7 @@ The character should basically be like an object from object oriented programmin
 
 Should names sound heroic, funny, toy-commercial, mysterious, anime-inspired, or ordinary-but-strange?
 
-The names are going to be real characters. Jerry Seinfeld etc Bender, Rick. They should have a name, description and any fields and attributes that are useful. The characters should be detailed. The characters are what will drive the game. Eventually there will be just more and more characters and they will probably have categories and tags and you'd be able to toggle them on and off with a default characters optoin and even something in the settings that is different presets for characters and combinations. The stories and tournaments would be related to whatever the characters are. That's what this project is. I might want american presidents, online personalities, serial killers, tv shows etc. I should be able to just hoover characters at some point. The character system should work the same as teeny titans 2. I could have attacks, stuns, heals and a lot of the different characters had different actions/attacks but they actually did the same thing. There are only so many combinations of what we can do here right? We can present them basically infinitely but they're the same building blocks.
+The names are going to be real characters. Jerry Seinfeld etc Bender, Rick. They should have a name, description and any fields and attributes that are useful. The characters should be detailed. The characters are what will drive the game. Eventually there will be just more and more characters and they will probably have categories and tags and you'd be able to toggle them on and off with a default characters optoin and even something in the settings that is different presets for characters and combinations. The stories and tournaments would be related to whatever the characters are. That's what this project is. I might want american presidents, online personalities, serial killers, tv shows etc. I should be able to just hoover characters at some point. The character system should work the same as the reference game. I could have attacks, stuns, heals and a lot of the different characters had different actions/attacks but they actually did the same thing. There are only so many combinations of what we can do here right? We can present them basically infinitely but they're the same building blocks.
 
 Which attack fantasies belong: martial arts, powers, elemental magic, gadgets, weapons, summons, slapstick, psychic abilities, or transformations?
 

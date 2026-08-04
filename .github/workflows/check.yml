@@ -1,0 +1,42 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: check-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: V2 quality gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+
+      - name: Install the pinned runtime
+        uses: jdx/mise-action@v4
+
+      - name: Install dependencies
+        run: mise exec -- pnpm install --frozen-lockfile
+
+      - name: Run the complete repository check
+        run: mise run check
+
+      - name: Retain the reviewed web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: fighter-web-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
