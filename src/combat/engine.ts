@@ -1,5 +1,9 @@
 import { nextRandom, randomBetween } from "./rng";
 import {
+  actionChargeMsForCombatant,
+  actionCostForCombatant,
+  actionEffectsForCombatant,
+  actionFormRequirementMet,
   actionPositionForCombatant,
   actionTierProperties,
   hasStatus,
@@ -347,11 +351,16 @@ function lockedTargetsFor(
 function captureLockedTargets(
   state: BattleState,
   side: Side,
-  action: ActionDefinition,
+  effects: ActionDefinition["effects"],
 ): Partial<Record<TargetKind, string[]>> {
   const targetKinds = new Set<TargetKind>();
-  for (const effect of action.effects) {
-    if (effect.kind !== "bar" && effect.kind !== "modifyChargeRate") {
+  for (const effect of effects) {
+    if (
+      effect.kind !== "bar" &&
+      effect.kind !== "barPercent" &&
+      effect.kind !== "modifyChargeRate" &&
+      effect.kind !== "blockMove"
+    ) {
       targetKinds.add(effect.target);
     }
   }
@@ -398,7 +407,12 @@ function appendTeamStatus(
   emit(state, events, {
     type: "statusApplied",
     side: team.side,
-    amount: status.kind === "chargeRate" ? status.multiplier : status.slotIndex,
+    amount:
+      status.kind === "chargeRate"
+        ? status.multiplier
+        : status.slotIndex === "all"
+          ? undefined
+          : status.slotIndex,
     message: status.kind,
   });
 }
@@ -435,6 +449,33 @@ function interruptPending(
   });
 }
 
+function resolveShieldEnd(
+  state: BattleState,
+  events: BattleEvent[],
+  target: CombatantState,
+  status: StatusState,
+): void {
+  if (!isAlive(target) || !status.endHealAmount || status.endHealAmount <= 0) {
+    return;
+  }
+  const before = target.currentHealth;
+  target.currentHealth = Math.min(
+    target.maxHealth,
+    before + Math.round(status.endHealAmount),
+  );
+  const amount = target.currentHealth - before;
+  if (amount > 0) {
+    emit(state, events, {
+      type: "healingApplied",
+      side: status.sourceSide ?? target.side,
+      sourceId: status.sourceId,
+      targetId: target.instanceId,
+      actionId: status.actionId,
+      amount,
+    });
+  }
+}
+
 function absorbShieldDamage(
   state: BattleState,
   events: BattleEvent[],
@@ -454,6 +495,7 @@ function absorbShieldDamage(
     if (remainingShield > 0) {
       retained.push({ ...status, magnitude: remainingShield });
     } else {
+      resolveShieldEnd(state, events, target, status);
       emit(state, events, {
         type: "statusRemoved",
         side: target.side,
@@ -474,6 +516,8 @@ interface ReactionSignal {
   sourceActionId?: string;
   triggerActionId: string;
   triggerEventId: number;
+  stunChance?: number;
+  stunDurationMs?: number;
 }
 
 function combatantForInstance(
@@ -533,6 +577,23 @@ function applyReactionDamage(
   });
   if (appliedAmount > 0) {
     interruptPending(state, events, target.side, target);
+  }
+  if (
+    signal.kind === "reflection" &&
+    isAlive(target) &&
+    (signal.stunChance ?? 0) > 0 &&
+    (signal.stunDurationMs ?? 0) > 0
+  ) {
+    const roll = nextRandom(state.rngState);
+    state.rngState = roll.state;
+    if (roll.value < signal.stunChance!) {
+      appendStatus(state, events, target.side, target, {
+        kind: "stun",
+        magnitude: 1,
+        remainingMs: signal.stunDurationMs!,
+      });
+      interruptPending(state, events, target.side, target);
+    }
   }
 }
 
@@ -610,6 +671,8 @@ function queueReflection(
       sourceActionId: reflection.actionId,
       triggerActionId,
       triggerEventId,
+      stunChance: reflection.reactionStunChance,
+      stunDurationMs: reflection.reactionStunDurationMs,
     });
   }
 }
@@ -692,7 +755,10 @@ function damageOne(
   const levelGrowth = 1 + (source.level - 1) * 0.035;
   const powerGrowth = 1 + sourceStats.power * 0.035;
   const attackModifier = clamp(
-    1 + statusMagnitude(source, "attack") + statusMagnitude(source, "empower"),
+    1 +
+      statusMagnitude(source, "attack") +
+      statusMagnitude(source, "form") +
+      statusMagnitude(source, "empower"),
     0.25,
     4,
   );
@@ -820,6 +886,7 @@ function resolveAction(
   const tier = source.actionTiers[action.id] ?? "stock";
   const tierMultiplier = TIER_MULTIPLIERS[tier];
   const tierProperties = actionTierProperties(action, tier);
+  const effects = actionEffectsForCombatant(source, action);
   const utilityMultiplier =
     POSITION_RULES[actionPositionForCombatant(source, action)].multiplier *
     tierMultiplier;
@@ -838,7 +905,7 @@ function resolveAction(
     actionId: action.id,
   });
 
-  for (const effect of action.effects) {
+  for (const effect of effects) {
     if (!isAlive(source)) {
       break;
     }
@@ -874,6 +941,45 @@ function resolveAction(
       });
       continue;
     }
+    if (effect.kind === "barPercent") {
+      if (effect.requiresHit && hitTargets.size === 0) {
+        continue;
+      }
+      const targetSide =
+        effect.target === "allies" ? pending.side : opposingSide(pending.side);
+      const targetTeam = teamFor(state, targetSide);
+      targetTeam.bar = clamp(
+        targetTeam.bar + targetTeam.bar * effect.ratio,
+        0,
+        100,
+      );
+      emit(state, events, {
+        type: "barChanged",
+        side: targetSide,
+        amount: targetTeam.bar,
+      });
+      continue;
+    }
+    if (effect.kind === "blockMove") {
+      if (effect.requiresHit && hitTargets.size === 0) {
+        continue;
+      }
+      if (effect.chance !== undefined) {
+        const roll = nextRandom(state.rngState);
+        state.rngState = roll.state;
+        if (roll.value >= effect.chance) {
+          continue;
+        }
+      }
+      const targetSide =
+        effect.target === "allies" ? pending.side : opposingSide(pending.side);
+      appendTeamStatus(state, events, teamFor(state, targetSide), {
+        kind: "moveBlock",
+        slotIndex: effect.slotIndex,
+        remainingMs: Math.round(effect.durationMs * utilityMultiplier),
+      });
+      continue;
+    }
 
     const targets = lockedTargetsFor(state, pending, effect.target);
     const distributesPool =
@@ -885,7 +991,7 @@ function resolveAction(
       if (!isAlive(target)) {
         continue;
       }
-      if (effect.requiresHit) {
+      if ("requiresHit" in effect && effect.requiresHit) {
         const requirementMet =
           target.side === pending.side
             ? hitTargets.size > 0
@@ -1050,6 +1156,12 @@ function resolveAction(
             sourceId: source.instanceId,
             sourceSide: pending.side,
             actionId: action.id,
+            reactionStunChance: tierProperties.reflectionStun?.chance,
+            reactionStunDurationMs: tierProperties.reflectionStun
+              ? Math.round(
+                  tierProperties.reflectionStun.durationMs * utilityMultiplier,
+                )
+              : undefined,
           });
           break;
         case "counterOnDodge":
@@ -1067,11 +1179,134 @@ function resolveAction(
             actionId: action.id,
           });
           break;
+        case "healthCost": {
+          const minimumHealth = Math.max(0, effect.minimumHealth ?? 1);
+          const amount = Math.min(
+            effect.amount,
+            Math.max(0, target.currentHealth - minimumHealth),
+          );
+          target.currentHealth -= amount;
+          if (amount > 0) {
+            emit(state, events, {
+              type: "damageApplied",
+              side: pending.side,
+              sourceId: source.instanceId,
+              targetId: target.instanceId,
+              actionId: action.id,
+              amount,
+              message: "healthCost",
+            });
+          }
+          break;
+        }
+        case "transform":
+          target.statuses = target.statuses.filter((status) => {
+            const belongsToForm =
+              status.kind === "form" ||
+              (status.kind === "defence" &&
+                status.actionId === action.id &&
+                status.sourceId === source.instanceId);
+            if (!belongsToForm) {
+              return true;
+            }
+            emit(state, events, {
+              type: "statusRemoved",
+              side: target.side,
+              targetId: target.instanceId,
+              message: status.kind,
+            });
+            return false;
+          });
+          appendStatus(state, events, target.side, target, {
+            kind: "form",
+            magnitude: effect.attackMagnitude * utilityMultiplier,
+            remainingMs: effect.durationMs,
+            sourceId: source.instanceId,
+            sourceSide: pending.side,
+            actionId: action.id,
+            formId: effect.formId,
+          });
+          if (effect.defenceMagnitude !== 0) {
+            appendStatus(state, events, target.side, target, {
+              kind: "defence",
+              magnitude: effect.defenceMagnitude * utilityMultiplier,
+              remainingMs: effect.durationMs,
+              sourceId: source.instanceId,
+              sourceSide: pending.side,
+              actionId: action.id,
+            });
+          }
+          break;
+        case "randomBoon": {
+          const totalWeight = effect.options.reduce(
+            (total, option) => total + option.weight,
+            0,
+          );
+          const roll = nextRandom(state.rngState);
+          state.rngState = roll.state;
+          let cursor = roll.value * totalWeight;
+          const selected =
+            effect.options.find((option) => {
+              cursor -= option.weight;
+              return cursor <= 0;
+            }) ?? effect.options.at(-1);
+          const boon = selected?.effect;
+          if (!boon) {
+            break;
+          }
+          if (boon.kind === "heal") {
+            healOne(
+              state,
+              events,
+              pending.side,
+              source,
+              target,
+              action,
+              boon.power,
+            );
+          } else if (boon.kind === "bar") {
+            team.bar = clamp(
+              team.bar + boon.amount * utilityMultiplier,
+              0,
+              100,
+            );
+            emit(state, events, {
+              type: "barChanged",
+              side: pending.side,
+              amount: team.bar,
+            });
+          } else {
+            appendStatus(state, events, target.side, target, {
+              kind:
+                boon.kind === "modifyAttack"
+                  ? "attack"
+                  : boon.kind === "modifyDefence"
+                    ? "defence"
+                    : "evasion",
+              magnitude: boon.magnitude * utilityMultiplier,
+              remainingMs: boon.durationMs,
+              sourceId: source.instanceId,
+              sourceSide: pending.side,
+              actionId: action.id,
+            });
+          }
+          break;
+        }
         case "shield":
           appendStatus(state, events, sideForCombatant(target), target, {
             kind: "shield",
             magnitude: effect.amount * utilityMultiplier,
             remainingMs: effect.durationMs,
+            sourceId: source.instanceId,
+            sourceSide: pending.side,
+            actionId: action.id,
+            endHealAmount: tierProperties.shieldEndHealPower
+              ? periodicEffectMagnitude(
+                  source,
+                  action,
+                  tierProperties.shieldEndHealPower,
+                )
+              : undefined,
           });
           break;
         case "cleanse":
@@ -1101,7 +1336,7 @@ function resolveAction(
     }
   }
 
-  const consumesEmpower = action.effects.some(
+  const consumesEmpower = effects.some(
     (effect) => effect.kind === "damage" || effect.kind === "damageOverTime",
   );
   if (consumesEmpower) {
@@ -1254,14 +1489,17 @@ export function requestAction(
     team.statuses.some(
       (status) =>
         status.kind === "moveBlock" &&
-        status.slotIndex === actionSlotIndex &&
+        (status.slotIndex === "all" || status.slotIndex === actionSlotIndex) &&
         status.remainingMs > 0,
     )
   ) {
     return reject(state, "That Move slot is temporarily blocked.", side);
   }
   const action = actionFor(content, actionId);
-  const cost = POSITION_RULES[actionPositionForCombatant(source, action)].cost;
+  if (!actionFormRequirementMet(source, action)) {
+    return reject(state, "This Move requires its combat form.", side);
+  }
+  const cost = actionCostForCombatant(source, action);
   if (team.bar < cost) {
     return reject(state, `This Move needs ${cost} Charge.`, side);
   }
@@ -1291,15 +1529,32 @@ export function requestAction(
       });
     }
   }
+  let chargeMs = actionChargeMsForCombatant(source, action);
+  const tier = source.actionTiers[action.id] ?? "stock";
+  const instantChargeChance = actionTierProperties(
+    action,
+    tier,
+  ).instantChargeChance;
+  if (chargeMs > 0 && instantChargeChance !== undefined) {
+    const roll = nextRandom(state.rngState);
+    state.rngState = roll.state;
+    if (roll.value < instantChargeChance) {
+      chargeMs = 0;
+    }
+  }
   const pending: PendingAction = {
     side,
     actionId,
     sourceInstanceId: source.instanceId,
-    lockedTargetIds: captureLockedTargets(state, side, action),
-    remainingMs: action.chargeMs,
+    lockedTargetIds: captureLockedTargets(
+      state,
+      side,
+      actionEffectsForCombatant(source, action),
+    ),
+    remainingMs: chargeMs,
   };
 
-  if (action.chargeMs > 0) {
+  if (chargeMs > 0) {
     state.pendingActions[side] = pending;
   } else {
     resolveAction(state, events, content, pending);
@@ -1603,17 +1858,8 @@ function tickStatuses(
           }
         }
       }
-      const remainingMs = status.remainingMs - deltaMs;
-      if (remainingMs <= 0) {
-        emit(state, events, {
-          type: "statusRemoved",
-          side: team.side,
-          targetId: combatant.instanceId,
-          message: status.kind,
-        });
-      } else {
-        retained.push({ ...status, remainingMs, nextTickMs });
-      }
+      const remainingMs = Math.max(0, status.remainingMs - deltaMs);
+      retained.push({ ...status, remainingMs, nextTickMs });
     }
     combatant.statuses = retained;
   }
@@ -1627,18 +1873,46 @@ function tickTeamStatuses(
 ): void {
   const retained: TeamStatusState[] = [];
   for (const status of team.statuses) {
-    const remainingMs = status.remainingMs - deltaMs;
-    if (remainingMs <= 0) {
+    const remainingMs = Math.max(0, status.remainingMs - deltaMs);
+    retained.push({ ...status, remainingMs });
+  }
+  team.statuses = retained;
+}
+
+function expireStatusesAfterSlice(
+  state: BattleState,
+  events: BattleEvent[],
+): void {
+  for (const team of [state.player, state.enemy]) {
+    for (const combatant of team.squad) {
+      combatant.statuses = combatant.statuses.filter((status) => {
+        if (status.remainingMs > 0) {
+          return true;
+        }
+        if (status.kind === "shield") {
+          resolveShieldEnd(state, events, combatant, status);
+        }
+        emit(state, events, {
+          type: "statusRemoved",
+          side: team.side,
+          targetId: combatant.instanceId,
+          message: status.kind,
+        });
+        return false;
+      });
+    }
+    team.statuses = team.statuses.filter((status) => {
+      if (status.remainingMs > 0) {
+        return true;
+      }
       emit(state, events, {
         type: "statusRemoved",
         side: team.side,
         message: status.kind,
       });
-    } else {
-      retained.push({ ...status, remainingMs });
-    }
+      return false;
+    });
   }
-  team.statuses = retained;
 }
 
 function tickPickups(
@@ -1726,6 +2000,8 @@ export function tickBattle(
     }
   }
 
+  expireStatusesAfterSlice(state, events);
+
   checkOutcome(state, events);
   return { state, events };
 }
@@ -1733,17 +2009,19 @@ export function tickBattle(
 export function chooseAiCommand(
   state: BattleState,
   content: CombatContent,
+  side: Side = "enemy",
 ): BattleCommand | null {
-  if (state.outcome !== "active" || state.pendingActions.enemy) {
+  if (state.outcome !== "active" || state.pendingActions[side]) {
     return null;
   }
-  const team = state.enemy;
+  const team = teamFor(state, side);
+  const opponent = teamFor(state, opposingSide(side));
   const active = activeCombatant(team);
   if (!isAlive(active) || hasStatus(active, "stun")) {
     return null;
   }
   const usefulPickup = state.pickups.find((pickup) => {
-    if (pickup.side !== "enemy") {
+    if (pickup.side !== side) {
       return false;
     }
     if (pickup.kind === "battery") {
@@ -1760,7 +2038,7 @@ export function chooseAiCommand(
   if (team.accessory?.charge === 100) {
     const accessory = accessoryFor(content, team.accessory.accessoryId);
     const hasValue = accessory.effects.some((effect) => {
-      const targetTeam = effect.target === "allies" ? team : state.player;
+      const targetTeam = effect.target === "allies" ? team : opponent;
       if (effect.kind === "bar") {
         return effect.amount > 0 ? targetTeam.bar < 100 : targetTeam.bar > 0;
       }
@@ -1788,7 +2066,8 @@ export function chooseAiCommand(
       }
       return !targetTeam.statuses.some(
         (status) =>
-          status.kind === "moveBlock" && status.slotIndex === effect.slotIndex,
+          status.kind === "moveBlock" &&
+          (status.slotIndex === "all" || status.slotIndex === effect.slotIndex),
       );
     });
     if (hasValue) {
@@ -1800,7 +2079,7 @@ export function chooseAiCommand(
       isAlive(combatant) && combatant.currentHealth < combatant.maxHealth,
   );
   const missingHealthFor = (target: TargetKind) =>
-    targetsFor(state, "enemy", target).reduce(
+    targetsFor(state, side, target).reduce(
       (total, combatant) =>
         total +
         (isAlive(combatant)
@@ -1808,8 +2087,11 @@ export function chooseAiCommand(
           : 0),
       0,
     );
-  const actionScore = (action: ActionDefinition) =>
-    action.effects.reduce((total, effect) => {
+  const actionScore = (
+    action: ActionDefinition,
+    combatant: CombatantState = active,
+  ) =>
+    actionEffectsForCombatant(combatant, action).reduce((total, effect) => {
       if (effect.kind === "damage") {
         return total + effect.power * (effect.hits ?? 1);
       }
@@ -1837,7 +2119,46 @@ export function chooseAiCommand(
         return total + effect.durationMs * effect.chance * 0.02;
       }
       if (effect.kind === "empowerNextMove") {
-        return total + effect.magnitude * 60;
+        return statusMagnitude(combatant, "empower") > 0
+          ? total
+          : total + effect.magnitude * 60;
+      }
+      if (effect.kind === "healthCost") {
+        return total - effect.amount * 0.35;
+      }
+      if (effect.kind === "bar") {
+        const targetTeam = effect.target === "allies" ? team : opponent;
+        const usefulAmount =
+          effect.amount > 0
+            ? Math.min(effect.amount, 100 - targetTeam.bar)
+            : Math.min(Math.abs(effect.amount), targetTeam.bar);
+        return total + usefulAmount * 0.8;
+      }
+      if (effect.kind === "barPercent") {
+        return total + Math.abs(effect.ratio) * 50;
+      }
+      if (effect.kind === "blockMove") {
+        return total + (effect.slotIndex === "all" ? 18 : 8);
+      }
+      if (effect.kind === "transform") {
+        return combatant.statuses.some((status) => status.kind === "form")
+          ? total
+          : total +
+              (Math.abs(effect.attackMagnitude) +
+                Math.abs(effect.defenceMagnitude)) *
+                70;
+      }
+      if (effect.kind === "randomBoon") {
+        return combatant.statuses.some((status) => status.kind === "attack")
+          ? total
+          : total + 12;
+      }
+      if (effect.kind === "modifyAttack") {
+        return combatant.statuses.some(
+          (status) => status.kind === "attack" && status.magnitude > 0,
+        )
+          ? total
+          : total + Math.abs(effect.magnitude) * 60;
       }
       return total + 3;
     }, 0);
@@ -1846,12 +2167,12 @@ export function chooseAiCommand(
       .map((id, slotIndex) => ({ action: actionFor(content, id), slotIndex }))
       .filter(
         ({ action, slotIndex }) =>
-          POSITION_RULES[actionPositionForCombatant(combatant, action)].cost <=
-            team.bar &&
+          actionCostForCombatant(combatant, action) <= team.bar &&
+          actionFormRequirementMet(combatant, action) &&
           !team.statuses.some(
             (status) =>
               status.kind === "moveBlock" &&
-              status.slotIndex === slotIndex &&
+              (status.slotIndex === "all" || status.slotIndex === slotIndex) &&
               status.remainingMs > 0,
           ),
       )
@@ -1860,7 +2181,7 @@ export function chooseAiCommand(
     (action) => actionScore(action) > 0,
   );
   const activeCanPressure = available.some((action) =>
-    action.effects.some(
+    actionEffectsForCombatant(active, action).some(
       (effect) => effect.kind === "damage" || effect.kind === "damageOverTime",
     ),
   );
@@ -1874,7 +2195,7 @@ export function chooseAiCommand(
         index !== team.activeIndex &&
         isAlive(combatant) &&
         affordableFor(combatant).some((action) =>
-          action.effects.some(
+          actionEffectsForCombatant(combatant, action).some(
             (effect) =>
               effect.kind === "damage" || effect.kind === "damageOverTime",
           ),
@@ -1892,7 +2213,7 @@ export function chooseAiCommand(
     const easyChoice =
       statusMagnitude(active, "empower") > 0
         ? (available.find((action) =>
-            action.effects.some(
+            actionEffectsForCombatant(active, action).some(
               (effect) =>
                 effect.kind === "damage" || effect.kind === "damageOverTime",
             ),
@@ -1937,6 +2258,7 @@ export function predictedDamage(
     clamp(
       1 +
         statusMagnitude(source, "attack") +
+        statusMagnitude(source, "form") +
         statusMagnitude(source, "empower"),
       0.25,
       4,
@@ -1965,7 +2287,9 @@ function predictedDamageWithAttackModifier(
   const sourceDefinition = characterFor(content, source);
   const targetDefinition = characterFor(content, target);
   const action = actionFor(content, actionId);
-  const damage = action.effects.find((effect) => effect.kind === "damage");
+  const damage = actionEffectsForCombatant(source, action).find(
+    (effect) => effect.kind === "damage",
+  );
   if (!damage || damage.kind !== "damage") {
     return 0;
   }

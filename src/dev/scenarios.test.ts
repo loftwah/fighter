@@ -82,7 +82,19 @@ describe("development battle scenarios", () => {
       difficulty: "normal",
       seed: 3_844_240_869,
       startPaused: false,
+      standardBuild: true,
     });
+
+    const playerBuild = devBuildsForSide(acceptance, "player")[0];
+    const enemyBuild = devBuildsForSide(acceptance, "enemy")[0];
+    expect(playerBuild?.statBonuses).toEqual({
+      health: 2,
+      power: 2,
+      evasion: 2,
+      fortune: 2,
+      tempo: 1,
+    });
+    expect(enemyBuild?.statBonuses).toEqual(playerBuild?.statBonuses);
   });
 
   it("maps the player-facing rings to the persisted combat tiers", () => {

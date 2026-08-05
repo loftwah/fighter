@@ -9,6 +9,7 @@ import { z } from "zod";
 
 export interface Preferences {
   difficulty: Difficulty;
+  pauseKeyMode: "hold" | "toggle";
   musicVolume: number;
   sfxVolume: number;
   dialogueVolume: number;
@@ -130,6 +131,7 @@ const legacyTournamentBadgeIds: Record<string, string> = {
 
 const preferencesSchema = z.object({
   difficulty: z.enum(["easy", "normal", "hard", "brutal"]),
+  pauseKeyMode: z.enum(["hold", "toggle"]),
   musicVolume: z.number().min(0).max(1),
   sfxVolume: z.number().min(0).max(1),
   dialogueVolume: z.number().min(0).max(1),
@@ -253,6 +255,7 @@ const saveSchema = z.object({
 
 export const defaultPreferences: Preferences = {
   difficulty: "normal",
+  pauseKeyMode: "hold",
   musicVolume: 0.5,
   sfxVolume: 0.75,
   dialogueVolume: 0.8,

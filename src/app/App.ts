@@ -25,6 +25,10 @@ import {
   tickBattle,
 } from "../combat/engine";
 import {
+  actionChargeMsForCombatant,
+  actionCostForCombatant,
+  actionEffectsForCombatant,
+  actionFormRequirementMet,
   actionPositionForCombatant,
   CHARACTER_TRAITS,
   difficultyAiDelay,
@@ -70,6 +74,7 @@ import {
   aiDecisionReady,
   BATTLE_COUNTDOWN,
   battlePresentationDuration,
+  battlePresentationStateCommitDelay,
   holdAiDecisionClock,
 } from "../game/presentation-timing";
 import { evaluateMissionProgress } from "../missions/evaluate";
@@ -174,6 +179,7 @@ import {
   renderBattleScreen,
   type BattleScreenModel,
 } from "../ui/screens/battle-screen";
+import { pauseKeyCommand } from "./pause-input";
 import { renderDifficultyOptions } from "../ui/components/difficulty-options";
 import { renderBattleResultExplanation } from "../ui/battle-result-explanation";
 import { traitBonusLabel } from "../ui/components/trait-synergy";
@@ -186,9 +192,15 @@ import { renderStorageWarning } from "../ui/shell/storage-warning";
 import {
   actionResolutionFeedback,
   actionOutputSummary,
+  actionPreviewHeading,
   empowerStatusSummary,
   moveSealOutput,
 } from "../ui/combat-output";
+import {
+  enemyHudPresentation,
+  isPointNearRect,
+  shouldReleaseEnemyHudForceCompact,
+} from "../ui/enemy-hud";
 import {
   loadDevExperiments,
   saveDevExperiments,
@@ -217,7 +229,9 @@ function renderCombatStatus(status: StatusState): string {
         ? `Reflect ${Math.round(status.magnitude * 100)}% · ${seconds}s`
         : status.kind === "dodgeCounter"
           ? `Counter · ${status.remainingTriggers ?? 1}× · ${seconds}s`
-          : formatLabel(status.kind);
+          : status.kind === "form"
+            ? `Beast form · ${seconds}s`
+            : formatLabel(status.kind);
   const description =
     status.kind === "empower"
       ? `Next damaging Move gains ${Math.round(status.magnitude * 100)} percent Power; stacks combine`
@@ -225,7 +239,9 @@ function renderCombatStatus(status: StatusState): string {
         ? `Reflect ${Math.round(status.magnitude * 100)} percent of health damage, ${seconds} seconds remaining`
         : status.kind === "dodgeCounter"
           ? `Dodge counter ready, ${status.remainingTriggers ?? 1} trigger remaining, ${seconds} seconds remaining`
-          : `${formatLabel(status.kind)}, ${seconds} seconds remaining`;
+          : status.kind === "form"
+            ? `Beast form raises Power for ${seconds} more seconds`
+            : `${formatLabel(status.kind)}, ${seconds} seconds remaining`;
   return `<span data-status-kind="${status.kind}" aria-label="${description}">${label}</span>`;
 }
 
@@ -246,7 +262,7 @@ export class App {
   #phaserGame: Phaser.Game | null = null;
   #animationFrame = 0;
   #lastFrameAt = 0;
-  #lastAiAt = 0;
+  #lastAiAt: Record<Side, number> = { player: 0, enemy: 0 };
   #lastUiAt = 0;
   #battleReward: BattleRewardView | null = null;
   #eventLog: string[] = [];
@@ -267,10 +283,12 @@ export class App {
   #battleReady = false;
   #battlePaused = false;
   #battleCountdownTimer = 0;
+  #battleStateCommitTimer = 0;
   #battlePresentationLockedUntil = 0;
   #battleViewDirty = false;
   #pauseMenuOpen = false;
   #devInspectorOpen = false;
+  #holdPauseActive = false;
   #battleOverlayOpener: HTMLElement | null = null;
   #battleTimeScale = 1;
   #battleInspectionTimer = 0;
@@ -317,12 +335,17 @@ export class App {
     this.#audio = new AudioManager(this.#preferences);
     this.#root.addEventListener("click", this.onClick);
     this.#root.addEventListener("change", this.onChange);
+    this.#root.addEventListener("focusin", this.onBattleHudFocusChange);
+    this.#root.addEventListener("focusout", this.onBattleHudFocusChange);
     this.#root.addEventListener("input", this.onInput);
     this.#root.addEventListener("pointerdown", this.onBattlePointerDown);
     this.#root.addEventListener("error", this.onMediaError, true);
+    window.addEventListener("pointermove", this.onBattlePointerMove);
     window.addEventListener("pointerup", this.onBattlePointerEnd);
     window.addEventListener("pointercancel", this.onBattlePointerEnd);
     window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
+    window.addEventListener("blur", this.onWindowBlur);
   }
 
   mount(): void {
@@ -333,18 +356,24 @@ export class App {
   destroy(): void {
     cancelAnimationFrame(this.#animationFrame);
     window.clearTimeout(this.#battleCountdownTimer);
+    window.clearTimeout(this.#battleStateCommitTimer);
     window.clearTimeout(this.#battleInspectionTimer);
     window.clearTimeout(this.#startupTimer);
     this.#phaserGame?.destroy(true);
     this.#audio.destroy();
     this.#root.removeEventListener("click", this.onClick);
     this.#root.removeEventListener("change", this.onChange);
+    this.#root.removeEventListener("focusin", this.onBattleHudFocusChange);
+    this.#root.removeEventListener("focusout", this.onBattleHudFocusChange);
     this.#root.removeEventListener("input", this.onInput);
     this.#root.removeEventListener("pointerdown", this.onBattlePointerDown);
     this.#root.removeEventListener("error", this.onMediaError, true);
+    window.removeEventListener("pointermove", this.onBattlePointerMove);
     window.removeEventListener("pointerup", this.onBattlePointerEnd);
     window.removeEventListener("pointercancel", this.onBattlePointerEnd);
     window.removeEventListener("keydown", this.onKeyDown);
+    window.removeEventListener("keyup", this.onKeyUp);
+    window.removeEventListener("blur", this.onWindowBlur);
   }
 
   private onBattlePointerDown = (event: PointerEvent): void => {
@@ -372,6 +401,115 @@ export class App {
       this.#battleInspectionTimer = 0;
     }, 480);
   };
+
+  private onBattlePointerMove = (event: PointerEvent): void => {
+    if (this.#route !== "battle" || event.pointerType !== "mouse") {
+      return;
+    }
+    const shell = this.#root.querySelector<HTMLElement>(
+      "[data-enemy-hud-shell]",
+    );
+    const console = shell?.querySelector<HTMLElement>(
+      "[data-enemy-combat-console]",
+    );
+    if (!shell || !console) {
+      return;
+    }
+    if (shell.dataset.hudForceCompact === "true") {
+      const toggle = shell.querySelector<HTMLElement>(
+        '[data-command="toggle-enemy-hud"]',
+      );
+      const pointerHasLeft = !isPointNearRect(
+        event.clientX,
+        event.clientY,
+        console.getBoundingClientRect(),
+        104,
+      );
+      if (
+        !shouldReleaseEnemyHudForceCompact({
+          forceCompact: true,
+          pointerHasLeft,
+          toggleFocused: document.activeElement === toggle,
+        })
+      ) {
+        return;
+      }
+      shell.dataset.hudForceCompact = "false";
+    }
+    const wasNearby = shell.classList.contains("is-proximity-expanded");
+    const isNearby = isPointNearRect(
+      event.clientX,
+      event.clientY,
+      console.getBoundingClientRect(),
+      wasNearby ? 104 : 72,
+    );
+    if (isNearby === wasNearby) {
+      return;
+    }
+    shell.classList.toggle("is-proximity-expanded", isNearby);
+    this.updateEnemyHudToggle(shell);
+  };
+
+  private updateEnemyHudToggle(shell: HTMLElement): void {
+    const button = shell.querySelector<HTMLButtonElement>(
+      '[data-command="toggle-enemy-hud"]',
+    );
+    const action = button?.querySelector<HTMLElement>(
+      "[data-enemy-hud-toggle-action]",
+    );
+    if (!button || !action) {
+      return;
+    }
+    const pinned = shell.dataset.hudPinned === "true";
+    const nearby = shell.classList.contains("is-proximity-expanded");
+    const focused = shell.matches(":focus-within");
+    const presentation = enemyHudPresentation({
+      focused,
+      forceCompact: shell.dataset.hudForceCompact === "true",
+      nearby,
+      pinned,
+    });
+    button.setAttribute("aria-expanded", String(presentation.expanded));
+    button.setAttribute("aria-label", presentation.ariaLabel);
+    action.textContent = presentation.action;
+  }
+
+  private onBattleHudFocusChange = (event: FocusEvent): void => {
+    const target =
+      event.target instanceof Element
+        ? event.target.closest<HTMLElement>("[data-enemy-hud-shell]")
+        : null;
+    const related =
+      event.relatedTarget instanceof Element
+        ? event.relatedTarget.closest<HTMLElement>("[data-enemy-hud-shell]")
+        : null;
+    const shell = target ?? related;
+    if (!shell) {
+      return;
+    }
+    queueMicrotask(() => {
+      const toggle = shell.querySelector<HTMLElement>(
+        '[data-command="toggle-enemy-hud"]',
+      );
+      if (
+        shell.dataset.hudForceCompact === "true" &&
+        document.activeElement !== toggle
+      ) {
+        shell.dataset.hudForceCompact = "false";
+      }
+      this.updateEnemyHudToggle(shell);
+    });
+  };
+
+  private toggleEnemyHud(shell: HTMLElement): void {
+    const pinned = shell.dataset.hudPinned === "true";
+    shell.dataset.hudPinned = String(!pinned);
+    shell.dataset.hudForceCompact = String(pinned);
+    if (pinned) {
+      shell.classList.remove("is-proximity-expanded");
+    }
+    this.updateEnemyHudToggle(shell);
+  }
 
   private onBattlePointerEnd = (): void => {
     window.clearTimeout(this.#battleInspectionTimer);
@@ -470,12 +608,42 @@ export class App {
       this.#battle.outcome === "active"
     ) {
       event.preventDefault();
+      this.#holdPauseActive = false;
       if (this.#devInspectorOpen) {
         this.#devInspectorOpen = false;
         this.#pauseMenuOpen = true;
         this.updateBattleOverlay();
       } else {
         this.toggleBattlePause();
+      }
+      return;
+    }
+    const pauseCommand = pauseKeyCommand({
+      key: event.key,
+      phase: "keydown",
+      repeat: event.repeat,
+      mode: this.#preferences.pauseKeyMode,
+      holdActive: this.#holdPauseActive,
+    });
+    if (
+      pauseCommand &&
+      this.#battleReady &&
+      !this.isBattlePresentationLocked() &&
+      this.#battle.outcome === "active" &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.altKey &&
+      !(event.target instanceof HTMLInputElement) &&
+      !(event.target instanceof HTMLSelectElement) &&
+      !(event.target instanceof HTMLTextAreaElement) &&
+      !(event.target instanceof HTMLElement && event.target.isContentEditable)
+    ) {
+      event.preventDefault();
+      if (pauseCommand === "toggle") {
+        this.toggleBattlePause();
+      } else if (pauseCommand === "pause" && !this.#battlePaused) {
+        this.openBattlePause();
+        this.#holdPauseActive = this.#battlePaused;
       }
       return;
     }
@@ -503,6 +671,35 @@ export class App {
       event.preventDefault();
       this.playerAction("player", actionId);
     }
+  };
+
+  private onKeyUp = (event: KeyboardEvent): void => {
+    const command = pauseKeyCommand({
+      key: event.key,
+      phase: "keyup",
+      repeat: event.repeat,
+      mode: this.#preferences.pauseKeyMode,
+      holdActive: this.#holdPauseActive,
+    });
+    if (command !== "resume") {
+      return;
+    }
+    event.preventDefault();
+    this.#holdPauseActive = false;
+    if (
+      this.#route === "battle" &&
+      this.#battle?.outcome === "active" &&
+      this.#pauseMenuOpen &&
+      !this.#devInspectorOpen
+    ) {
+      this.closeBattleOverlaysAndResume();
+    }
+  };
+
+  private onWindowBlur = (): void => {
+    // A keyup may be lost when focus leaves the window. Keep the simulation
+    // safely paused, but let Escape or a fresh P press work after focus returns.
+    this.#holdPauseActive = false;
   };
 
   private onClick = (event: MouseEvent): void => {
@@ -617,6 +814,13 @@ export class App {
       case "inspect-battle-detail":
         this.toggleBattleInspection(command);
         break;
+      case "toggle-enemy-hud": {
+        const shell = command.closest<HTMLElement>("[data-enemy-hud-shell]");
+        if (shell) {
+          this.toggleEnemyHud(shell);
+        }
+        break;
+      }
       case "battle-pickup":
         if (command.dataset.pickupId) {
           this.playerPickup(
@@ -967,6 +1171,16 @@ export class App {
       this.#preferences.reducedMotion = target.checked;
       this.persistPreferences();
       this.#battleScene?.setReducedMotion(target.checked);
+    }
+    if (target.name === "pauseKeyMode" && target instanceof HTMLSelectElement) {
+      this.#preferences.pauseKeyMode =
+        target.value === "toggle" ? "toggle" : "hold";
+      this.persistPreferences();
+      this.announce(
+        this.#preferences.pauseKeyMode === "hold"
+          ? "P pauses while held and resumes when released."
+          : "P now toggles pause on each press.",
+      );
     }
     if (
       DEV_TOOLS_ENABLED &&
@@ -1671,7 +1885,10 @@ export class App {
     this.updateBattleView();
     this.updateBattleOverlay();
     this.#lastFrameAt = performance.now();
-    this.#lastAiAt = this.#lastFrameAt;
+    this.#lastAiAt = {
+      player: this.#lastFrameAt,
+      enemy: this.#lastFrameAt,
+    };
     this.#animationFrame = requestAnimationFrame(this.battleLoop);
     this.playMusicForCurrentContext();
   }
@@ -1692,6 +1909,7 @@ export class App {
         true,
       ),
       musicPlaybackEnabled: this.#preferences.musicPlaybackEnabled,
+      pauseKeyMode: this.#preferences.pauseKeyMode,
       devToolsEnabled: DEV_TOOLS_ENABLED,
       presentationStyle: this.#devExperiments.battlePresentationStyle,
     };
@@ -1797,7 +2015,10 @@ export class App {
     this.#battleReady = true;
     this.#battlePresentationLockedUntil = 0;
     this.#lastFrameAt = performance.now();
-    this.#lastAiAt = this.#lastFrameAt;
+    this.#lastAiAt = {
+      player: this.#lastFrameAt,
+      enemy: this.#lastFrameAt,
+    };
     this.setBattlePhase(this.#battlePaused ? "paused" : "active");
     const countdown = this.#root.querySelector<HTMLElement>(
       "[data-battle-countdown]",
@@ -1950,7 +2171,6 @@ export class App {
       }
     }
     this.setBattlePhase("presenting");
-    this.updateBench("player");
     this.updateAccessories();
     this.updatePickups();
   }
@@ -2407,9 +2627,11 @@ export class App {
     this.archiveCurrentBattleReport();
     cancelAnimationFrame(this.#animationFrame);
     window.clearTimeout(this.#battleCountdownTimer);
+    window.clearTimeout(this.#battleStateCommitTimer);
     window.clearTimeout(this.#battleInspectionTimer);
     this.#animationFrame = 0;
     this.#battleCountdownTimer = 0;
+    this.#battleStateCommitTimer = 0;
     this.#battlePresentationLockedUntil = 0;
     this.#battleViewDirty = false;
     this.#phaserGame?.destroy(true);
@@ -2423,6 +2645,7 @@ export class App {
     this.#battlePaused = false;
     this.#pauseMenuOpen = false;
     this.#devInspectorOpen = false;
+    this.#holdPauseActive = false;
     this.#battleOverlayOpener = null;
     this.#battleInspectionTimer = 0;
     this.#battleInspectionTarget = null;
@@ -2454,7 +2677,10 @@ export class App {
     }
     if (this.isBattlePresentationLocked(now)) {
       this.#lastFrameAt = now;
-      this.#lastAiAt = holdAiDecisionClock(now);
+      this.#lastAiAt = {
+        player: holdAiDecisionClock(now),
+        enemy: holdAiDecisionClock(now),
+      };
       this.#animationFrame = requestAnimationFrame(this.battleLoop);
       return;
     }
@@ -2473,28 +2699,39 @@ export class App {
     this.#lastFrameAt = now;
     this.applyTransition(tickBattle(this.#battle, delta, combatContent), delta);
     if (this.isBattlePresentationLocked(now)) {
-      this.#lastAiAt = holdAiDecisionClock(now);
+      this.#lastAiAt = {
+        player: holdAiDecisionClock(now),
+        enemy: holdAiDecisionClock(now),
+      };
       this.#animationFrame = requestAnimationFrame(this.battleLoop);
       return;
     }
 
-    if (
-      this.#battle.outcome === "active" &&
-      this.#battleControllers.enemy === "ai" &&
-      aiDecisionReady(
-        this.#lastAiAt,
-        now,
-        difficultyAiDelay(this.#battle.difficulty),
-      )
-    ) {
-      this.#lastAiAt = now;
-      const command = chooseAiCommand(this.#battle, combatContent);
-      if (command) {
-        this.applyAiCommand(command);
+    for (const side of ["player", "enemy"] as const) {
+      if (
+        this.#battle.outcome === "active" &&
+        this.#battleControllers[side] === "ai" &&
+        aiDecisionReady(
+          this.#lastAiAt[side],
+          now,
+          difficultyAiDelay(this.#battle.difficulty),
+        )
+      ) {
+        this.#lastAiAt[side] = now;
+        const command = chooseAiCommand(this.#battle, combatContent, side);
+        if (command) {
+          this.applyAiCommand(side, command);
+          if (this.isBattlePresentationLocked()) {
+            break;
+          }
+        }
       }
     }
     if (this.isBattlePresentationLocked(now)) {
-      this.#lastAiAt = holdAiDecisionClock(now);
+      this.#lastAiAt = {
+        player: holdAiDecisionClock(now),
+        enemy: holdAiDecisionClock(now),
+      };
       this.#animationFrame = requestAnimationFrame(this.battleLoop);
       return;
     }
@@ -2509,7 +2746,7 @@ export class App {
     this.#animationFrame = requestAnimationFrame(this.battleLoop);
   };
 
-  private applyAiCommand(command: BattleCommand): void {
+  private applyAiCommand(side: Side, command: BattleCommand): void {
     if (!this.#battle) {
       return;
     }
@@ -2518,22 +2755,22 @@ export class App {
       case "action":
         transition = requestAction(
           this.#battle,
-          "enemy",
+          side,
           command.actionId,
           combatContent,
         );
         break;
       case "switch":
-        transition = requestSwitch(this.#battle, "enemy", command.targetIndex);
+        transition = requestSwitch(this.#battle, side, command.targetIndex);
         break;
       case "accessory":
-        transition = requestAccessory(this.#battle, "enemy", combatContent);
+        transition = requestAccessory(this.#battle, side, combatContent);
         break;
       case "pickup":
-        transition = requestPickup(this.#battle, "enemy", command.pickupId);
+        transition = requestPickup(this.#battle, side, command.pickupId);
         break;
       case "forfeit":
-        transition = forfeitBattle(this.#battle, "enemy");
+        transition = forfeitBattle(this.#battle, side);
         break;
     }
     if (transitionWasRejected(transition)) {
@@ -2543,7 +2780,7 @@ export class App {
       this.#battleReport = recordBattleDecision(
         this.#battleReport,
         this.#battle,
-        "enemy",
+        side,
         command,
       );
     }
@@ -2587,6 +2824,7 @@ export class App {
 
   private closeBattleOverlaysAndResume(): void {
     const focusTarget = this.#battleOverlayOpener;
+    this.#holdPauseActive = false;
     this.#pauseMenuOpen = false;
     this.#devInspectorOpen = false;
     this.setBattlePaused(false);
@@ -2679,7 +2917,10 @@ export class App {
     }
     this.#battlePaused = paused;
     this.#lastFrameAt = performance.now();
-    this.#lastAiAt = this.#lastFrameAt;
+    this.#lastAiAt = {
+      player: this.#lastFrameAt,
+      enemy: this.#lastFrameAt,
+    };
     this.#battleScene?.setSimulationPaused(paused);
     this.setBattlePhase(paused ? "paused" : "active");
     this.updateBattleView();
@@ -2926,7 +3167,11 @@ export class App {
             }
             <button class="secondary-action" data-command="leave-battle">Leave game</button>
           </div>
-          <small>Escape resumes · 1, 2, 3 activate ready Moves</small>
+          <small>Escape toggles · P ${
+            this.#preferences.pauseKeyMode === "hold"
+              ? "pauses while held"
+              : "toggles"
+          } · 1, 2, 3 activate ready Moves</small>
         </div>
       `;
     }
@@ -2956,8 +3201,14 @@ export class App {
           ? appendBattleTransition(this.#battleReport, transition)
           : appendBattleTick(this.#battleReport, simulationDeltaMs, transition);
     }
+    const presentationMs = battlePresentationDuration(transition.events);
+    const stateCommitDelay = battlePresentationStateCommitDelay(
+      transition.events,
+    );
     this.#battle = transition.state;
-    if (
+    if (stateCommitDelay > 0 && presentationMs > 0 && previousState) {
+      this.scheduleBattleStateCommit(stateCommitDelay);
+    } else if (
       transition.events.some(
         (event) =>
           event.type === "damageApplied" ||
@@ -2965,13 +3216,9 @@ export class App {
           event.type === "characterDefeated",
       )
     ) {
-      this.updateTeamReadout("player");
-      this.updateTeamReadout("enemy");
-      this.updateBench("player");
-      this.updateBench("enemy");
+      this.commitVisibleBattleState();
     }
     this.updateChargeRails();
-    const presentationMs = battlePresentationDuration(transition.events);
     if (!this.#battlePaused && presentationMs > 0 && previousState) {
       this.#battleScene?.present(
         transition.events,
@@ -3001,6 +3248,24 @@ export class App {
       }
     }
     this.logEvents(transition.events);
+  }
+
+  private scheduleBattleStateCommit(delayMs: number): void {
+    window.clearTimeout(this.#battleStateCommitTimer);
+    this.#battleStateCommitTimer = window.setTimeout(() => {
+      this.#battleStateCommitTimer = 0;
+      if (!this.#battle || this.#route !== "battle") {
+        return;
+      }
+      this.commitVisibleBattleState();
+    }, delayMs);
+  }
+
+  private commitVisibleBattleState(): void {
+    this.updateTeamReadout("player");
+    this.updateTeamReadout("enemy");
+    this.updateBench("player");
+    this.updateBench("enemy");
   }
 
   private playerAction(side: Side, actionId: string): void {
@@ -3295,7 +3560,9 @@ export class App {
         (status) =>
           `<span data-status-kind="${status.kind}">${
             status.kind === "moveBlock"
-              ? `Move ${status.slotIndex + 1} blocked`
+              ? status.slotIndex === "all"
+                ? "All Moves blocked"
+                : `Move ${status.slotIndex + 1} blocked`
               : status.multiplier === 0
                 ? "Charge frozen"
                 : status.multiplier < 1
@@ -3518,8 +3785,8 @@ export class App {
       const moveButtons = active.actionIds
         .map((actionId, index) => {
           const action = combatContent.actions[actionId]!;
-          const rule =
-            POSITION_RULES[actionPositionForCombatant(active, action)];
+          const cost = actionCostForCombatant(active, action);
+          const chargeMs = actionChargeMsForCombatant(active, action);
           const tier = active.actionTiers[action.id] ?? "stock";
           const tierClass =
             tier === "platinum"
@@ -3534,7 +3801,11 @@ export class App {
                 ? "Tier 1"
                 : "Normal";
           const category = moveCategoryDetail(action.category);
-          const hasReaction = action.effects.some(
+          const previewAction = {
+            ...action,
+            effects: actionEffectsForCombatant(active, action),
+          };
+          const hasReaction = previewAction.effects.some(
             (effect) =>
               effect.kind === "reflectDamage" ||
               effect.kind === "counterOnDodge",
@@ -3542,7 +3813,7 @@ export class App {
           return `
             <button
               class="charge-move ${tierClass} is-unavailable ${hasReaction ? "has-reaction" : ""}"
-              style="--action-threshold:${rule.cost}%"
+              style="--action-threshold:${cost}%"
               data-command="battle-action"
               data-side="player"
               data-action-id="${action.id}"
@@ -3554,26 +3825,46 @@ export class App {
             >
               <span class="charge-move-seal">
                 <span class="charge-move-key">${index + 1}</span>
-                <strong data-action-value>${rule.cost}</strong>
+                <strong data-action-value>${cost}</strong>
                 <small data-action-value-label>Charge</small>
                 <span class="charge-move-delta" data-action-delta hidden></span>
               </span>
+              <span class="charge-move-cost" aria-hidden="true">
+                <strong>${cost}</strong><small>Charge</small>
+              </span>
               <span class="charge-move-name">${escapeHtml(action.name)}</span>
               <span class="charge-move-state" data-action-state>Waiting</span>
-              <span class="charge-move-role">${category.shortLabel}</span>
-              <span class="charge-move-tier">${tierLabel}</span>
+              <span class="charge-move-role">
+                <b aria-hidden="true">${category.marker}</b>
+                <span><small>Role</small><strong>${category.shortLabel}</strong></span>
+              </span>
+              <span class="charge-move-tier"><small>Tier</small><span>${tierLabel}</span></span>
               <span class="action-tooltip" role="tooltip">
-                <strong>${escapeHtml(action.name)}</strong>
-                <span>${escapeHtml(action.description)}</span>
-                <small>
-                  ${category.label} · Cost ${rule.cost} ·
-                  <span data-action-estimate>—</span> ·
-                  ${
-                    action.chargeMs > 0
-                      ? `${(action.chargeMs / 1000).toFixed(1)}s charge`
-                      : "instant"
-                  }
-                </small>
+                <span class="action-tooltip-heading">
+                  <small>Move preview</small>
+                  <strong>${escapeHtml(action.name)}</strong>
+                  <b>${category.label}</b>
+                </span>
+                <span class="action-tooltip-impact">
+                  <small>${actionPreviewHeading(previewAction)}</small>
+                  <strong data-action-preview-value>—</strong>
+                  <b data-action-preview-label>Result</b>
+                </span>
+                <span class="action-tooltip-now">
+                  <small>Right now</small>
+                  <strong data-action-inspect-state>Stand by</strong>
+                </span>
+                <span class="action-tooltip-summary" data-action-estimate>Calculating effect…</span>
+                <span class="action-tooltip-description">${escapeHtml(action.description)}</span>
+                <span class="action-tooltip-facts">
+                  <span><small>Cost</small><strong>${cost} Charge</strong></span>
+                  <span><small>Timing</small><strong>${
+                    chargeMs > 0
+                      ? `${(chargeMs / 1000).toFixed(1)}s charge`
+                      : "Instant"
+                  }</strong></span>
+                  <span><small>Upgrade</small><strong>${tierLabel}</strong></span>
+                </span>
               </span>
             </button>
           `;
@@ -3582,11 +3873,10 @@ export class App {
       const thresholdAnchors = active.actionIds
         .map((actionId) => {
           const action = combatContent.actions[actionId]!;
-          const rule =
-            POSITION_RULES[actionPositionForCombatant(active, action)];
+          const cost = actionCostForCombatant(active, action);
           return `<i
             class="charge-action-anchor"
-            style="--action-threshold:${rule.cost}%"
+            style="--action-threshold:${cost}%"
             data-action-category="${moveCategoryDetail(action.category).id}"
           ></i>`;
         })
@@ -3597,7 +3887,12 @@ export class App {
     for (const [index, actionId] of active.actionIds.entries()) {
       const action = combatContent.actions[actionId]!;
       const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+      const cost = actionCostForCombatant(active, action);
       const tier = active.actionTiers[action.id] ?? "stock";
+      const previewAction = {
+        ...action,
+        effects: actionEffectsForCombatant(active, action),
+      };
       const button = tray.querySelector<HTMLButtonElement>(
         `[data-action-index="${index}"]`,
       );
@@ -3610,18 +3905,20 @@ export class App {
       const moveBlocked = this.#battle.player.statuses.some(
         (status) =>
           status.kind === "moveBlock" &&
-          status.slotIndex === index &&
+          (status.slotIndex === "all" || status.slotIndex === index) &&
           status.remainingMs > 0,
       );
+      const formRequirementMet = actionFormRequirementMet(active, action);
       const presentationLocked = this.isBattlePresentationLocked();
       const available =
         this.#battleReady &&
         !this.#battlePaused &&
         !presentationLocked &&
-        this.#battle.player.bar >= rule.cost &&
+        this.#battle.player.bar >= cost &&
         !pending &&
         !stunned &&
         !moveBlocked &&
+        formRequirementMet &&
         this.#battle.outcome === "active";
       const charging = pending?.actionId === action.id;
       const estimate = predictedDamage(
@@ -3638,18 +3935,18 @@ export class App {
       );
       const remainingCharge = Math.max(
         0,
-        Math.ceil(rule.cost - this.#battle.player.bar),
+        Math.ceil(cost - this.#battle.player.bar),
       );
       const outputSummary = actionOutputSummary(
-        action,
+        previewAction,
         estimate,
         rule.multiplier * TIER_MULTIPLIERS[tier],
       );
       const sealOutput = moveSealOutput(
-        action,
+        previewAction,
         estimate,
         baseEstimate,
-        rule.cost,
+        cost,
         rule.multiplier * TIER_MULTIPLIERS[tier],
       );
       const stateLabel = charging
@@ -3664,11 +3961,13 @@ export class App {
                 ? "Stunned"
                 : moveBlocked
                   ? "Blocked"
-                  : available
-                    ? `READY · ${index + 1}`
-                    : this.#battle.outcome === "active"
-                      ? `${remainingCharge} to go`
-                      : "Fight ended";
+                  : !formRequirementMet
+                    ? "Needs form"
+                    : available
+                      ? `READY · ${index + 1}`
+                      : this.#battle.outcome === "active"
+                        ? `${remainingCharge} to go`
+                        : "Fight ended";
       button.classList.toggle("is-available", available);
       button.classList.toggle("is-unavailable", !available);
       button.classList.toggle("is-charging", charging);
@@ -3684,7 +3983,7 @@ export class App {
       button.setAttribute("aria-disabled", String(!available));
       button.setAttribute(
         "aria-label",
-        `${action.name}. ${moveCategoryDetail(action.category).label}. ${stateLabel}. Costs ${rule.cost} Charge. ${
+        `${action.name}. ${moveCategoryDetail(action.category).label}. ${stateLabel}. Costs ${cost} Charge. ${
           outputSummary ? `${outputSummary}.` : "Applies an effect."
         } ${
           sealOutput.tone === "boosted"
@@ -3697,6 +3996,15 @@ export class App {
       const state = button.querySelector<HTMLElement>("[data-action-state]");
       const estimateLabel = button.querySelector<HTMLElement>(
         "[data-action-estimate]",
+      );
+      const inspectState = button.querySelector<HTMLElement>(
+        "[data-action-inspect-state]",
+      );
+      const previewValue = button.querySelector<HTMLElement>(
+        "[data-action-preview-value]",
+      );
+      const previewLabel = button.querySelector<HTMLElement>(
+        "[data-action-preview-label]",
       );
       const actionValue = button.querySelector<HTMLElement>(
         "[data-action-value]",
@@ -3711,8 +4019,16 @@ export class App {
         state.textContent = stateLabel;
       }
       if (estimateLabel) {
-        estimateLabel.textContent =
-          estimate > 0 ? `predicted hit ${estimate}` : "effect";
+        estimateLabel.textContent = outputSummary ?? "Applies an effect";
+      }
+      if (inspectState) {
+        inspectState.textContent = stateLabel;
+      }
+      if (previewValue) {
+        previewValue.textContent = sealOutput.value;
+      }
+      if (previewLabel) {
+        previewLabel.textContent = sealOutput.label;
       }
       if (actionValue) {
         actionValue.textContent = sealOutput.value;
@@ -3751,15 +4067,15 @@ export class App {
       ),
       moves: active.actionIds.map((actionId, index) => {
         const action = combatContent.actions[actionId]!;
-        const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+        const cost = actionCostForCombatant(active, action);
         return {
           key: index + 1,
           name: action.name,
-          cost: rule.cost,
+          cost,
           blocked: this.#battle!.player.statuses.some(
             (status) =>
               status.kind === "moveBlock" &&
-              status.slotIndex === index &&
+              (status.slotIndex === "all" || status.slotIndex === index) &&
               status.remainingMs > 0,
           ),
         };
@@ -3820,6 +4136,8 @@ export class App {
       .map((actionId, index) => {
         const action = combatContent.actions[actionId]!;
         const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+        const cost = actionCostForCombatant(active, action);
+        const chargeMs = actionChargeMsForCombatant(active, action);
         const tier = active.actionTiers[action.id] ?? "stock";
         const tierClass =
           tier === "platinum"
@@ -3834,10 +4152,47 @@ export class App {
               ? "Tier 1"
               : "Normal";
         const category = moveCategoryDetail(action.category);
+        const compactNameParts = action.name.split(/[\s-]+/).filter(Boolean);
+        const compactName = (
+          compactNameParts.length > 1
+            ? compactNameParts.map((part) => part[0]).join("")
+            : action.name.slice(0, 3)
+        )
+          .slice(0, 3)
+          .toUpperCase();
+        const previewAction = {
+          ...action,
+          effects: actionEffectsForCombatant(active, action),
+        };
+        const effectMultiplier = rule.multiplier * TIER_MULTIPLIERS[tier];
+        const estimate = predictedDamage(
+          this.#battle!,
+          "enemy",
+          action.id,
+          combatContent,
+        );
+        const baseEstimate = predictedBaseDamage(
+          this.#battle!,
+          "enemy",
+          action.id,
+          combatContent,
+        );
+        const outputSummary = actionOutputSummary(
+          previewAction,
+          estimate,
+          effectMultiplier,
+        );
+        const sealOutput = moveSealOutput(
+          previewAction,
+          estimate,
+          baseEstimate,
+          cost,
+          effectMultiplier,
+        );
         const blocked = team.statuses.some(
           (status) =>
             status.kind === "moveBlock" &&
-            status.slotIndex === index &&
+            (status.slotIndex === "all" || status.slotIndex === index) &&
             status.remainingMs > 0,
         );
         const ready =
@@ -3845,7 +4200,7 @@ export class App {
           !pending &&
           !stunned &&
           !blocked &&
-          team.bar >= rule.cost &&
+          team.bar >= cost &&
           this.#battle?.outcome === "active";
         const charging = pending?.actionId === action.id;
         const state = charging
@@ -3856,33 +4211,57 @@ export class App {
               ? "Blocked"
               : ready
                 ? "Ready"
-                : `${Math.max(0, Math.ceil(rule.cost - team.bar))} to go`;
+                : `${Math.max(0, Math.ceil(cost - team.bar))} to go`;
         return `
           <button
             type="button"
             class="enemy-charge-node ${tierClass} ${ready ? "is-ready" : ""} ${charging ? "is-charging" : ""}"
-            style="--enemy-action-threshold:${rule.cost}%"
+            style="--enemy-action-threshold:${cost}%"
             data-action-category="${category.id}"
+            data-action-index="${index}"
             data-command="inspect-battle-detail"
             data-battle-inspectable
             title="${escapeHtml(action.name)} · ${state}"
-            aria-label="Opponent Move ${index + 1}, ${action.name}. ${category.label}. ${tierLabel}. Costs ${rule.cost} Charge. ${state}."
+            aria-label="Opponent Move ${index + 1}, ${action.name}. ${category.label}. ${tierLabel}. Costs ${cost} Charge. ${state}."
             aria-expanded="false"
           >
             <span class="enemy-move-seal">
               <small>${index + 1}</small>
-              <strong>${rule.cost}</strong>
+              <strong>${cost}</strong>
             </span>
             <span class="enemy-move-name">${escapeHtml(action.name)}</span>
+            <span class="enemy-move-short" aria-hidden="true">${escapeHtml(compactName)}</span>
             <span class="enemy-move-meta">
-              <b>${category.shortLabel}</b>
+              <b><small aria-hidden="true">${category.marker}</small><span>${category.shortLabel}</span></b>
               <i>${tierLabel}</i>
             </span>
             <em>${ready ? "READY" : charging ? "CAST" : blocked ? "BLOCKED" : state}</em>
-            <span class="battle-info-tooltip" role="tooltip">
-              <strong>${escapeHtml(action.name)}</strong>
-              <span>${escapeHtml(action.description)}</span>
-              <small>${category.label} · ${tierLabel} · ${rule.cost} Charge · ${state}</small>
+            <span class="action-tooltip opponent-action-tooltip" role="tooltip">
+              <span class="action-tooltip-heading">
+                <small>Opponent move</small>
+                <strong>${escapeHtml(action.name)}</strong>
+                <b>${category.label}</b>
+              </span>
+              <span class="action-tooltip-impact">
+                <small>${actionPreviewHeading(previewAction)}</small>
+                <strong>${sealOutput.value}</strong>
+                <b>${sealOutput.label}</b>
+              </span>
+              <span class="action-tooltip-now">
+                <small>Threat now</small>
+                <strong>${state}</strong>
+              </span>
+              <span class="action-tooltip-summary">${escapeHtml(outputSummary || "Applies an effect")}</span>
+              <span class="action-tooltip-description">${escapeHtml(action.description)}</span>
+              <span class="action-tooltip-facts">
+                <span><small>Cost</small><strong>${cost} Charge</strong></span>
+                <span><small>Timing</small><strong>${
+                  chargeMs > 0
+                    ? `${(chargeMs / 1000).toFixed(1)}s charge`
+                    : "Instant"
+                }</strong></span>
+                <span><small>Status</small><strong>${state}</strong></span>
+              </span>
             </span>
           </button>
         `;
@@ -3920,15 +4299,15 @@ export class App {
       ),
       moves: active.actionIds.map((actionId, index) => {
         const action = combatContent.actions[actionId]!;
-        const rule = POSITION_RULES[actionPositionForCombatant(active, action)];
+        const cost = actionCostForCombatant(active, action);
         return {
           key: index + 1,
           name: action.name,
-          cost: rule.cost,
+          cost,
           blocked: team.statuses.some(
             (status) =>
               status.kind === "moveBlock" &&
-              status.slotIndex === index &&
+              (status.slotIndex === "all" || status.slotIndex === index) &&
               status.remainingMs > 0,
           ),
         };
@@ -4010,6 +4389,7 @@ export class App {
           : "OPPONENT READY"
         : `${Math.ceil(100 - state.charge)} TO READY`;
       target.innerHTML = `
+        <b class="accessory-kind">Accessory</b>
         <img
           src="${resolveImagePath(definition.imageAssetId)}"
           data-asset-id="${definition.imageAssetId}"

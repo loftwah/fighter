@@ -2,7 +2,7 @@ import {
   resolveImageObjectPosition,
   resolveImagePath,
 } from "../../assets/registry";
-import { POSITION_RULES } from "../../combat/rules";
+import { actionTierProperties, POSITION_RULES } from "../../combat/rules";
 import type { ActionPosition, ActionTier, StatBlock } from "../../combat/types";
 import { combatContent } from "../../content/initial-content";
 import type { SaveData } from "../../persistence/save";
@@ -228,7 +228,9 @@ export function renderCollectionScreen(save: SaveData): string {
                             character,
                             action,
                           );
-                          const cost = POSITION_RULES[position].cost;
+                          const cost =
+                            actionTierProperties(action, tier).cost ??
+                            POSITION_RULES[position].cost;
                           const band = index + 1;
                           const positionOptions = [
                             `${band}L`,

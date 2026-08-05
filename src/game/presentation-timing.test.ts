@@ -4,6 +4,7 @@ import {
   aiDecisionReady,
   BATTLE_COUNTDOWN,
   battlePresentationDuration,
+  battlePresentationStateCommitDelay,
   holdAiDecisionClock,
 } from "./presentation-timing";
 
@@ -50,6 +51,33 @@ describe("battle presentation timing", () => {
     );
     const finalDamageEndsAt = 850 + 2 * 180 + 820;
     expect(duration).toBeGreaterThanOrEqual(finalDamageEndsAt);
+  });
+
+  it("commits visible battle state on the authored impact beat", () => {
+    expect(
+      battlePresentationStateCommitDelay(
+        events("actionStarted", "actionCharged", "damageApplied"),
+      ),
+    ).toBe(850);
+    expect(
+      battlePresentationStateCommitDelay(
+        events("actionCharged", "damageApplied", "damageApplied"),
+      ),
+    ).toBe(700);
+  });
+
+  it("does not defer state when there is no blocking impact", () => {
+    expect(battlePresentationStateCommitDelay(events("barChanged"))).toBe(0);
+    expect(
+      battlePresentationStateCommitDelay(
+        events("accessoryActivated", "healingApplied"),
+      ),
+    ).toBe(0);
+    expect(
+      battlePresentationStateCommitDelay([
+        { id: 1, type: "damageApplied", amount: 3, periodic: true },
+      ]),
+    ).toBe(0);
   });
 
   it("does not pause ordinary Charge updates", () => {

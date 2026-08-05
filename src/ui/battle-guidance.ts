@@ -92,12 +92,14 @@ export function battleDecisionGuidance(
   const usableMoves = input.moves.filter((move) => !move.blocked);
   const readyMoves = usableMoves.filter((move) => input.bar >= move.cost);
   if (readyMoves.length > 0) {
+    const readyKeys = readableKeyList(readyMoves.map((move) => move.key));
     return {
       state: "ready",
       title: "YOUR MOVE",
-      detail: `Choose a green Move · press ${readableKeyList(
-        readyMoves.map((move) => move.key),
-      )}`,
+      detail:
+        readyMoves.length === 1
+          ? `Press ${readyKeys} · ${readyMoves[0]!.name}`
+          : `Press ${readyKeys} · ${readyMoves.length} Moves ready`,
     };
   }
 

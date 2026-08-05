@@ -67,7 +67,7 @@ describe("screen renderers", () => {
         save,
         difficulty: "normal",
       }),
-      heading: "Build the impossible Lineup.",
+      heading: "History Disagrees",
     },
     {
       name: "collection",
@@ -97,7 +97,7 @@ describe("screen renderers", () => {
         enemyAccessoryId: "accessory.dead-air",
         difficultyOptions,
       }),
-      heading: "Choose the Lineups.",
+      heading: "Set the match.",
     },
     {
       name: "tournament",
@@ -124,6 +124,7 @@ describe("screen renderers", () => {
         roundLabel: "QUICK FIGHT · 1 VS 1",
         difficultyOptions: renderDifficultyOptions("normal", true),
         musicPlaybackEnabled: false,
+        pauseKeyMode: "hold",
         devToolsEnabled: true,
         presentationStyle: "kinetic-print",
       }),
@@ -251,7 +252,8 @@ describe("screen renderers", () => {
       difficultyOptions,
     });
 
-    expect(markup.match(/class="quick-lineup-member"/g)).toHaveLength(5);
+    expect(markup.match(/class="fight-member /g)).toHaveLength(6);
+    expect(markup.match(/is-empty/g)).toHaveLength(1);
     expect(markup).toContain("Viking");
     expect(markup).toContain("Ned Kelly");
     expect(markup).toContain("Tux");
@@ -262,7 +264,9 @@ describe("screen renderers", () => {
     expect(markup).toContain("+7.5 opening Charge");
     expect(markup).toContain("Level 10");
     expect(markup).not.toContain("Standard L10");
-    expect(markup).toContain("quick-accessory-effect");
+    expect(markup).toMatch(
+      /name="quickPlayer\.1"[\s\S]*?value="character\.viking"\s+disabled/,
+    );
     expect(markup).toContain("add 30 Charge");
     expect(markup).toContain('data-asset-id="image.accessory.second-wind"');
     expect(markup).toContain('data-asset-id="image.accessory.dead-air"');
@@ -307,6 +311,7 @@ describe("screen renderers", () => {
       roundLabel: "QUICK FIGHT · 1 VS 1",
       difficultyOptions: renderDifficultyOptions("normal", true),
       musicPlaybackEnabled: false,
+      pauseKeyMode: "hold",
       devToolsEnabled: true,
       presentationStyle: "kinetic-print",
     });
@@ -333,8 +338,14 @@ describe("screen renderers", () => {
     expect(markup).toContain("data-battle-decision-cue");
     expect(markup).toContain("data-enemy-decision-cue");
     expect(markup).toContain("data-battle-inspectable");
+    expect(markup).toContain("Team Charge");
+    expect(markup).not.toContain("Inspect a Move for exact effects");
+    expect(markup).toContain("data-enemy-hud-shell");
+    expect(markup).toContain('data-hud-force-compact="false"');
+    expect(markup).toContain('data-command="toggle-enemy-hud"');
+    expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain('data-command="inspect-battle-detail"');
-    expect(markup).toContain('title="Pause fight · Escape"');
+    expect(markup).toContain('title="Pause fight · Escape toggles · hold P"');
     expect(markup).toMatch(
       /data-player-charge-meter[\s\S]*data-battle-event-feed/,
     );
@@ -387,6 +398,8 @@ describe("screen renderers", () => {
 
     for (const markup of [storySetup, quickSetup, tournamentSetup]) {
       expect(markup).toContain("data-fight-setup");
+      expect(markup).toContain('class="fight-matchup"');
+      expect(markup.match(/class="fight-team /g)).toHaveLength(2);
     }
     expect(tournamentSetup).toContain(
       "Confirm Lineup · Lock Roster · Enter Round 1",

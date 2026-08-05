@@ -1,3 +1,4 @@
+import type { SessionMode } from "../../app/routes";
 import {
   resolveImageObjectPosition,
   resolveImagePath,
@@ -13,8 +14,14 @@ import {
   tournamentDefinition,
   tournamentTrophy,
 } from "../../tournaments/catalog";
-import type { SessionMode } from "../../app/routes";
+import {
+  renderFightSetupAccessory,
+  renderFightSetupFrame,
+  renderFightSetupRules,
+  type FightSetupMember,
+} from "../components/fight-setup";
 import { renderLockedFeature } from "../components/locked-feature";
+import { renderTraitSynergy } from "../components/trait-synergy";
 import { escapeHtml, formatLabel } from "../format";
 
 export interface TournamentScreenModel {
@@ -48,6 +55,8 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
     model.deployedInstanceIds ?? model.run?.deployedInstanceIds ?? [];
   const starterInstanceId =
     model.starterInstanceId ?? model.run?.activeInstanceId ?? null;
+  const effectiveStarterInstanceId =
+    starterInstanceId ?? deployedInstanceIds[0] ?? null;
   const selectedCount = deployedInstanceIds.length;
   const caseEntries = caseBuilds.map(
     (build) => [build, model.run?.healthRatios[build.instanceId] ?? 1] as const,
@@ -57,24 +66,22 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
       ? caseEntries
           .map(([build, ratio]) => {
             const character = combatContent.characters[build.characterId];
-            return `<span><strong>${escapeHtml(character?.name ?? "Roster Character")}</strong>${Math.round(ratio * 100)}% roster health</span>`;
+            return `<span><strong>${escapeHtml(character?.name ?? "Roster Character")}</strong>${Math.round(ratio * 100)}% roster Health</span>`;
           })
           .join("")
-      : "<span><strong>Fresh Roster</strong>Full health at the opening bell</span>";
+      : "<span><strong>Fresh Roster</strong>Full Health at the opening bell</span>";
   const rosterControls =
     model.run?.phase === "interlude" || caseBuilds.length === 0
       ? ""
       : `
         <fieldset class="cup-roster-selector">
-          <legend>Deploy up to three · choose the starter</legend>
-          <p>${selectedCount} / 3 deployed. The other Roster members receive support XP.</p>
+          <legend>Choose this round's Lineup</legend>
+          <p>${selectedCount} / 3 deployed. Choose one starter; undeployed Roster members still receive support XP.</p>
           <div>
             ${caseBuilds
               .map((build) => {
                 const character = combatContent.characters[build.characterId];
-                if (!character) {
-                  return "";
-                }
+                if (!character) return "";
                 const healthRatio =
                   model.run?.healthRatios[build.instanceId] ?? 1;
                 const defeated = healthRatio <= 0;
@@ -129,104 +136,168 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
           </div>
         </fieldset>
       `;
-  const controls =
-    model.run?.phase === "interlude"
-      ? `
-        <div class="cup-drops" aria-label="Choose an interstitial drop">
-          <button data-command="cup-drop" data-drop="front-print-repair">
-            <strong>Front-Line Repair</strong>
-            Heal the Character that ended the prior round active by 45%.
-          </button>
-          <button data-command="cup-drop" data-drop="case-repair">
-            <strong>Roster Repair</strong>
-            Heal the Roster by 18% and revive one defeated Character at 35%.
-          </button>
-          <button data-command="cup-drop" data-drop="hot-start">
-            <strong>Hot Start</strong>
-            Begin the next round with another 18 Charge.
-          </button>
+  const dropControls = `
+    <div class="cup-drops" aria-label="Choose a between-round drop">
+      <button data-command="cup-drop" data-drop="front-print-repair">
+        <strong>Front-Line Repair</strong>
+        Heal the Character that ended the prior round active by 45%.
+      </button>
+      <button data-command="cup-drop" data-drop="case-repair">
+        <strong>Roster Repair</strong>
+        Heal the Roster by 18% and revive one defeated Character at 35%.
+      </button>
+      <button data-command="cup-drop" data-drop="hot-start">
+        <strong>Hot Start</strong>
+        Begin the next round with another 18 Charge.
+      </button>
+    </div>
+  `;
+  const playerMembers: FightSetupMember[] = deployedInstanceIds
+    .map((instanceId): FightSetupMember | null => {
+      const build = caseBuilds.find(
+        (candidate) => candidate.instanceId === instanceId,
+      );
+      if (!build) return null;
+      const ratio = model.run?.healthRatios[instanceId] ?? 1;
+      return {
+        characterId: build.characterId,
+        slotLabel:
+          instanceId === effectiveStarterInstanceId ? "Starts" : "Deployed",
+        detail: `${Math.round(ratio * 100)}% carried Health`,
+        healthPercent: ratio * 100,
+        defeated: ratio <= 0,
+      };
+    })
+    .filter((member): member is FightSetupMember => member !== null);
+  const enemyMembers = encounter.enemyCharacterIds.map(
+    (characterId, index): FightSetupMember => ({
+      characterId,
+      slotLabel: index === 0 ? "Starts" : `Bench ${index}`,
+      detail: `${formatLabel(combatContent.characters[characterId]!.typeId)} · Round rival`,
+    }),
+  );
+  const playerAccessoryAvailable = !model.run?.exhaustedAccessoryIds.includes(
+    "accessory.press-pass",
+  );
+  const interlude = model.run?.phase === "interlude";
+
+  return renderFightSetupFrame({
+    mode: "tournament",
+    titleId: "tournament-title",
+    title: tournament.name,
+    summary: interlude
+      ? `Round ${model.run!.roundIndex} is stamped. Choose one recovery before ${encounter.title}.`
+      : `Round ${encounter.roundIndex + 1}: ${encounter.title} — ${encounter.subtitle}`,
+    backControl: `<button class="text-button" ${
+      model.sessionMode === "story"
+        ? 'data-route="story"'
+        : 'data-command="main-menu"'
+    }>← ${model.sessionMode === "story" ? "Back to Story" : "Main Menu"}</button>`,
+    rulesHtml: renderFightSetupRules("Tournament round", [
+      `Round ${encounter.roundIndex + 1} of ${tournament.rounds.length}`,
+      `Roster ${selectedCount} / 3 deployed`,
+      "Health carries between rounds",
+      "One-use Accessories",
+    ]),
+    contextHtml: `
+      <aside class="fight-event" aria-label="Tournament progress">
+        <img
+          class="tournament-art"
+          src="${resolveImagePath(tournament.imageAssetId)}"
+          data-asset-id="${tournament.imageAssetId}"
+          style="object-position: ${resolveImageObjectPosition(tournament.imageAssetId)}"
+          alt="${escapeHtml(tournament.imageAlt)}"
+        />
+        <div class="fight-event-copy">
+          ${champion ? '<span class="cup-status-stamp">★ Trophy collected</span>' : ""}
+          <figure class="cup-trophy-preview">
+            <img
+              src="${resolveImagePath(trophy.imageAssetId)}"
+              data-asset-id="${trophy.imageAssetId}"
+              style="object-position: ${resolveImageObjectPosition(trophy.imageAssetId)}"
+              alt="${escapeHtml(trophy.imageAlt)}"
+            />
+            <figcaption>
+              <span>${champion ? "On your Profile" : "Winner's Trophy"}</span>
+              <strong>${escapeHtml(trophy.name)}</strong>
+              <small>${escapeHtml(trophy.description)}</small>
+            </figcaption>
+          </figure>
+          <div class="bracket">
+            ${tournament.rounds
+              .map(
+                (round) => `
+                  <span class="${
+                    model.run && round.roundIndex < model.run.roundIndex
+                      ? "is-cleared"
+                      : round.roundIndex === (model.run?.roundIndex ?? 0)
+                        ? "is-current"
+                        : ""
+                  }">
+                    Round ${round.roundIndex + 1}<br />
+                    <strong>${escapeHtml(round.title)}</strong>
+                  </span>
+                `,
+              )
+              .join("")}
+          </div>
         </div>
-      `
+      </aside>
+    `,
+    player: {
+      label: "Your Lineup",
+      countLabel: `${playerMembers.length} deployed`,
+      members:
+        playerMembers.length > 0
+          ? playerMembers
+          : [
+              {
+                slotLabel: "Not locked",
+                detail: "Choose the Roster below",
+              },
+            ],
+      accessoryHtml: renderFightSetupAccessory(
+        playerAccessoryAvailable ? "accessory.press-pass" : undefined,
+        { status: playerAccessoryAvailable ? "Available" : "Already used" },
+      ),
+      synergyHtml: renderTraitSynergy(
+        playerMembers.flatMap((member) =>
+          member.characterId ? [member.characterId] : [],
+        ),
+      ),
+    },
+    enemy: {
+      label: "Round Rivals",
+      countLabel: `${enemyMembers.length} revealed`,
+      members: enemyMembers,
+      accessoryHtml: renderFightSetupAccessory("accessory.dead-air", {
+        status: "Opponent",
+      }),
+      synergyHtml: renderTraitSynergy(encounter.enemyCharacterIds),
+      enemy: true,
+    },
+    selectionHtml: `
+      <section class="fight-selection" aria-label="Tournament preparation">
+        <div class="case-health">${caseStatus}</div>
+        ${interlude ? dropControls : rosterControls}
+      </section>
+    `,
+    footerHtml: `
+      <strong>${interlude ? "Choose one drop to continue." : `${selectedCount} Character${selectedCount === 1 ? "" : "s"} ready for Round ${encounter.roundIndex + 1}.`}</strong>
+      <span>${
+        model.sessionMode === "story"
+          ? "Story Roster uses owned and authored-loan builds."
+          : `Standalone Roster uses Level ${STANDARD_MATCH_LEVEL} Standard Builds.`
+      }
+      </span>
+    `,
+    actionHtml: interlude
+      ? '<span class="fight-confirmation-wait">Choose a drop above</span>'
       : `
-        ${rosterControls}
         <button class="primary-action" data-command="start-tournament">
           ${model.run ? `Confirm Lineup · Enter Round ${encounter.roundIndex + 1}` : "Confirm Lineup · Lock Roster · Enter Round 1"}
           <span aria-hidden="true">→</span>
         </button>
-      `;
-  return `
-    <section class="tournament-poster" data-fight-setup aria-labelledby="tournament-title">
-      <img
-        class="tournament-art"
-        src="${resolveImagePath(tournament.imageAssetId)}"
-        data-asset-id="${tournament.imageAssetId}"
-        style="object-position: ${resolveImageObjectPosition(tournament.imageAssetId)}"
-        alt="${escapeHtml(tournament.imageAlt)}"
-      />
-      <div class="tournament-copy">
-        <button class="text-button" ${
-          model.sessionMode === "story"
-            ? 'data-route="story"'
-            : 'data-command="main-menu"'
-        }>
-          ← ${model.sessionMode === "story" ? "Back to Story" : "Main Menu"}
-        </button>
-        ${champion ? '<span class="cup-status-stamp">★ Trophy collected</span>' : ""}
-        <h1 id="tournament-title">${escapeHtml(tournament.name)}</h1>
-        <figure class="cup-trophy-preview">
-          <img
-            src="${resolveImagePath(trophy.imageAssetId)}"
-            data-asset-id="${trophy.imageAssetId}"
-            style="object-position: ${resolveImageObjectPosition(trophy.imageAssetId)}"
-            alt="${escapeHtml(trophy.imageAlt)}"
-          />
-          <figcaption>
-            <span>${champion ? "On your Profile" : "Winner's Trophy"}</span>
-            <strong>${escapeHtml(trophy.name)}</strong>
-            <small>${escapeHtml(trophy.description)}</small>
-          </figcaption>
-        </figure>
-        <p>
-          ${
-            model.run?.phase === "interlude"
-              ? `Round ${model.run.roundIndex} is stamped. Choose one drop before ${escapeHtml(encounter.title)}.`
-              : `Round ${encounter.roundIndex + 1} · ${escapeHtml(encounter.title)} — ${escapeHtml(encounter.subtitle)}`
-          }
-        </p>
-        <div class="bracket">
-          ${tournament.rounds
-            .map(
-              (round) => `
-                <span class="${
-                  model.run && round.roundIndex < model.run.roundIndex
-                    ? "is-cleared"
-                    : round.roundIndex === (model.run?.roundIndex ?? 0)
-                      ? "is-current"
-                      : ""
-                }">
-                  Round ${round.roundIndex + 1}<br />
-                  <strong>${escapeHtml(round.title)}</strong>
-                </span>
-              `,
-            )
-            .join("")}
-        </div>
-        <div class="case-health">${caseStatus}</div>
-        ${controls}
-        <small>
-          ${
-            model.sessionMode === "story"
-              ? "This Story Roster locks owned and authored-loan builds."
-              : `Standalone Roster Characters use the Level ${STANDARD_MATCH_LEVEL} Standard Build.`
-          }
-          Roster health, defeats, chosen drops, and the current round persist in
-          this ${
-            model.sessionMode === "story" ? "Story game" : "Tournament game"
-          }. Equipped Modifications stay locked for the run.${
-            champion ? " Locking a new Roster replays the full bracket." : ""
-          }
-        </small>
-      </div>
-    </section>
-  `;
+      `,
+  });
 }

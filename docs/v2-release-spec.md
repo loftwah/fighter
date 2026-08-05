@@ -123,7 +123,7 @@ V2 must make the shared battle system release-ready before it broadens:
 The researched product is a decision reference rather than a source of exact
 recoverable constants. V2 therefore keeps the current measured baselines until
 fixed-seed play provides better evidence: a middle-Tempo 25-Charge threshold in
-about 3.6 seconds, post-presentation AI windows of 1.8/1.4/0.9/0.6 seconds from
+about 4.0 seconds, post-presentation AI windows of 1.8/1.4/0.9/0.6 seconds from
 Easy through Brutal, seeded bounded variance, and full loss evidence in the
 Battle Report. `UNKNOWN EXACT` source timing or AI weights are never treated as
 implemented facts.
@@ -132,14 +132,15 @@ The first acceptance fight is `v2.viking-acceptance`: Standard-build Viking
 versus Standard-build Grim Reaper on Normal, with Second Wind versus Dead Air,
 seed `3844240869`, and the ordinary 90-second limit. It is intentionally
 favourable through Viking's Brawler-versus-Beast Type edge. The reference
-script makes its first decision at 1.9 seconds, uses Battle Boast → Axe First →
-Battle Boast → Berserker Oath, wins after 23.3 seconds of simulation and about
-47.67 seconds including countdown and presentation holds, and finishes at
-about 47% Health. Between those Moves, the reference controller collects any
+script makes its first decision at 2.0 seconds, uses Battle Boast → Axe First →
+Battle Boast → Berserker Oath → Axe First → Battle Boast → Axe First, wins
+after 31.4 seconds of simulation and about 57.87 seconds including countdown
+and presentation holds, and finishes at about 49% Health. Between those Moves,
+the reference controller collects any
 available player Drop and activates Second Wind when fully charged. This is a
 regression benchmark, not a claim that one scripted sequence is the only good
 way to play. A second acceptance run waits 1.5 seconds after each player
-command first becomes available; it must still win with the same four-Move
+command first becomes available; it must still win with the same seven-Move
 policy and more than 20% Health. That delayed run is the minimum automated
 evidence that Normal tolerates comprehension and reaction time rather than
 requiring a zero-latency controller.
@@ -148,10 +149,11 @@ The benchmark passes Gate 1 only when the same policy can be completed through
 the real semantic controls at the Tier 1 viewports and the result explanation
 matches its Battle Report. A headless win alone is necessary deterministic
 evidence, not player-facing acceptance. The development candidate now meets
-that operability check: one real-control run recorded the exact four Moves,
-finished with 65/147 Viking Health, dealt the final 107 damage through
-Berserker Oath, and explained the Type edge from report data. Owner feel
-playtesting remains open.
+that operability check before the full Grim Reaper calibration: one
+real-control run recorded the earlier four-Move policy, finished with 65/147
+Viking Health, and explained the Type edge from report data. The recalibrated
+seven-Move benchmark still needs the equivalent real-control completion. Owner
+feel playtesting remains open.
 
 ### 3.4 Modes
 
@@ -466,7 +468,7 @@ answer affects V2 without turning uncertain source values into invented facts.
 | 04  | `ADOPT`                   | Polish one Quick Fight first, then Tournament, then Story; progression/rematch belongs to Story, not a lost Cup run.    |
 | 05  | `ADOPT`                   | Six Characters plus the existing V2 proof content; agents stop asking for another minimum-content answer.               |
 | 06  | `DELEGATE TO EVIDENCE`    | Fight duration is tuned through fixed-seed and real-reference observation; current V2 benchmark is recorded above.      |
-| 07  | `DELEGATE TO EVIDENCE`    | First useful decision stays measured; the Viking benchmark currently reaches its first decision at 1.9 seconds.         |
+| 07  | `DELEGATE TO EVIDENCE`    | First useful decision stays measured; the Viking benchmark currently reaches its first decision at 2.0 seconds.         |
 | 08  | `DELEGATE TO EVIDENCE`    | Decision time varies by difficulty; current post-presentation AI windows remain provisional measured baselines.         |
 | 09  | `ADOPT`                   | Easy is very hard to lose; Normal forgives ordinary play; Hard is a fair fight; Brutal is the AI at full effort.        |
 | 10  | `ADOPT DIRECTION`         | Interruption policy is a Move timing property; current charge-ups lose spent Charge, other policies need schema proof.  |

@@ -14,7 +14,8 @@ import {
   recordBattleDecision,
   type BattleReport,
 } from "../combat/report";
-import { difficultyAiDelay, POSITION_RULES } from "../combat/rules";
+import { actionCostForCombatant, difficultyAiDelay } from "../combat/rules";
+import { createStandardBuild } from "../combat/standard-build";
 import type {
   BattleCommand,
   BattleState,
@@ -90,7 +91,7 @@ function playerCommand(
       : "action.viking.shield-bash");
   const action = combatContent.actions[actionId];
   if (!action) return null;
-  const cost = POSITION_RULES[action.position].cost;
+  const cost = actionCostForCombatant(active, action);
   return state.player.bar >= cost ? { kind: "action", actionId } : null;
 }
 
@@ -104,7 +105,21 @@ export function runV2VikingAcceptanceFight(
   const created = createBattle(
     {
       playerCharacterIds: [...quickFightDefaults.playerIds],
+      playerBuilds: quickFightDefaults.playerIds.map((characterId, index) =>
+        createStandardBuild(
+          combatContent.characters[characterId]!,
+          "player",
+          index,
+        ),
+      ),
       enemyCharacterIds: [...quickFightDefaults.enemyIds],
+      enemyBuilds: quickFightDefaults.enemyIds.map((characterId, index) =>
+        createStandardBuild(
+          combatContent.characters[characterId]!,
+          "enemy",
+          index,
+        ),
+      ),
       playerAccessoryId: quickFightDefaults.playerAccessoryId,
       enemyAccessoryId: quickFightDefaults.enemyAccessoryId,
       seed: quickFightDefaults.seed,

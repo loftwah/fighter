@@ -4,53 +4,90 @@ export const launchActions = [
   {
     id: "action.tux.ping",
     name: "Ping",
-    description: "A quick packet that lands a hit and returns team Charge.",
-    category: "strip",
-    position: "1H",
+    description:
+      "Trade 14 Health for an immediate burst of team Charge. This cannot knock Tux out.",
+    category: "support",
+    position: "1L",
     chargeMs: 0,
     effects: [
-      { kind: "damage", target: "activeEnemy", power: 15 },
-      { kind: "bar", target: "allies", amount: 8, requiresHit: true },
+      { kind: "healthCost", target: "self", amount: 14, minimumHealth: 1 },
+      { kind: "bar", target: "allies", amount: 44 },
     ],
+    tierProperties: {
+      gold: {
+        additionalEffects: [{ kind: "bar", target: "allies", amount: 12 }],
+      },
+    },
     presentationId: "presentation.tux.ping",
     audioId: "sfx.action.quick",
   },
   {
     id: "action.tux.root-access",
     name: "Root Access",
-    description: "Damage the target, drain its Charge, and slow its Strip.",
-    category: "strip",
+    description:
+      "Fire a direct shot with a chance to jam the target's middle Move.",
+    category: "special",
     position: "2",
     chargeMs: 450,
     interruptionPolicy: "spend",
     effects: [
       { kind: "damage", target: "activeEnemy", power: 18 },
       {
-        kind: "bar",
+        kind: "blockMove",
         target: "enemies",
-        amount: -15,
-        requiresHit: true,
-      },
-      {
-        kind: "modifyChargeRate",
-        target: "enemies",
-        multiplier: 0.72,
-        durationMs: 3_000,
+        slotIndex: 1,
+        durationMs: 2_500,
+        chance: 0.35,
         requiresHit: true,
       },
     ],
+    tierProperties: {
+      gold: {
+        additionalEffects: [
+          {
+            kind: "blockMove",
+            target: "enemies",
+            slotIndex: 1,
+            durationMs: 3_500,
+            chance: 0.35,
+            requiresHit: true,
+          },
+        ],
+      },
+    },
     presentationId: "presentation.tux.root-access",
     audioId: "sfx.action.control",
   },
   {
     id: "action.tux.kernel-panic",
     name: "Kernel Panic",
-    description: "Crash through the whole opposing Lineup.",
+    description:
+      "Launch three missiles through the opposing Lineup and drain 25% of its current Charge.",
     category: "teamAttack",
     position: "3",
     chargeMs: 900,
     interruptionPolicy: "spend",
-    effects: [{ kind: "damage", target: "allEnemies", power: 13 }],
+    effects: [
+      { kind: "damage", target: "allEnemies", power: 8, hits: 3 },
+      {
+        kind: "barPercent",
+        target: "enemies",
+        ratio: -0.25,
+        requiresHit: true,
+      },
+    ],
+    tierProperties: {
+      platinum: {
+        additionalEffects: [
+          {
+            kind: "barPercent",
+            target: "enemies",
+            ratio: -0.12,
+            requiresHit: true,
+          },
+        ],
+      },
+    },
     presentationId: "presentation.tux.kernel-panic",
     audioId: "sfx.action.finisher",
   },
@@ -58,138 +95,178 @@ export const launchActions = [
     id: "action.humpty.egg-on-your-face",
     name: "Egg on Your Face",
     description:
-      "A quick hit that sharpens Evasion; the next clean dodge snaps back.",
-    category: "special",
+      "Raise a shell shield. At Tier 1 it restores Health when it expires or breaks.",
+    category: "support",
     position: "1",
     chargeMs: 0,
     effects: [
-      { kind: "damage", target: "activeEnemy", power: 16 },
-      {
-        kind: "modifyEvasion",
-        target: "self",
-        magnitude: 4,
-        durationMs: 3_000,
-        requiresHit: true,
-      },
-      {
-        kind: "counterOnDodge",
-        target: "self",
-        power: 10,
-        durationMs: 3_000,
-        uses: 1,
-        requiresHit: true,
-      },
+      { kind: "shield", target: "self", amount: 20, durationMs: 4_500 },
     ],
+    tierProperties: {
+      gold: { shieldEndHealPower: 12 },
+    },
     presentationId: "presentation.humpty.egg-on-your-face",
     audioId: "sfx.action.quick",
   },
   {
     id: "action.humpty.shell-game",
     name: "Shell Game",
-    description: "Hide behind a shell that throws part of each hit back.",
-    category: "support",
+    description:
+      "Catch the opponent with a surprise hit and roll for a helpful personal boon.",
+    category: "special",
     position: "2",
     chargeMs: 250,
     interruptionPolicy: "spend",
     effects: [
+      { kind: "damage", target: "activeEnemy", power: 16 },
       {
-        kind: "shield",
+        kind: "randomBoon",
         target: "self",
-        amount: 16,
-        durationMs: 4_500,
-      },
-      {
-        kind: "reflectDamage",
-        target: "self",
-        ratio: 0.35,
-        durationMs: 4_500,
+        options: [
+          { weight: 60 },
+          {
+            weight: 20,
+            effect: { kind: "heal", power: 12 },
+          },
+          {
+            weight: 20,
+            effect: {
+              kind: "modifyAttack",
+              magnitude: 0.2,
+              durationMs: 5_000,
+            },
+          },
+        ],
       },
     ],
+    tierProperties: {
+      gold: {
+        additionalEffects: [
+          {
+            kind: "randomBoon",
+            target: "self",
+            options: [
+              { weight: 40 },
+              { weight: 30, effect: { kind: "bar", amount: 18 } },
+              {
+                weight: 30,
+                effect: {
+                  kind: "modifyEvasion",
+                  magnitude: 3,
+                  durationMs: 5_000,
+                },
+              },
+            ],
+          },
+        ],
+      },
+    },
     presentationId: "presentation.humpty.shell-game",
     audioId: "sfx.action.guard",
   },
   {
     id: "action.humpty.great-fall",
     name: "Great Fall",
-    description: "Come down hard, leave a mess, and rattle the target.",
-    category: "stun",
+    description:
+      "Turn incoming Health damage back on its source for a short window. Tier 2 can stun on reflection.",
+    category: "support",
     position: "3",
     chargeMs: 850,
     interruptionPolicy: "spend",
     effects: [
-      { kind: "damage", target: "activeEnemy", power: 27 },
       {
-        kind: "stun",
-        target: "activeEnemy",
-        durationMs: 900,
-        chance: 0.68,
-        requiresHit: true,
-      },
-      {
-        kind: "damageOverTime",
-        target: "activeEnemy",
-        power: 3,
-        durationMs: 3_000,
-        intervalMs: 1_000,
-        requiresHit: true,
+        kind: "reflectDamage",
+        target: "self",
+        ratio: 0.7,
+        durationMs: 3_500,
       },
     ],
+    tierProperties: {
+      platinum: {
+        reflectionStun: { chance: 1, durationMs: 700 },
+      },
+    },
     presentationId: "presentation.humpty.great-fall",
     audioId: "sfx.action.finisher",
   },
   {
     id: "action.moses.staff-tap",
     name: "Staff Tap",
-    description: "Restore health now, then mend the active ally over time.",
-    category: "support",
+    description:
+      "Charge the staff, then slow the opposing Charge Strip. Upgrades may resolve it instantly.",
+    category: "strip",
     position: "1H",
-    chargeMs: 0,
+    chargeMs: 800,
+    interruptionPolicy: "spend",
     effects: [
-      { kind: "heal", target: "activeAlly", power: 14 },
       {
-        kind: "healOverTime",
-        target: "activeAlly",
-        power: 3,
-        durationMs: 3_000,
-        intervalMs: 1_000,
+        kind: "modifyChargeRate",
+        target: "enemies",
+        multiplier: 0.55,
+        durationMs: 3_500,
       },
     ],
+    tierProperties: {
+      gold: { instantChargeChance: 0.35 },
+      platinum: { instantChargeChance: 0.55 },
+    },
     presentationId: "presentation.moses.staff-tap",
     audioId: "sfx.action.heal",
   },
   {
     id: "action.moses.part-the-strip",
     name: "Part the Strip",
-    description: "Nick the active enemy and leave its defence divided.",
-    category: "special",
+    description: "Strike the active enemy directly. Tier 1 can stun on hit.",
+    category: "stun",
     position: "2",
     chargeMs: 500,
     interruptionPolicy: "spend",
-    effects: [
-      { kind: "damage", target: "activeEnemy", power: 8 },
-      {
-        kind: "modifyDefence",
-        target: "activeEnemy",
-        magnitude: 0.28,
-        durationMs: 6_000,
-        requiresHit: true,
+    effects: [{ kind: "damage", target: "activeEnemy", power: 21 }],
+    tierProperties: {
+      gold: {
+        additionalEffects: [
+          {
+            kind: "stun",
+            target: "activeEnemy",
+            durationMs: 650,
+            chance: 0.55,
+            requiresHit: true,
+          },
+        ],
       },
-    ],
+    },
     presentationId: "presentation.moses.part-the-strip",
     audioId: "sfx.action.control",
   },
   {
     id: "action.moses.safe-passage",
     name: "Safe Passage",
-    description: "Mend and cleanse every living ally.",
-    category: "teamSupport",
-    position: "3",
+    description:
+      "Temporarily disable every opposing Move. Tier 2 extends the lock.",
+    category: "special",
+    position: "3H",
     chargeMs: 1_050,
     interruptionPolicy: "spend",
     effects: [
-      { kind: "heal", target: "allAllies", power: 14 },
-      { kind: "cleanse", target: "allAllies" },
+      {
+        kind: "blockMove",
+        target: "enemies",
+        slotIndex: "all",
+        durationMs: 2_000,
+      },
     ],
+    tierProperties: {
+      platinum: {
+        additionalEffects: [
+          {
+            kind: "blockMove",
+            target: "enemies",
+            slotIndex: "all",
+            durationMs: 4_000,
+          },
+        ],
+      },
+    },
     presentationId: "presentation.moses.safe-passage",
     audioId: "sfx.action.heal",
   },
@@ -255,128 +332,185 @@ export const launchActions = [
   {
     id: "action.ned-kelly.warning-shot",
     name: "Warning Shot",
-    description: "A precise shot that cannot be dodged.",
+    description:
+      "Charge a direct armour-piercing blast. Upgrades may resolve it instantly.",
     category: "attack",
     position: "1",
-    chargeMs: 0,
+    chargeMs: 750,
+    interruptionPolicy: "spend",
     effects: [
       {
         kind: "damage",
         target: "activeEnemy",
-        power: 17,
+        power: 20,
         undodgeable: true,
       },
     ],
+    tierProperties: {
+      gold: { instantChargeChance: 0.35 },
+      platinum: { instantChargeChance: 0.55 },
+    },
     presentationId: "presentation.ned-kelly.warning-shot",
     audioId: "sfx.action.quick",
   },
   {
     id: "action.ned-kelly.iron-outlaw",
     name: "Iron Outlaw",
-    description: "Brace behind plate armour and return part of every hit.",
-    category: "support",
+    description: "Patch up every living ally. Tier 1 restores extra Health.",
+    category: "teamSupport",
     position: "2L",
     chargeMs: 0,
-    effects: [
-      { kind: "shield", target: "self", amount: 15, durationMs: 5_000 },
-      { kind: "bar", target: "allies", amount: 10 },
-      {
-        kind: "reflectDamage",
-        target: "self",
-        ratio: 0.25,
-        durationMs: 5_000,
+    effects: [{ kind: "heal", target: "allAllies", power: 18 }],
+    tierProperties: {
+      gold: {
+        additionalEffects: [{ kind: "heal", target: "allAllies", power: 8 }],
       },
-    ],
+    },
     presentationId: "presentation.ned-kelly.iron-outlaw",
     audioId: "sfx.action.guard",
   },
   {
     id: "action.ned-kelly.last-stand",
     name: "Last Stand",
-    description: "A shield-piercing shot that briefly blocks switching.",
-    category: "stun",
+    description:
+      "Accelerate the whole team's Charge Strip. Tier 2 also raises allied Power.",
+    category: "teamSupport",
     position: "3",
     chargeMs: 1_100,
     interruptionPolicy: "spend",
     effects: [
       {
-        kind: "damage",
-        target: "activeEnemy",
-        power: 31,
-        shieldPiercing: true,
-      },
-      {
-        kind: "switchLock",
-        target: "activeEnemy",
-        durationMs: 3_000,
-        requiresHit: true,
-      },
-      {
-        kind: "stun",
-        target: "activeEnemy",
-        durationMs: 1_150,
-        chance: 0.8,
-        requiresHit: true,
+        kind: "modifyChargeRate",
+        target: "allies",
+        multiplier: 1.35,
+        durationMs: 5_000,
       },
     ],
+    tierProperties: {
+      platinum: {
+        additionalEffects: [
+          {
+            kind: "modifyAttack",
+            target: "allAllies",
+            magnitude: 0.18,
+            durationMs: 5_000,
+          },
+        ],
+      },
+    },
     presentationId: "presentation.ned-kelly.last-stand",
     audioId: "sfx.action.finisher",
   },
   {
     id: "action.grim-reaper.cold-touch",
     name: "Cold Touch",
-    description: "A quick cut that weakens the target's Power.",
+    description:
+      "Assume a bounded beast form that raises Power and hardens Grim against damage.",
     category: "special",
-    position: "1",
+    position: "1L",
     chargeMs: 0,
     effects: [
-      { kind: "damage", target: "activeEnemy", power: 16 },
       {
-        kind: "modifyAttack",
-        target: "activeEnemy",
-        magnitude: -0.14,
-        durationMs: 4_000,
-        requiresHit: true,
+        kind: "transform",
+        target: "self",
+        formId: "form.grim-reaper.beast",
+        attackMagnitude: 0.2,
+        defenceMagnitude: -0.12,
+        durationMs: 30_000,
       },
     ],
+    tierProperties: {
+      gold: { cost: 0 },
+    },
     presentationId: "presentation.grim-reaper.cold-touch",
     audioId: "sfx.action.quick",
   },
   {
     id: "action.grim-reaper.deaths-shadow",
     name: "Death's Shadow",
-    description: "Let the shadow grow and raise Power for a short burst.",
+    description:
+      "Draw a seeded personal boon from the shadow: Health, Charge, or Power.",
     category: "support",
-    position: "2",
+    position: "2L",
     chargeMs: 300,
     interruptionPolicy: "spend",
+    requiredFormId: "form.grim-reaper.beast",
     effects: [
+      {
+        kind: "randomBoon",
+        target: "self",
+        options: [
+          { weight: 1, effect: { kind: "heal", power: 16 } },
+          { weight: 1, effect: { kind: "bar", amount: 18 } },
+          {
+            weight: 1,
+            effect: {
+              kind: "modifyAttack",
+              magnitude: 0.28,
+              durationMs: 6_000,
+            },
+          },
+        ],
+      },
       {
         kind: "modifyAttack",
         target: "self",
-        magnitude: 0.26,
-        durationMs: 5_500,
+        magnitude: 0.12,
+        durationMs: 24_000,
       },
     ],
+    tierProperties: {
+      gold: {
+        additionalEffects: [
+          {
+            kind: "modifyAttack",
+            target: "self",
+            magnitude: 0.1,
+            durationMs: 6_000,
+          },
+        ],
+      },
+    },
     presentationId: "presentation.grim-reaper.deaths-shadow",
     audioId: "sfx.action.control",
   },
   {
     id: "action.grim-reaper.final-harvest",
     name: "Final Harvest",
-    description: "Reap the whole enemy Lineup and recover health from the hit.",
+    description:
+      "Drop the full weight of the beast form on the opposing Lineup. Tier 2 can stun everyone hit.",
     category: "teamAttack",
-    position: "3H",
+    position: "3L",
     chargeMs: 1_100,
     interruptionPolicy: "spend",
     effects: [
       {
         kind: "damage",
         target: "allEnemies",
-        power: 15,
-        lifeStealRatio: 0.3,
+        power: 16,
+      },
+      {
+        kind: "damageOverTime",
+        target: "allEnemies",
+        power: 2,
+        durationMs: 2_000,
+        intervalMs: 1_000,
+        requiresHit: true,
       },
     ],
+    tierProperties: {
+      platinum: {
+        additionalEffects: [
+          {
+            kind: "stun",
+            target: "allEnemies",
+            durationMs: 850,
+            chance: 0.6,
+            requiresHit: true,
+          },
+        ],
+      },
+    },
     presentationId: "presentation.grim-reaper.final-harvest",
     audioId: "sfx.action.finisher",
   },

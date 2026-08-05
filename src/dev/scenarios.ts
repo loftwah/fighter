@@ -6,6 +6,7 @@ import type {
   Difficulty,
   Side,
 } from "../combat/types";
+import { createStandardBuild } from "../combat/standard-build";
 import { combatContent, quickFightDefaults } from "../content/initial-content";
 import { findPatch, patches } from "../progression/patches";
 
@@ -36,6 +37,7 @@ export interface DevBattleScenario {
   difficulty: Difficulty;
   timeLimitMs: number;
   startPaused: boolean;
+  standardBuild?: boolean;
   controllers: Record<Side, BattleControllerKind>;
 }
 
@@ -85,6 +87,7 @@ export const devBattleScenarioSchema = z.object({
   difficulty: z.enum(["easy", "normal", "hard", "brutal"]),
   timeLimitMs: z.number().int().min(1_000).max(600_000),
   startPaused: z.boolean(),
+  standardBuild: z.boolean().optional(),
   controllers: z.object({
     player: z.enum(["human-local", "ai"]),
     enemy: z.enum(["human-local", "ai"]),
@@ -118,6 +121,7 @@ export const devBattleScenarios = [
     difficulty: "normal",
     timeLimitMs: 90_000,
     startPaused: false,
+    standardBuild: true,
     controllers: { player: "human-local", enemy: "ai" },
   }),
   scenario({
@@ -358,10 +362,6 @@ export function devBuildsForSide(
       ? scenarioDefinition.playerPatchId
       : scenarioDefinition.enemyPatchId;
   const patch = findPatch(patchId);
-  const statBonuses =
-    patch?.effect.kind === "stat"
-      ? { [patch.effect.stat]: patch.effect.amount }
-      : undefined;
   const interruptionResistance =
     patch?.effect.kind === "interruptionResistance"
       ? patch.effect.chance
@@ -372,15 +372,25 @@ export function devBuildsForSide(
     if (!definition) {
       throw new Error(`Missing development Character: ${characterId}`);
     }
+    const standardBuild = scenarioDefinition.standardBuild
+      ? createStandardBuild(definition, side, index)
+      : null;
+    const statBonuses = { ...standardBuild?.statBonuses };
+    if (patch?.effect.kind === "stat") {
+      statBonuses[patch.effect.stat] =
+        (statBonuses[patch.effect.stat] ?? 0) + patch.effect.amount;
+    }
     return {
       instanceId: `dev.${scenarioDefinition.id}.${side}.${index}.${characterId}`,
-      level,
+      level: standardBuild?.level ?? level,
       actionIds: definition.actionIds,
       actionTiers: Object.fromEntries(
         definition.actionIds.map((actionId) => [actionId, tier]),
       ),
-      statBonuses,
-      interruptionResistance,
+      statBonuses:
+        Object.keys(statBonuses).length > 0 ? statBonuses : undefined,
+      interruptionResistance:
+        interruptionResistance ?? standardBuild?.interruptionResistance,
       equippedPatchId: patchId,
     };
   });

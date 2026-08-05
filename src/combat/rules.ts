@@ -1,5 +1,6 @@
 import type {
   ActionDefinition,
+  ActionEffect,
   ActionPosition,
   ActionTier,
   ActionTierProperties,
@@ -46,10 +47,59 @@ export function actionTierProperties(
   if (tier === "gold") {
     return { ...action.tierProperties?.gold };
   }
+  const gold = action.tierProperties?.gold;
+  const platinum = action.tierProperties?.platinum;
   return {
-    ...action.tierProperties?.gold,
-    ...action.tierProperties?.platinum,
+    ...gold,
+    ...platinum,
+    additionalEffects: [
+      ...(gold?.additionalEffects ?? []),
+      ...(platinum?.additionalEffects ?? []),
+    ],
   };
+}
+
+export function actionEffectsForCombatant(
+  combatant: CombatantState,
+  action: ActionDefinition,
+): ActionEffect[] {
+  const tier = combatant.actionTiers[action.id] ?? "stock";
+  return [
+    ...action.effects,
+    ...(actionTierProperties(action, tier).additionalEffects ?? []),
+  ];
+}
+
+export function actionCostForCombatant(
+  combatant: CombatantState,
+  action: ActionDefinition,
+): number {
+  const tier = combatant.actionTiers[action.id] ?? "stock";
+  return (
+    actionTierProperties(action, tier).cost ??
+    POSITION_RULES[actionPositionForCombatant(combatant, action)].cost
+  );
+}
+
+export function actionChargeMsForCombatant(
+  combatant: CombatantState,
+  action: ActionDefinition,
+): number {
+  const tier = combatant.actionTiers[action.id] ?? "stock";
+  return actionTierProperties(action, tier).chargeMs ?? action.chargeMs;
+}
+
+export function actionFormRequirementMet(
+  combatant: CombatantState,
+  action: ActionDefinition,
+): boolean {
+  return (
+    !action.requiredFormId ||
+    combatant.statuses.some(
+      (status) =>
+        status.kind === "form" && status.formId === action.requiredFormId,
+    )
+  );
 }
 
 export function actionPositionForSlot(
@@ -84,10 +134,11 @@ export function actionPositionForCombatant(
 
 export const BASE_CHARGE_PER_SECOND = 5;
 export const TEMPO_CHARGE_PER_SECOND = 0.4;
+export const CHARGE_PACING_MULTIPLIER = 0.9;
 
 export function chargePerSecond(tempo: number, echoBonus = false): number {
   const base = BASE_CHARGE_PER_SECOND + tempo * TEMPO_CHARGE_PER_SECOND;
-  return base * (echoBonus ? 1.08 : 1);
+  return base * CHARGE_PACING_MULTIPLIER * (echoBonus ? 1.08 : 1);
 }
 
 export function teamChargePerSecond(team: TeamState): number {
@@ -229,7 +280,8 @@ export function statusMagnitude(
     | "shield"
     | "reflection"
     | "dodgeCounter"
-    | "empower",
+    | "empower"
+    | "form",
 ): number {
   return combatant.statuses
     .filter((status) => status.kind === kind)

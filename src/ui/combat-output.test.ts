@@ -3,6 +3,7 @@ import type { ActionDefinition, StatusState } from "../combat/types";
 import {
   actionResolutionFeedback,
   actionOutputSummary,
+  actionPreviewHeading,
   empowerStatusSummary,
   moveSealOutput,
 } from "./combat-output";
@@ -53,6 +54,11 @@ describe("player-readable combat output", () => {
     expect(actionOutputSummary(battleBoast, 0, 0.7)).toBe(
       "Power +28% · stacks",
     );
+  });
+
+  it("names a support Move by its specific job in the preview", () => {
+    expect(actionPreviewHeading(battleBoast)).toBe("Power up");
+    expect(actionPreviewHeading(berserkerOath)).toBe("Predicted hit");
   });
 
   it("presents a damaging stun Move as an attack with scaled stun duration", () => {

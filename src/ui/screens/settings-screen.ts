@@ -26,6 +26,20 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
             <span>Difficulty</span>
             <select name="difficulty">${model.difficultyOptions}</select>
           </label>
+          <label>
+            <span>
+              <strong>P pause key</strong>
+              <small>Escape always toggles the full pause sheet.</small>
+            </span>
+            <select name="pauseKeyMode">
+              <option value="hold" ${
+                model.preferences.pauseKeyMode === "hold" ? "selected" : ""
+              }>Hold to pause</option>
+              <option value="toggle" ${
+                model.preferences.pauseKeyMode === "toggle" ? "selected" : ""
+              }>Press to toggle</option>
+            </select>
+          </label>
           <label class="toggle-row">
             <span>
               <strong>Reduced motion</strong>

@@ -1,4 +1,4 @@
-import { actionPositionForCombatant, POSITION_RULES } from "../combat/rules";
+import { actionCostForCombatant } from "../combat/rules";
 import type { ActionTier, CombatantState } from "../combat/types";
 import { combatContent } from "../content/initial-content";
 import { escapeHtml } from "./format";
@@ -20,8 +20,7 @@ export function renderBenchMoveDisclosure(combatant: CombatantState): string {
       }
       const tier = combatant.actionTiers[actionId] ?? "stock";
       const category = moveCategoryDetail(action.category);
-      const cost =
-        POSITION_RULES[actionPositionForCombatant(combatant, action)].cost;
+      const cost = actionCostForCombatant(combatant, action);
       return `
         <li>
           <span><b>${index + 1}</b>${escapeHtml(action.name)}</span>

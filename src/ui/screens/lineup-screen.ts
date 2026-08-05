@@ -1,16 +1,14 @@
-import {
-  resolveImageObjectPosition,
-  resolveImagePath,
-} from "../../assets/registry";
-import { combatContent } from "../../content/initial-content";
 import type { Difficulty } from "../../combat/types";
+import { combatContent } from "../../content/initial-content";
 import type { SaveData } from "../../persistence/save";
 import { firstRunEncounter } from "../../story/first-run";
 import {
-  renderCharacterTraits,
-  renderTraitSynergy,
-} from "../components/trait-synergy";
-import { renderTypeWheel } from "../components/type-wheel";
+  renderFightSetupAccessory,
+  renderFightSetupFrame,
+  renderFightSetupRules,
+  type FightSetupMember,
+} from "../components/fight-setup";
+import { renderTraitSynergy } from "../components/trait-synergy";
 import { formatLabel } from "../format";
 
 export interface LineupScreenModel {
@@ -20,90 +18,71 @@ export interface LineupScreenModel {
 
 export function renderLineupScreen(model: LineupScreenModel): string {
   const encounter = firstRunEncounter(model.save.currentNodeId);
-  const lineup = encounter.playerCharacterIds;
-  return `
-    <section class="lineup-workbench" data-fight-setup aria-labelledby="lineup-title">
-      <div class="lineup-heading">
-        <button class="text-button" data-route="story">← Back to story</button>
-        <h1 id="lineup-title">${
-          encounter.nodeId === "story.first-run.05"
-            ? "Two characters. One shared Strip."
-            : "Build the impossible Lineup."
-        }</h1>
-        <p>
-          ${
-            encounter.nodeId === "story.first-run.05"
-              ? "Tux and Humpty activate Icon. Moses and Grim Reaper activate Mythic. Both pairs are supplied as Story loans when needed."
-              : "Story loaners are marked in yellow. Your Charge Strip belongs to the Lineup and survives every switch."
-          }
-        </p>
-      </div>
-      <div class="match-sheet">
-        <div class="lineup-side">
-          <h2>Your Lineup</h2>
-          ${lineup
-            .map((id) =>
-              renderLineupRelic(
-                model.save,
-                id,
-                !model.save.collection.some(
-                  (entry) => entry.characterId === id,
-                ),
-              ),
-            )
-            .join("")}
-          ${renderTraitSynergy(lineup)}
-        </div>
-        <div class="versus-stamp" aria-label="versus">VS</div>
-        <div class="lineup-side is-enemy">
-          <h2>Opposing Lineup</h2>
-          ${encounter.enemyCharacterIds
-            .map((id) => renderLineupRelic(model.save, id, false))
-            .join("")}
-          ${renderTraitSynergy(encounter.enemyCharacterIds)}
-          <div class="type-wheel-mini">${renderTypeWheel()}</div>
-        </div>
-      </div>
-      <div class="lineup-footer">
-        <div>
-          <span>Node ${encounter.index} · ${encounter.title}</span>
-          <strong>${formatLabel(model.difficulty)}</strong>
-        </div>
-        <button class="primary-action" data-command="start-battle">
-          Confirm Lineup · Start Fight <span aria-hidden="true">→</span>
-        </button>
-      </div>
-    </section>
-  `;
-}
-
-function renderLineupRelic(
-  save: SaveData,
-  characterId: string,
-  loaned: boolean,
-): string {
-  const character = combatContent.characters[characterId]!;
-  const owned = save.collection.find(
-    (entry) => entry.characterId === characterId,
+  const playerMembers = encounter.playerCharacterIds.map(
+    (characterId, index): FightSetupMember => {
+      const character = combatContent.characters[characterId]!;
+      const owned = model.save.collection.find(
+        (entry) => entry.characterId === characterId,
+      );
+      return {
+        characterId,
+        slotLabel: index === 0 ? "Starts" : `Bench ${index}`,
+        detail: `Level ${owned?.level ?? character.level} · ${owned ? "Owned build" : "Story loan"}`,
+      };
+    },
   );
-  const level = owned?.level ?? character.level;
-  return `
-    <article class="lineup-ticket">
-      <div class="ticket-portrait is-${character.typeId}">
-        <img
-          src="${resolveImagePath(character.portraitAssetId)}"
-          data-asset-id="${character.portraitAssetId}"
-          style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
-          alt=""
-        />
-      </div>
-      <div>
-        <span class="type-mark">${formatLabel(character.typeId)}</span>
-        <h3>${character.name}</h3>
-        <p>Level ${level} · ${owned ? "Owned build" : loaned ? "Story loan" : "Ready"}</p>
-        <div class="trait-chip-row">${renderCharacterTraits(character)}</div>
-      </div>
-      <span class="ticket-notch" aria-hidden="true"></span>
-    </article>
-  `;
+  const enemyMembers = encounter.enemyCharacterIds.map(
+    (characterId, index): FightSetupMember => ({
+      characterId,
+      slotLabel: index === 0 ? "Starts" : `Bench ${index}`,
+      detail: `${formatLabel(combatContent.characters[characterId]!.typeId)} · Story rival`,
+    }),
+  );
+  const summary =
+    encounter.nodeId === "story.first-run.05"
+      ? "Two paired Lineups share one Charge Strip each. Trait bonuses are active on both sides."
+      : "Story loans fill any missing collection slots. Your Lineup keeps its owned builds and earns Story rewards.";
+
+  return renderFightSetupFrame({
+    mode: "story",
+    titleId: "lineup-title",
+    title: encounter.title,
+    summary,
+    backControl:
+      '<button class="text-button" data-route="story">← Back to Story</button>',
+    rulesHtml: renderFightSetupRules("Story encounter", [
+      `Node ${encounter.index}`,
+      formatLabel(model.difficulty),
+      "Owned and loan builds",
+      "Story rewards active",
+    ]),
+    player: {
+      label: "Your Lineup",
+      countLabel: `${playerMembers.length} deployed`,
+      members: playerMembers,
+      accessoryHtml: renderFightSetupAccessory("accessory.press-pass", {
+        status: "Equipped",
+      }),
+      synergyHtml: renderTraitSynergy(encounter.playerCharacterIds),
+    },
+    enemy: {
+      label: "Opposing Lineup",
+      countLabel: `${enemyMembers.length} revealed`,
+      members: enemyMembers,
+      accessoryHtml: renderFightSetupAccessory("accessory.dead-air", {
+        status: "Opponent",
+      }),
+      synergyHtml: renderTraitSynergy(encounter.enemyCharacterIds),
+      enemy: true,
+    },
+    footerHtml: `
+      <strong>Node ${encounter.index} · ${encounter.title}</strong>
+      <span>${formatLabel(model.difficulty)} difficulty · victory advances First Run</span>
+    `,
+    actionHtml: `
+      <button class="primary-action" data-command="start-battle">
+        Confirm Lineup · Start Fight <span aria-hidden="true">→</span>
+      </button>
+    `,
+  });
 }

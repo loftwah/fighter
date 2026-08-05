@@ -118,7 +118,7 @@
   top: max(4.25rem, calc(env(safe-area-inset-top) + 3.8rem));
   right: max(0.65rem, env(safe-area-inset-right));
   display: grid;
-  width: min(42rem, calc(100% - 6.2rem));
+  width: min(46rem, calc(100% - 6.2rem));
   border: 0.24rem solid var(--ink);
   padding: 0.18rem;
   background: rgb(9 17 40 / 92%);
@@ -230,7 +230,7 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 0.5rem;
-  font-size: 0.58rem;
+  font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -250,7 +250,7 @@
   .enemy-charge-heading
   small {
   color: var(--paper-muted);
-  font-size: 0.5rem;
+  font-size: 0.58rem;
 }
 
 .battle-stage[data-battle-layout="rail-first"]
@@ -259,7 +259,7 @@
   strong {
   color: var(--chalk);
   font-family: var(--display);
-  font-size: 1.15rem;
+  font-size: 1.45rem;
   line-height: 0.8;
 }
 
@@ -302,6 +302,8 @@
   padding: 0;
   background: transparent;
   color: var(--chalk);
+  cursor: help;
+  pointer-events: auto;
   text-align: left;
   transform: translateX(-50%);
 }
@@ -436,7 +438,7 @@
   top: 0;
   right: 0;
   left: 0;
-  height: 1.55rem;
+  height: 1.75rem;
   border: 0.18rem solid var(--chalk);
   background: repeating-linear-gradient(
     90deg,
@@ -449,7 +451,7 @@
   .enemy-combat-console
   .readout-heading
   strong {
-  font-size: clamp(1.45rem, 4vw, 2.1rem);
+  font-size: clamp(1.65rem, 4vw, 2.35rem);
   line-height: 0.86;
 }
 
@@ -458,7 +460,7 @@
   .meter-label {
   grid-area: health-label;
   align-self: end;
-  font-size: 0.7rem;
+  font-size: 0.82rem;
 }
 
 .battle-stage[data-battle-layout="rail-first"]
@@ -466,7 +468,7 @@
   .meter-label
   > span {
   color: var(--tomato);
-  font-size: 0.58rem;
+  font-size: 0.66rem;
   letter-spacing: 0.08em;
 }
 
@@ -474,7 +476,7 @@
   .enemy-combat-console
   .health-meter {
   grid-area: health-meter;
-  height: 1.35rem;
+  height: 1.55rem;
   border-color: var(--chalk);
 }
 
@@ -694,7 +696,7 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-deck-heading strong {
-  font-size: 1.25rem;
+  font-size: 1.55rem;
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-control-field {
@@ -797,7 +799,7 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-seal strong {
-  font-size: 2.25rem;
+  font-size: 2.5rem;
   line-height: 0.75;
 }
 
@@ -816,7 +818,7 @@
   padding: 0.08rem 0.18rem;
   background: rgb(9 17 40 / 88%);
   color: var(--chalk);
-  font-size: 0.92rem;
+  font-size: 1.02rem;
   line-height: 0.88;
   text-overflow: clip;
   text-transform: uppercase;
@@ -833,7 +835,7 @@
   color: var(--paper-muted);
   min-height: 1.05rem;
   padding: 0.12rem 0.28rem;
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   line-height: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -841,13 +843,18 @@
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-role,
 .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
+  position: absolute;
   z-index: 2;
   top: 3.25rem;
   display: block;
+  max-width: 46%;
+  overflow: hidden;
   border: 0.1rem solid var(--ink);
   padding: 0.05rem 0.16rem;
   font-size: 0.48rem;
   line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
@@ -932,7 +939,7 @@
 .battle-stage[data-battle-layout="rail-first"]
   .charge-move.is-output-boosted
   .charge-move-seal::before {
-  inset: -0.92rem -0.82rem -0.72rem;
+  inset: -1.32rem -1.12rem -0.88rem;
   border: 0;
   border-radius: 0;
   background: conic-gradient(
@@ -972,8 +979,9 @@
     30% 7%,
     43% 19%
   );
-  filter: drop-shadow(0.12rem 0.18rem 0 var(--ink));
-  animation: move-output-boosted-fire 520ms cubic-bezier(0.2, 0.8, 0.3, 1)
+  filter: drop-shadow(0.12rem 0.18rem 0 var(--ink))
+    drop-shadow(0 -0.22rem 0.08rem rgb(242 215 66 / 48%));
+  animation: move-output-boosted-fire 430ms cubic-bezier(0.2, 0.8, 0.3, 1)
     infinite alternate;
 }
 
@@ -990,6 +998,7 @@
   .charge-move-seal
   strong {
   color: var(--yellow);
+  font-size: 2.72rem;
   text-shadow:
     0.08rem 0.1rem 0 var(--ink),
     0.16rem 0.2rem 0 var(--tomato);
@@ -1005,17 +1014,17 @@
 .battle-stage[data-battle-layout="rail-first"] .charge-move-delta {
   position: absolute;
   z-index: 3;
-  top: -0.78rem;
+  top: -1.12rem;
   right: auto;
   left: 50%;
-  min-width: 4.55rem;
+  min-width: 5rem;
   border: 0.16rem solid var(--ink);
-  padding: 0.14rem 0.28rem 0.1rem;
+  padding: 0.18rem 0.34rem 0.12rem;
   background: var(--paper-muted);
   box-shadow: 0.1rem 0.12rem 0 var(--ink);
   color: var(--ink);
   font-family: var(--display);
-  font-size: 1.05rem;
+  font-size: 1.22rem;
   line-height: 1;
   text-align: center;
   transform: translateX(-50%) rotate(-2deg);
@@ -1049,6 +1058,7 @@
   box-shadow:
     0.12rem 0.15rem 0 var(--ink),
     0 0.3rem 0 -0.12rem var(--tomato);
+  animation: move-output-label-flicker 860ms steps(2, end) infinite;
 }
 
 .battle-stage[data-battle-layout="rail-first"]
@@ -1074,6 +1084,17 @@
 
   100% {
     transform: rotate(3deg) scale(1.03);
+  }
+}
+
+@keyframes move-output-label-flicker {
+  0%,
+  100% {
+    transform: translateX(-50%) rotate(-2deg) translateY(0);
+  }
+
+  50% {
+    transform: translateX(-50%) rotate(1deg) translateY(-0.12rem);
   }
 }
 
@@ -1209,6 +1230,237 @@
   .charge-move.is-inspecting
   .action-tooltip {
   display: grid;
+}
+
+/* Move inspection is a tactical print bill, not a generic browser tooltip. */
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move, .enemy-charge-node):is(
+    :hover,
+    :focus-visible,
+    .is-inspecting
+  ) {
+  z-index: 80;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .charge-move:is(:hover, :focus-visible, .is-inspecting)
+  .charge-move-seal {
+  transform: translateY(-0.18rem) rotate(-2deg) scale(1.06);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move, .enemy-charge-node)
+  .action-tooltip {
+  position: absolute;
+  z-index: 120;
+  display: grid;
+  visibility: hidden;
+  width: min(21rem, 38vw);
+  min-width: 18rem;
+  gap: 0;
+  border: 0.24rem solid var(--ink);
+  padding: 0;
+  overflow: hidden;
+  opacity: 0;
+  background: var(--chalk);
+  box-shadow:
+    0.48rem 0.56rem 0 var(--ink),
+    0.62rem 0.7rem 0 rgb(239 77 57 / 62%);
+  color: var(--ink);
+  font-family: var(--body);
+  line-height: 1.3;
+  pointer-events: none;
+  text-align: left;
+  text-transform: none;
+  transition:
+    opacity 120ms ease-out,
+    transform 170ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 0s linear 170ms;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .charge-move .action-tooltip {
+  right: auto;
+  bottom: calc(100% + 0.9rem);
+  left: 50%;
+  transform: translateX(-50%) translateY(0.32rem) rotate(-0.45deg);
+  transform-origin: 50% 100%;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .enemy-charge-node
+  .action-tooltip {
+  top: calc(100% + 0.68rem);
+  right: -0.35rem;
+  bottom: auto;
+  left: auto;
+  transform: translateY(-0.28rem) rotate(0.45deg);
+  transform-origin: 85% 0;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move, .enemy-charge-node):is(
+    :hover,
+    :focus-visible,
+    .is-inspecting
+  )
+  .action-tooltip {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0s;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .charge-move:is(:hover, :focus-visible, .is-inspecting)
+  .action-tooltip {
+  transform: translateX(-50%) translateY(0) rotate(0);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .enemy-charge-node:is(:hover, :focus-visible, .is-inspecting)
+  .action-tooltip {
+  transform: translateY(0) rotate(0);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-heading {
+  display: grid;
+  grid-template-areas:
+    "label category"
+    "name name";
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.18rem 0.5rem;
+  padding: 0.65rem 0.72rem 0.55rem;
+  background: var(--indigo-deep);
+  color: var(--chalk);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-heading > small {
+  grid-area: label;
+  align-self: center;
+  color: var(--yellow);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .action-tooltip-heading
+  > strong {
+  grid-area: name;
+  color: var(--chalk);
+  font-family: var(--display);
+  font-size: 2.25rem;
+  font-weight: 400;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-heading > b {
+  grid-area: category;
+  border: 0.12rem solid var(--chalk);
+  padding: 0.14rem 0.28rem 0.1rem;
+  background: var(--move-category-colour, var(--chalk));
+  color: var(--ink);
+  font-size: 0.58rem;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-impact {
+  display: grid;
+  grid-template-areas:
+    "label value"
+    "unit value";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.1rem 0.7rem;
+  border-bottom: 0.18rem solid var(--ink);
+  padding: 0.48rem 0.72rem;
+  background: var(--paper-muted);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .charge-move.is-output-boosted
+  .action-tooltip-impact {
+  background: var(--yellow);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .charge-move.is-output-reduced
+  .action-tooltip-impact {
+  background: var(--tomato);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-impact > small {
+  grid-area: label;
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-impact > strong {
+  grid-area: value;
+  font-family: var(--display);
+  font-size: 3.5rem;
+  font-weight: 400;
+  line-height: 0.72;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-impact > b {
+  grid-area: unit;
+  font-size: 0.68rem;
+  line-height: 1.1;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-summary {
+  border-bottom: 0.12rem dashed var(--ink);
+  padding: 0.44rem 0.72rem 0.36rem;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-description {
+  padding: 0.55rem 0.72rem;
+  font-size: 0.9rem;
+  line-height: 1.38;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 0.18rem solid var(--ink);
+  background: var(--paper-muted);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-facts > span {
+  display: grid;
+  min-width: 0;
+  gap: 0.14rem;
+  padding: 0.42rem 0.5rem;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .action-tooltip-facts
+  > span
+  + span {
+  border-left: 0.12rem dashed var(--ink);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-facts small {
+  font-size: 0.52rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .action-tooltip-facts strong {
+  font-family: var(--body);
+  font-size: 0.68rem;
+  line-height: 1.15;
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-action-anchors {
@@ -1596,13 +1848,20 @@
   .battle-stage[data-battle-layout="rail-first"] .charge-move-name {
     width: 100%;
     align-self: center;
-    font-size: 0.74rem;
+    font-size: 0.82rem;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-state {
     display: block;
     min-height: 0.9rem;
-    font-size: 0.48rem;
+    font-size: 0.54rem;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"]
+    .charge-move:is(.is-output-boosted, .is-output-reduced)
+    .charge-move-seal
+    strong {
+    font-size: 2.18rem;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role,
@@ -1636,20 +1895,47 @@
   }
 
   .battle-stage[data-battle-layout="rail-first"]
+    :is(
+      .charge-move,
+      .enemy-charge-node,
+      .enemy-accessory-readout,
+      .battle-accessory-control
+    )
     :is(.action-tooltip, .battle-info-tooltip) {
-    position: fixed;
-    z-index: 140;
+    position: fixed !important;
+    z-index: 140 !important;
     inset: auto 0.5rem
       max(10.25rem, calc(env(safe-area-inset-bottom) + 9.75rem));
     display: none !important;
     width: auto;
     max-width: none;
+    min-width: 0;
+    transform: none;
+    transition: none;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"] .charge-move.is-inspecting {
+    margin-left: -2.575rem;
+    transform: none;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"]
+    .enemy-charge-node.is-inspecting {
+    margin-left: -2.35rem;
+    transform: none;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"] .charge-move .action-tooltip {
+    animation: none;
   }
 
   .battle-stage[data-battle-layout="rail-first"]
     :is(.charge-move, [data-battle-inspectable]).is-inspecting
     :is(.action-tooltip, .battle-info-tooltip) {
     display: grid !important;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
   }
 
   .battle-result .result-stamp {
@@ -1667,6 +1953,41 @@
 }
 
 @media (orientation: landscape) and (max-height: 620px) {
+  .battle-stage[data-battle-layout="rail-first"]
+    :is(
+      .charge-move,
+      .enemy-charge-node,
+      .enemy-accessory-readout,
+      .battle-accessory-control
+    )
+    :is(.action-tooltip, .battle-info-tooltip) {
+    position: fixed !important;
+    z-index: 140 !important;
+    inset: 0.5rem 0.5rem auto;
+    display: none !important;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 1rem);
+    min-width: 0;
+    overflow: auto;
+    transform: none;
+    transition: none;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"]
+    :is(.charge-move, [data-battle-inspectable]).is-inspecting
+    :is(.action-tooltip, .battle-info-tooltip) {
+    display: grid !important;
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"] .timer-ticket {
+    left: max(4.8rem, calc(env(safe-area-inset-left) + 4.8rem));
+    transform: none;
+  }
+
   .battle-stage[data-battle-layout="rail-first"] .bench-loadout {
     display: none;
   }
@@ -1680,6 +2001,12 @@
   .battle-stage[data-battle-layout="rail-first"]
     .enemy-combat-console
     .fighter-readout {
+    grid-template-areas:
+      "identity"
+      "health-label"
+      "health-meter"
+      "status";
+    grid-template-columns: minmax(0, 1fr);
     padding: 0.2rem 0.32rem;
   }
 
@@ -1687,7 +2014,15 @@
     .enemy-combat-console
     .readout-heading
     strong {
-    font-size: 1.3rem;
+    font-size: 1rem;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"]
+    .enemy-combat-console
+    .meter-label {
+    justify-content: space-between;
+    font-size: 0.5rem;
+    white-space: nowrap;
   }
 
   .battle-stage[data-battle-layout="rail-first"]
@@ -1789,10 +2124,11 @@
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-delta {
-    top: -0.42rem;
-    right: -0.48rem;
-    min-width: 1.25rem;
-    font-size: 0.58rem;
+    top: -0.65rem;
+    right: auto;
+    left: 50%;
+    min-width: 3.35rem;
+    font-size: 0.82rem;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-name {
@@ -1827,6 +2163,8 @@
   .battle-stage[data-battle-layout="rail-first"]
     .charge-move:is(.is-output-boosted, .is-output-reduced)
     .charge-move-seal::before,
+  .battle-stage[data-battle-layout="rail-first"] .charge-move-delta,
+  .battle-stage[data-battle-layout="rail-first"] .action-tooltip,
   .battle-stage[data-battle-layout="rail-first"] .battle-impact-verdict {
     transition: none;
     animation: none;
@@ -1837,6 +2175,12 @@ html[data-reduced-motion="true"]
   .battle-stage[data-battle-layout="rail-first"]
   .charge-move:is(.is-output-boosted, .is-output-reduced)
   .charge-move-seal::before,
+html[data-reduced-motion="true"]
+  .battle-stage[data-battle-layout="rail-first"]
+  .charge-move-delta,
+html[data-reduced-motion="true"]
+  .battle-stage[data-battle-layout="rail-first"]
+  .action-tooltip,
 html[data-reduced-motion="true"]
   .battle-stage[data-battle-layout="rail-first"]
   .battle-impact-verdict {

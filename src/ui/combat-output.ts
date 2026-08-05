@@ -23,7 +23,42 @@ const effectLabels: Partial<
   modifyChargeRate: "Charge rate",
   shield: "Shield",
   cleanse: "Cleanse",
+  healthCost: "Health cost",
+  barPercent: "Charge drain",
+  blockMove: "Move lock",
+  transform: "Transform",
+  randomBoon: "Seeded boon",
 };
+
+export function actionPreviewHeading(action: ActionDefinition): string {
+  const kinds = new Set(action.effects.map((effect) => effect.kind));
+  if (kinds.has("damage") || kinds.has("damageOverTime")) {
+    return "Predicted hit";
+  }
+  if (kinds.has("empowerNextMove") || kinds.has("modifyAttack")) {
+    return "Power up";
+  }
+  if (kinds.has("heal") || kinds.has("healOverTime")) {
+    return "Recovery";
+  }
+  if (kinds.has("shield") || kinds.has("modifyDefence")) {
+    return "Protection";
+  }
+  if (
+    kinds.has("bar") ||
+    kinds.has("barPercent") ||
+    kinds.has("modifyChargeRate") ||
+    kinds.has("healthCost")
+  ) {
+    return "Charge control";
+  }
+  if (kinds.has("stun") || kinds.has("switchLock") || kinds.has("blockMove")) {
+    return "Control effect";
+  }
+  if (kinds.has("transform")) return "Form change";
+  if (kinds.has("randomBoon")) return "Boon roll";
+  return "Move effect";
+}
 
 export function actionOutputSummary(
   action: ActionDefinition,
@@ -48,6 +83,24 @@ export function actionOutputSummary(
     if (effect.kind === "stun") {
       outputs.add(
         `Stun ${Math.round(effect.chance * 100)}% · ${((effect.durationMs * effectMultiplier) / 1_000).toFixed(1)}s`,
+      );
+      continue;
+    }
+    if (effect.kind === "healthCost") {
+      outputs.add(`Health −${effect.amount}`);
+      continue;
+    }
+    if (effect.kind === "barPercent") {
+      outputs.add(
+        `Charge ${effect.ratio < 0 ? "−" : "+"}${Math.round(Math.abs(effect.ratio) * 100)}%`,
+      );
+      continue;
+    }
+    if (effect.kind === "blockMove") {
+      outputs.add(
+        effect.slotIndex === "all"
+          ? "All Moves blocked"
+          : `Move ${effect.slotIndex + 1} blocked`,
       );
       continue;
     }
@@ -90,13 +143,17 @@ export function actionResolutionFeedback(
     .filter(
       (event) =>
         event.type === "damageApplied" &&
+        event.message !== "healthCost" &&
         !event.periodic &&
         !event.reactionKind,
     )
     .reduce((total, event) => total + (event.amount ?? 0), 0);
   const landed = actionEvents.some(
     (event) =>
-      event.type === "damageApplied" && !event.periodic && !event.reactionKind,
+      event.type === "damageApplied" &&
+      event.message !== "healthCost" &&
+      !event.periodic &&
+      !event.reactionKind,
   );
   const dodged = actionEvents.some((event) => event.type === "characterDodged");
   const critical = actionEvents.some((event) => event.type === "criticalHit");

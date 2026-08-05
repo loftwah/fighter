@@ -66,14 +66,14 @@ Characters and battle rules.
 
 Accepted launch roster:
 
-| Stable ID               | Name          | Combat Type  | Team Traits     | Battle identity                         |
-| ----------------------- | ------------- | ------------ | --------------- | --------------------------------------- |
-| `character.tux`         | Tux           | Tech         | Icon            | Charge manipulation and system pressure |
-| `character.humpty`      | Humpty Dumpty | Oddball      | Icon            | Evasion, reflection, and risky control  |
-| `character.moses`       | Moses         | Arcane       | Hero, Mythic    | Healing, cleansing, and safe passage    |
-| `character.viking`      | Viking        | Brawler      | Historic        | Direct damage, stun, and multi-hit      |
-| `character.ned-kelly`   | Ned Kelly     | Sharpshooter | Hero, Historic  | Reliable shots, armour, and lockdown    |
-| `character.grim-reaper` | Grim Reaper   | Beast        | Monster, Mythic | Debuffs, team pressure, and lifesteal   |
+| Stable ID               | Name          | Combat Type  | Team Traits     | Battle identity                                                |
+| ----------------------- | ------------- | ------------ | --------------- | -------------------------------------------------------------- |
+| `character.tux`         | Tux           | Tech         | Icon            | Health-for-Charge battery, Move denial, percentage Strip drain |
+| `character.humpty`      | Humpty Dumpty | Oddball      | Icon            | Shield-end recovery, seeded boons, reflection                  |
+| `character.moses`       | Moses         | Arcane       | Hero, Mythic    | Strip slowdown, direct control, whole-kit disable              |
+| `character.viking`      | Viking        | Brawler      | Historic        | Stackable Power, returning hit, strongest hit plus Stun        |
+| `character.ned-kelly`   | Ned Kelly     | Sharpshooter | Hero, Historic  | Charged blast, Lineup healing, team Charge acceleration        |
+| `character.grim-reaper` | Grim Reaper   | Beast        | Monster, Mythic | Bounded transformation, personal boons, whole-Lineup pressure  |
 
 The six launch Characters cover all six Combat Types. Five of the six Team
 Traits are represented; Villain is intentionally available to the system but
@@ -239,8 +239,10 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 - Once both sides' art and controls are ready, every player-facing fight runs an
   explicit `3 → 2 → 1 → FIGHT` countdown. Elapsed time, Charge, statuses,
   pending Moves, and AI decisions remain frozen until `FIGHT` clears.
-- Escape pauses and resumes the complete single-player battle simulation.
-  Opening the development inspector also pauses it. While paused, elapsed time,
+- Escape toggles the complete single-player battle simulation. The global
+  **P pause key** preference can either pause only while P is held (releasing P
+  resumes the pause it opened) or toggle pause on each P press. Opening the
+  development inspector also pauses the fight. While paused, elapsed time,
   Charge, statuses, pending Moves, AI, and Phaser presentation time do not
   advance.
 
@@ -262,11 +264,13 @@ Story access or progression rewards:
 - Switching never resets it.
 - Both sides begin at 0 Charge unless an authored encounter, Modification, or
   tournament Drop supplies an explicit opening bonus.
-- Base fill speed is `5 + Tempo × 0.4` Charge per second. A three-copy Echo
-  Lineup multiplies that result by `1.08`. The current Tempo range therefore
-  fills a complete Strip in roughly 11.6–15.2 seconds before other effects. A
-  middle-Tempo Character reaches a 25-cost Move in about 3.6 seconds, a 50-cost
-  Move in about 7.1 seconds, and a 95-cost Move in about 13.6 seconds.
+- Base fill speed is `(5 + Tempo × 0.4) × 0.9` Charge per second. The final
+  pacing multiplier gives the player a slightly longer decision beat while
+  preserving the authored Tempo spread. A three-copy Echo Lineup multiplies
+  that result by `1.08`. The current Tempo range therefore fills a complete
+  Strip in roughly 12.9–16.8 seconds before other effects. A middle-Tempo
+  Character reaches a 25-cost Move in about 4.0 seconds, a 50-cost Move in
+  about 7.9 seconds, and a 95-cost Move in about 15.1 seconds.
 - The local player's Charge Strip is the primary combat control. It is large,
   persistent, and visually dominant beneath the arena.
 - The active Character's three Move controls are circular nodes anchored directly
@@ -326,10 +330,13 @@ Initial position model:
   unusual hybrid Moves still make one deliberate promise to the player.
 - Minimum effects are damage, healing, stun, attack, defence, Evasion, and
   Fortune modification, damage-over-time, healing-over-time, lifesteal,
-  Charge gain/drain, timed Charge-rate modification, cleanse, consumable
-  shields, switch lock, timed reflection, counter-on-dodge, multi-hit,
-  stackable next-damaging-Move Power, undodgeable and shield-piercing damage,
-  and charge-up.
+  fixed and percentage Charge gain/drain, timed Charge-rate modification,
+  cleanse, consumable shields with optional end healing, switch lock,
+  individual or whole-kit Move blocking, timed reflection with optional
+  reactive Stun, counter-on-dodge, multi-hit, non-lethal self-Health cost,
+  bounded transformation, seeded authored boons, stackable
+  next-damaging-Move Power, undodgeable and shield-piercing damage, and
+  charge-up with tier-authored instant resolution chance.
 - Targets are separate from effect types: self, active ally, all allies, active enemy, or all enemies.
 - A Move may contain multiple effects. The engine resolves them in declared order.
 - Attached effects may declare `requiresHit`; those effects are skipped when
@@ -345,7 +352,8 @@ Initial position model:
   next damaging Move and is consumed once that Move's ordered effects finish,
   even if its damage is dodged.
 - A shield is a timed pool. Incoming non-piercing damage consumes the oldest
-  active pool before health; a depleted pool is removed immediately.
+  active pool before health; a depleted pool is removed immediately. An
+  authored shield-end heal resolves on either depletion or timed expiry.
 - Reflection returns an authored fraction of post-shield health damage. An
   ordinary timed reflector must survive the triggering hit. Counter-on-dodge
   stores authored response damage and may declare a limited number of triggers.
@@ -425,7 +433,10 @@ validate → lock target → spend Charge → start/charge → resolve hits
   fizzle unless the Move explicitly defines another retarget policy.
 - Individual health and statuses remain on benched Characters. Every deployed
   Character stays visible at the edge of the arena with numeric Health and a
-  small Health track, including during Move presentation.
+  small Health track, including during Move presentation. The active player's
+  edge ticket may extend that same readout into one attached lower-console
+  Health strip; when it does, the square ticket keeps `ACTIVE` and does not
+  repeat the numeric value or track.
 - Every Lineup ticket also exposes an `Attacks` disclosure. Its closed label
   summarises all three upgrade tiers; opening or hovering it shows each attack
   name, Charge cost, and `Normal`, `Tier 1`, or `Tier 2` label without replacing
@@ -756,7 +767,8 @@ loftwah/fighter identity and name are not the raster-art target.
   Profile, not Settings.
 - Autosave after battles, purchases, upgrades, and story progress.
 - Preferences are separate from progression and survive progression wipes.
-- Settings owns accessibility, audio, difficulty, and local-data management.
+- Settings owns accessibility, audio, difficulty, pause-key behaviour, and
+  local-data management.
   Development builds add explicitly classified local presentation experiments;
   these are not progression settings or combat-rule switches.
 - Save export/import is deferred until the schema stabilises.

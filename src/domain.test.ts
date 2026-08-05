@@ -761,7 +761,7 @@ describe("combat rules", () => {
     const createDamage = (content: typeof combatContent): number => {
       const state = createBattle(
         {
-          playerCharacterIds: ["character.ned-kelly"],
+          playerCharacterIds: ["character.viking"],
           enemyCharacterIds: ["character.tux", "character.humpty"],
           playerStartingBar: 100,
           seed: 74,
@@ -772,7 +772,7 @@ describe("combat rules", () => {
       const result = requestAction(
         state,
         "player",
-        "action.ned-kelly.warning-shot",
+        "action.viking.axe-first",
         content,
       );
       return result.events.find((event) => event.type === "damageApplied")!
@@ -828,6 +828,10 @@ describe("combat rules", () => {
   });
 
   it("scales a reordered utility Move to its new output band", () => {
+    const utilityContent = structuredClone(combatContent);
+    utilityContent.actions["action.ned-kelly.iron-outlaw"]!.effects = [
+      { kind: "shield", target: "self", amount: 20, durationMs: 4_000 },
+    ];
     const shieldForOrder = (
       actionIds:
         | [
@@ -850,13 +854,13 @@ describe("combat rules", () => {
           seed: 96,
           difficulty: "normal",
         },
-        combatContent,
+        utilityContent,
       ).state;
       state = requestAction(
         state,
         "player",
         "action.ned-kelly.iron-outlaw",
-        combatContent,
+        utilityContent,
       ).state;
       return (
         state.player.squad[0]!.statuses.find(
@@ -1229,6 +1233,27 @@ describe("combat rules", () => {
   it("ticks authored damage-over-time and regeneration deterministically", () => {
     const periodicContent = structuredClone(combatContent);
     periodicContent.actions["action.humpty.great-fall"]!.chargeMs = 0;
+    periodicContent.actions["action.humpty.great-fall"]!.effects = [
+      { kind: "damage", target: "activeEnemy", power: 8 },
+      {
+        kind: "damageOverTime",
+        target: "activeEnemy",
+        power: 3,
+        durationMs: 1_000,
+        intervalMs: 250,
+      },
+    ];
+    periodicContent.actions["action.moses.staff-tap"]!.chargeMs = 0;
+    periodicContent.actions["action.moses.staff-tap"]!.effects = [
+      { kind: "heal", target: "self", power: 8 },
+      {
+        kind: "healOverTime",
+        target: "self",
+        power: 3,
+        durationMs: 1_000,
+        intervalMs: 250,
+      },
+    ];
     let damageState = createBattle(
       {
         playerCharacterIds: ["character.humpty"],
@@ -1364,6 +1389,10 @@ describe("combat rules", () => {
   });
 
   it("upgrades numeric utility effects as well as direct damage", () => {
+    const utilityContent = structuredClone(combatContent);
+    utilityContent.actions["action.ned-kelly.iron-outlaw"]!.effects = [
+      { kind: "shield", target: "self", amount: 20, durationMs: 4_000 },
+    ];
     const runShield = (tier: "stock" | "platinum") => {
       let state = createBattle(
         {
@@ -1380,13 +1409,13 @@ describe("combat rules", () => {
           seed: 63,
           difficulty: "normal",
         },
-        combatContent,
+        utilityContent,
       ).state;
       state = requestAction(
         state,
         "player",
         "action.ned-kelly.iron-outlaw",
-        combatContent,
+        utilityContent,
       ).state;
       return state.player.squad[0]!.statuses.find(
         (status) => status.kind === "shield",
@@ -1837,10 +1866,15 @@ describe("combat rules", () => {
 
     const assetFreeze = content.actions["action.ned-kelly.last-stand"]!;
     assetFreeze.chargeMs = 0;
-    const stun = assetFreeze.effects.find((effect) => effect.kind === "stun");
-    if (stun?.kind === "stun") {
-      stun.chance = 0;
-    }
+    assetFreeze.effects = [
+      { kind: "damage", target: "activeEnemy", power: 8 },
+      {
+        kind: "switchLock",
+        target: "activeEnemy",
+        durationMs: 2_000,
+        requiresHit: true,
+      },
+    ];
     state = createBattle(
       {
         playerCharacterIds: ["character.ned-kelly"],
@@ -2056,11 +2090,29 @@ describe("combat rules", () => {
   it("allows a landed hit to grant a hit-gated reaction to the attacker", () => {
     const content = structuredClone(combatContent);
     const action = content.actions["action.humpty.egg-on-your-face"]!;
-    const damage = action.effects.find((effect) => effect.kind === "damage");
-    if (!damage || damage.kind !== "damage") {
-      throw new Error("Sucker Sticker must deal damage");
-    }
-    damage.undodgeable = true;
+    action.effects = [
+      {
+        kind: "damage",
+        target: "activeEnemy",
+        power: 8,
+        undodgeable: true,
+      },
+      {
+        kind: "modifyEvasion",
+        target: "self",
+        magnitude: 8,
+        durationMs: 2_000,
+        requiresHit: true,
+      },
+      {
+        kind: "counterOnDodge",
+        target: "self",
+        power: 8,
+        durationMs: 2_000,
+        uses: 1,
+        requiresHit: true,
+      },
+    ];
     const state = createBattle(
       {
         playerCharacterIds: ["character.humpty"],
@@ -2183,6 +2235,11 @@ describe("combat rules", () => {
   });
 
   it("cleanses owned player instances without relying on ID prefixes", () => {
+    const cleanseContent = structuredClone(combatContent);
+    cleanseContent.actions["action.moses.safe-passage"]!.chargeMs = 0;
+    cleanseContent.actions["action.moses.safe-passage"]!.effects = [
+      { kind: "cleanse", target: "allAllies" },
+    ];
     let state = createBattle(
       {
         playerCharacterIds: ["character.moses"],
@@ -2191,7 +2248,7 @@ describe("combat rules", () => {
         seed: 43,
         difficulty: "normal",
       },
-      combatContent,
+      cleanseContent,
     ).state;
     state.player.squad[0]!.statuses.push({
       id: "test.attack-down",
@@ -2214,16 +2271,17 @@ describe("combat rules", () => {
       },
     );
     state.player.bar = 100;
-    state = requestAction(
+    const cleansed = requestAction(
       state,
       "player",
       "action.moses.safe-passage",
-      combatContent,
-    ).state;
+      cleanseContent,
+    );
+    state = cleansed.state;
     expect(
       state.player.squad[0]!.statuses.map((status) => status.kind),
     ).toEqual(expect.arrayContaining(["evasion", "fortune"]));
-    const events = [];
+    const events = [...cleansed.events];
     for (let elapsed = 0; elapsed < 1_250; elapsed += 250) {
       const transition = tickBattle(state, 250, combatContent);
       state = transition.state;
@@ -2284,6 +2342,8 @@ describe("combat rules", () => {
   });
 
   it("uses seeded interruption resistance without cancelling the Move", () => {
+    const interruptContent = structuredClone(combatContent);
+    interruptContent.actions["action.ned-kelly.warning-shot"]!.chargeMs = 0;
     let state = createBattle(
       {
         playerCharacterIds: ["character.viking"],
@@ -2297,7 +2357,7 @@ describe("combat rules", () => {
         seed: 42,
         difficulty: "normal",
       },
-      combatContent,
+      interruptContent,
     ).state;
     state.player.bar = 100;
     state.enemy.bar = 100;
@@ -2305,13 +2365,13 @@ describe("combat rules", () => {
       state,
       "player",
       "action.viking.berserker-oath",
-      combatContent,
+      interruptContent,
     ).state;
     const hit = requestAction(
       state,
       "enemy",
       "action.ned-kelly.warning-shot",
-      combatContent,
+      interruptContent,
     );
     expect(
       hit.events.some((event) => event.type === "interruptionResisted"),
@@ -2322,6 +2382,16 @@ describe("combat rules", () => {
   });
 
   it("marks enemy debuffs and stuns against opaque owned IDs as player events", () => {
+    const debuffContent = structuredClone(combatContent);
+    debuffContent.actions["action.moses.part-the-strip"]!.chargeMs = 0;
+    debuffContent.actions["action.moses.part-the-strip"]!.effects = [
+      {
+        kind: "modifyAttack",
+        target: "activeEnemy",
+        magnitude: -0.2,
+        durationMs: 2_000,
+      },
+    ];
     let debuffState = createBattle(
       {
         playerCharacterIds: ["character.viking"],
@@ -2330,18 +2400,19 @@ describe("combat rules", () => {
         seed: 44,
         difficulty: "normal",
       },
-      combatContent,
+      debuffContent,
     ).state;
     debuffState.enemy.bar = 100;
-    debuffState = requestAction(
+    const debuffed = requestAction(
       debuffState,
       "enemy",
       "action.moses.part-the-strip",
-      combatContent,
-    ).state;
-    const debuffEvents: BattleEvent[] = [];
+      debuffContent,
+    );
+    debuffState = debuffed.state;
+    const debuffEvents: BattleEvent[] = [...debuffed.events];
     for (let elapsed = 0; elapsed < 500; elapsed += 250) {
-      const transition = tickBattle(debuffState, 250, combatContent);
+      const transition = tickBattle(debuffState, 250, debuffContent);
       debuffState = transition.state;
       debuffEvents.push(...transition.events);
     }
@@ -2354,13 +2425,17 @@ describe("combat rules", () => {
     ).toBe("player");
 
     const guaranteedStunContent = structuredClone(combatContent);
-    const stunEffect = guaranteedStunContent.actions[
-      "action.ned-kelly.last-stand"
-    ]!.effects.find((effect) => effect.kind === "stun");
-    if (!stunEffect || stunEffect.kind !== "stun") {
-      throw new Error("Asset Freeze must contain a stun effect");
-    }
-    stunEffect.chance = 1;
+    guaranteedStunContent.actions["action.ned-kelly.last-stand"]!.chargeMs = 0;
+    guaranteedStunContent.actions["action.ned-kelly.last-stand"]!.effects = [
+      { kind: "damage", target: "activeEnemy", power: 8 },
+      {
+        kind: "stun",
+        target: "activeEnemy",
+        durationMs: 650,
+        chance: 1,
+        requiresHit: true,
+      },
+    ];
     let stunState = createBattle(
       {
         playerCharacterIds: ["character.viking"],
@@ -2372,13 +2447,14 @@ describe("combat rules", () => {
       guaranteedStunContent,
     ).state;
     stunState.enemy.bar = 100;
-    stunState = requestAction(
+    const stunned = requestAction(
       stunState,
       "enemy",
       "action.ned-kelly.last-stand",
       guaranteedStunContent,
-    ).state;
-    const stunEvents: BattleEvent[] = [];
+    );
+    stunState = stunned.state;
+    const stunEvents: BattleEvent[] = [...stunned.events];
     for (let elapsed = 0; elapsed < 1_500; elapsed += 250) {
       const transition = tickBattle(stunState, 250, guaranteedStunContent);
       stunState = transition.state;
@@ -2535,7 +2611,7 @@ describe("combat rules", () => {
       0,
     );
     expect(before - after).toBeGreaterThan(0);
-    expect(before - after).toBeLessThan(45);
+    expect(before - after).toBeLessThan(60);
   });
 
   it("reserves Charge acceleration for a three-copy Echo Lineup", () => {
@@ -2573,10 +2649,10 @@ describe("combat rules", () => {
   });
 
   it("uses a deliberate Charge cadence with meaningful Tempo separation", () => {
-    expect(chargePerSecond(5)).toBe(7);
+    expect(chargePerSecond(5)).toBe(6.3);
     expect(chargePerSecond(9)).toBeGreaterThan(chargePerSecond(3) * 1.2);
-    expect(25 / chargePerSecond(5)).toBeCloseTo(3.57, 2);
-    expect(100 / chargePerSecond(5)).toBeCloseTo(14.29, 2);
+    expect(25 / chargePerSecond(5)).toBeCloseTo(3.97, 2);
+    expect(100 / chargePerSecond(5)).toBeCloseTo(15.87, 2);
     expect(difficultyAiDelay("normal")).toBeGreaterThanOrEqual(1_400);
 
     const state = createBattle(
@@ -2596,7 +2672,7 @@ describe("combat rules", () => {
     for (let elapsed = 250; elapsed < 5_000; elapsed += 250) {
       advanced = tickBattle(advanced, 250, combatContent).state;
     }
-    expect(advanced.player.bar).toBeCloseTo(40, 5);
+    expect(advanced.player.bar).toBeCloseTo(36.5, 5);
 
     let quarterStepped = state;
     for (let quarter = 0; quarter < 4; quarter += 1) {
@@ -2748,6 +2824,11 @@ describe("combat rules", () => {
   });
 
   it("emits removals when a cleanse clears negative statuses", () => {
+    const cleanseContent = structuredClone(combatContent);
+    cleanseContent.actions["action.moses.safe-passage"]!.chargeMs = 0;
+    cleanseContent.actions["action.moses.safe-passage"]!.effects = [
+      { kind: "cleanse", target: "allAllies" },
+    ];
     let state = createBattle(
       {
         playerCharacterIds: ["character.moses"],
@@ -2755,7 +2836,7 @@ describe("combat rules", () => {
         seed: 73,
         difficulty: "normal",
       },
-      combatContent,
+      cleanseContent,
     ).state;
     state.player.bar = 100;
     state.player.squad[0]!.statuses.push({
@@ -2764,15 +2845,16 @@ describe("combat rules", () => {
       magnitude: -0.2,
       remainingMs: 5_000,
     });
-    state = requestAction(
+    const cleansed = requestAction(
       state,
       "player",
       "action.moses.safe-passage",
-      combatContent,
-    ).state;
-    const events: Array<{ type: string }> = [];
+      cleanseContent,
+    );
+    state = cleansed.state;
+    const events: Array<{ type: string }> = [...cleansed.events];
     for (let elapsed = 0; elapsed < 1_250; elapsed += 250) {
-      const transition = tickBattle(state, 250, combatContent);
+      const transition = tickBattle(state, 250, cleanseContent);
       state = transition.state;
       events.push(...transition.events);
     }
@@ -2870,6 +2952,11 @@ describe("AI, missions, and store", () => {
   });
 
   it("waits past a zero-value heal instead of trapping solo support in a loop", () => {
+    const supportContent = structuredClone(combatContent);
+    supportContent.actions["action.moses.staff-tap"]!.chargeMs = 0;
+    supportContent.actions["action.moses.staff-tap"]!.effects = [
+      { kind: "heal", target: "self", power: 18 },
+    ];
     const state = createBattle(
       {
         playerCharacterIds: ["character.viking"],
@@ -2878,12 +2965,12 @@ describe("AI, missions, and store", () => {
         seed: 97,
         difficulty: "hard",
       },
-      combatContent,
+      supportContent,
     ).state;
 
-    expect(chooseAiCommand(state, combatContent)).toBeNull();
+    expect(chooseAiCommand(state, supportContent)).toBeNull();
     state.enemy.bar = 50;
-    expect(chooseAiCommand(state, combatContent)).toEqual({
+    expect(chooseAiCommand(state, supportContent)).toEqual({
       kind: "action",
       actionId: "action.moses.part-the-strip",
     });
@@ -3094,19 +3181,22 @@ describe("validated persistence", () => {
     expect(loadPreferences(storage)).toEqual(defaultPreferences);
   });
 
-  it("defaults older valid preferences to music off until the player opts in", () => {
+  it("defaults older valid preferences to music off and hold-to-pause", () => {
     const storage = new MemoryStorage();
     const {
       musicPlaybackEnabled: _removedPlaybackIntent,
+      pauseKeyMode: _removedPauseKeyMode,
       ...olderPreferences
     } = defaultPreferences;
     void _removedPlaybackIntent;
+    void _removedPauseKeyMode;
     storage.setItem(
       "riot-relics.preferences.v1",
       JSON.stringify(olderPreferences),
     );
 
     expect(loadPreferences(storage).musicPlaybackEnabled).toBe(false);
+    expect(loadPreferences(storage).pauseKeyMode).toBe("hold");
   });
 
   it("reconciles an earlier-build save when switching into its slot", () => {

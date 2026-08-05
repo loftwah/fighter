@@ -2,7 +2,7 @@
 
 Status: **V2 ACCEPTANCE REGISTER**
 
-Last reviewed: 2026-07-31
+Last reviewed: 2026-08-04
 
 This register turns the six launch Characters into deliberate functional
 benchmarks. It is subordinate to `docs/game-design.md` and
@@ -31,11 +31,11 @@ matching protected surface expression or blindly copying bugs.
 | LOFTWAH FIGHTER Character | Combat Type  | Calibration role              | Required three-Move rhythm                                                                  | Upgrade signature                                                 | V2 status             |
 | ------------------------- | ------------ | ----------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | --------------------- |
 | Viking                    | Brawler      | Accessible leader             | stack next-Move Power → dependable returning hit → strongest hit plus stun                  | more Power → returning hit becomes undodgeable → longer stun      | Benchmark implemented |
-| Grim Reaper               | Beast        | Transforming bruiser          | cheap/free form change → conditional personal boon → heavy whole-Lineup hit                 | cheaper form → stronger boon → stun on the whole-Lineup hit       | Partial; gap recorded |
-| Humpty Dumpty             | Oddball      | Cute reflector                | shield with end value → surprise attack/boon → timed reflection                             | heal when shield ends → improved boon chance → reactive stun      | Partial; gap recorded |
-| Moses                     | Arcane       | Dark controller               | charged enemy Strip slow → direct hit → high-cost action disable                            | instant-charge chance → stun on hit → stronger or lasting disable | Partial; gap recorded |
-| Ned Kelly                 | Sharpshooter | Super support/blaster         | charged direct blast → team healing → team Strip acceleration                               | instant-charge chance → extra healing → allied Power bonus        | Partial; gap recorded |
-| Tux                       | Tech         | Battery and denial specialist | trade personal Health for Charge → direct shot with disruption chance → multi-hit bar drain | stronger battery → improved disruption → larger Charge drain      | Partial; gap recorded |
+| Grim Reaper               | Beast        | Transforming bruiser          | cheap/free form change → conditional personal boon → heavy whole-Lineup hit                 | cheaper form → stronger boon → stun on the whole-Lineup hit       | Benchmark implemented |
+| Humpty Dumpty             | Oddball      | Cute reflector                | shield with end value → surprise attack/boon → timed reflection                             | heal when shield ends → improved boon chance → reactive stun      | Benchmark implemented |
+| Moses                     | Arcane       | Dark controller               | charged enemy Strip slow → direct hit → high-cost action disable                            | instant-charge chance → stun on hit → stronger or lasting disable | Benchmark implemented |
+| Ned Kelly                 | Sharpshooter | Super support/blaster         | charged direct blast → team healing → team Strip acceleration                               | instant-charge chance → extra healing → allied Power bonus        | Benchmark implemented |
+| Tux                       | Tech         | Battery and denial specialist | trade personal Health for Charge → direct shot with disruption chance → multi-hit bar drain | stronger battery → improved disruption → larger Charge drain      | Benchmark implemented |
 
 The Type order intentionally follows the existing LOFTWAH FIGHTER wheel:
 
@@ -76,23 +76,23 @@ can choose between immediate damage and banking Power for the finisher. His
 fixed-seed acceptance scenario must demonstrate that a first-time player can
 win by understanding only this loop.
 
-## Remaining implementation gaps
+## Implemented reusable primitives
 
-The other five rows are V2 requirements, not claims that the current launch
-kits already have parity. Their implementation should proceed through reusable
-effect primitives:
+The five non-Viking rows now use reusable, schema-validated effect primitives:
 
 - self-Health cost with deterministic Charge return;
 - shield-end outcomes that also fire when a shield is depleted;
 - data-authored surprise/boon tables with explicit seeded odds;
 - Move-slot or whole-kit disable effects with clear duration and UI state;
-- per-tier charge-time and attached-effect properties;
+- per-tier cost, charge-time, instant-charge and attached-effect properties;
 - a bounded transform or form-state primitive;
 - reactive upgrade hooks such as stun on reflection.
 
-No row may be closed by adding a Character-specific engine branch. Each new
-primitive needs schema validation, deterministic domain tests, readable Move
-copy, battle status feedback, AI valuation, and a content-authoring example.
+No row was closed by adding a Character-specific engine branch. Each primitive
+has schema validation, deterministic domain tests, readable Move copy, battle
+status feedback and AI valuation. The machine-checkable source-equivalence
+authoring gate is recorded in `docs/reference-character-crosswalk.md` and
+`src/content/character-calibration.ts`.
 
 ## Acceptance evidence
 
@@ -105,3 +105,9 @@ Before V2 freezes:
 4. fixed-seed automated matches establish that no kit is unusable;
 5. the Viking first-time-player scenario remains deliberately forgiving;
 6. playtest notes record feel, clarity, and decision rhythm, not only win rate.
+
+Automated evidence currently covers all 36 ordered one-on-one Standard-build
+matchups. Every pairing completes, both Characters start at least one Move,
+the shared AI issues no rejected command, and repeating the same seed produces
+the same outcome and remaining Health. This is a broad usability regression
+net, not a substitute for owner feel and balance playtesting.

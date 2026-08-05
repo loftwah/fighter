@@ -12,8 +12,10 @@ describe("Move category key", () => {
     expect(markup).toContain("Move bands");
     expect(markup).toContain("Inner band");
     expect(markup).toContain("Outer band");
+    expect(markup).toContain("On touch, hold a Move for details.");
     for (const detail of Object.values(MOVE_CATEGORY_DETAILS)) {
       expect(markup).toContain(detail.label);
+      expect(markup).toContain(`>${detail.marker}</i>`);
       expect(markup).toContain(detail.description);
       expect(markup).toContain(`data-move-category="${detail.id}"`);
     }
@@ -24,6 +26,7 @@ describe("Move category key", () => {
       id: "teamAttack",
       label: "Team attack",
       shortLabel: "Team hit",
+      marker: "ALL",
       description: "Damages the opposing Lineup.",
     });
   });

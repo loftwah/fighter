@@ -37,6 +37,15 @@ export type ActionTier = "stock" | "gold" | "platinum";
 export interface ActionTierProperties {
   undodgeable?: boolean;
   shieldPiercing?: boolean;
+  cost?: number;
+  chargeMs?: number;
+  instantChargeChance?: number;
+  additionalEffects?: ActionEffect[];
+  shieldEndHealPower?: number;
+  reflectionStun?: {
+    chance: number;
+    durationMs: number;
+  };
 }
 
 export interface StatBlock {
@@ -135,6 +144,65 @@ export type ActionEffect =
       requiresHit?: boolean;
     }
   | {
+      kind: "healthCost";
+      target: "self";
+      amount: number;
+      minimumHealth?: number;
+    }
+  | {
+      kind: "barPercent";
+      target: "allies" | "enemies";
+      ratio: number;
+      requiresHit?: boolean;
+    }
+  | {
+      kind: "blockMove";
+      target: "allies" | "enemies";
+      slotIndex: 0 | 1 | 2 | "all";
+      durationMs: number;
+      chance?: number;
+      requiresHit?: boolean;
+    }
+  | {
+      kind: "transform";
+      target: "self";
+      formId: string;
+      attackMagnitude: number;
+      defenceMagnitude: number;
+      durationMs: number;
+    }
+  | {
+      kind: "randomBoon";
+      target: "self";
+      options: Array<{
+        weight: number;
+        effect?:
+          | {
+              kind: "heal";
+              power: number;
+            }
+          | {
+              kind: "bar";
+              amount: number;
+            }
+          | {
+              kind: "modifyAttack";
+              magnitude: number;
+              durationMs: number;
+            }
+          | {
+              kind: "modifyDefence";
+              magnitude: number;
+              durationMs: number;
+            }
+          | {
+              kind: "modifyEvasion";
+              magnitude: number;
+              durationMs: number;
+            };
+      }>;
+    }
+  | {
       kind: "counterOnDodge";
       target: TargetKind;
       power: number;
@@ -176,6 +244,7 @@ export interface ActionDefinition {
   position: ActionPosition;
   chargeMs: number;
   interruptionPolicy?: "spend";
+  requiredFormId?: string;
   effects: ActionEffect[];
   tierProperties?: Partial<
     Record<Exclude<ActionTier, "stock">, ActionTierProperties>
@@ -262,7 +331,8 @@ export interface StatusState {
     | "dodgeCounter"
     | "damageOverTime"
     | "regeneration"
-    | "empower";
+    | "empower"
+    | "form";
   remainingMs: number;
   magnitude: number;
   intervalMs?: number;
@@ -271,6 +341,10 @@ export interface StatusState {
   sourceId?: string;
   sourceSide?: Side;
   actionId?: string;
+  formId?: string;
+  endHealAmount?: number;
+  reactionStunChance?: number;
+  reactionStunDurationMs?: number;
 }
 
 export type TeamStatusState =
@@ -284,7 +358,7 @@ export type TeamStatusState =
       id: string;
       kind: "moveBlock";
       remainingMs: number;
-      slotIndex: 0 | 1 | 2;
+      slotIndex: 0 | 1 | 2 | "all";
     };
 
 export interface AccessoryState {

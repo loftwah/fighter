@@ -112,7 +112,8 @@ action-battler structure in the supplied reference-game brief:
 ## Shared pause and development inspector
 
 - Escape toggles a blocking pause sheet during every active single-player
-  battle.
+  battle. P either pauses while held or toggles pause, according to the global
+  Play and accessibility preference.
 - The pause sheet exposes Resume, Restart, Main Menu, and Developer tools.
 - Developer tools open the fight paused and expose state, recent events, time
   stepping, Charge controls, and report export.

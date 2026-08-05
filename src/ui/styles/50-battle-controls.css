@@ -463,11 +463,17 @@
 }
 
 .move-category-key li i {
-  width: 1.1rem;
-  height: 1.1rem;
+  display: grid;
+  width: 2.1rem;
+  min-height: 1.25rem;
+  place-items: center;
   border: 2px solid var(--ink);
-  border-radius: 50%;
   background: var(--move-category-colour, var(--chalk));
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.82rem;
+  font-style: normal;
+  line-height: 0.8;
 }
 
 .move-category-key li span {

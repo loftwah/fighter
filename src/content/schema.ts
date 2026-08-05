@@ -16,6 +16,26 @@ const target = z.enum([
   "allEnemies",
 ]);
 
+const randomBoonEffectSchema = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("heal"), power: z.number().positive() }),
+  z.object({ kind: z.literal("bar"), amount: z.number() }),
+  z.object({
+    kind: z.literal("modifyAttack"),
+    magnitude: z.number(),
+    durationMs: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("modifyDefence"),
+    magnitude: z.number(),
+    durationMs: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("modifyEvasion"),
+    magnitude: z.number(),
+    durationMs: z.number().int().positive(),
+  }),
+]);
+
 const effectSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("damage"),
@@ -136,6 +156,51 @@ const effectSchema = z.discriminatedUnion("kind", [
     target,
     requiresHit: z.boolean().optional(),
   }),
+  z.object({
+    kind: z.literal("healthCost"),
+    target: z.literal("self"),
+    amount: z.number().positive(),
+    minimumHealth: z.number().int().min(0).optional(),
+  }),
+  z.object({
+    kind: z.literal("barPercent"),
+    target: z.enum(["allies", "enemies"]),
+    ratio: z.number().min(-1).max(1),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("blockMove"),
+    target: z.enum(["allies", "enemies"]),
+    slotIndex: z.union([
+      z.literal(0),
+      z.literal(1),
+      z.literal(2),
+      z.literal("all"),
+    ]),
+    durationMs: z.number().int().positive(),
+    chance: z.number().min(0).max(1).optional(),
+    requiresHit: z.boolean().optional(),
+  }),
+  z.object({
+    kind: z.literal("transform"),
+    target: z.literal("self"),
+    formId: id,
+    attackMagnitude: z.number(),
+    defenceMagnitude: z.number(),
+    durationMs: z.number().int().positive(),
+  }),
+  z.object({
+    kind: z.literal("randomBoon"),
+    target: z.literal("self"),
+    options: z
+      .array(
+        z.object({
+          weight: z.number().positive(),
+          effect: randomBoonEffectSchema.optional(),
+        }),
+      )
+      .min(2),
+  }),
 ]);
 
 const accessoryEffectSchema = z.discriminatedUnion("kind", [
@@ -195,6 +260,7 @@ export const actionSchema = z
     position: z.enum(["1L", "1", "1H", "2L", "2", "2H", "3L", "3", "3H"]),
     chargeMs: z.number().int().nonnegative(),
     interruptionPolicy: z.literal("spend").optional(),
+    requiredFormId: id.optional(),
     effects: z.array(effectSchema).min(1),
     tierProperties: z
       .object({
@@ -202,12 +268,34 @@ export const actionSchema = z
           .object({
             undodgeable: z.boolean().optional(),
             shieldPiercing: z.boolean().optional(),
+            cost: z.number().min(0).max(100).optional(),
+            chargeMs: z.number().int().nonnegative().optional(),
+            instantChargeChance: z.number().min(0).max(1).optional(),
+            additionalEffects: z.array(effectSchema).optional(),
+            shieldEndHealPower: z.number().positive().optional(),
+            reflectionStun: z
+              .object({
+                chance: z.number().min(0).max(1),
+                durationMs: z.number().int().positive(),
+              })
+              .optional(),
           })
           .optional(),
         platinum: z
           .object({
             undodgeable: z.boolean().optional(),
             shieldPiercing: z.boolean().optional(),
+            cost: z.number().min(0).max(100).optional(),
+            chargeMs: z.number().int().nonnegative().optional(),
+            instantChargeChance: z.number().min(0).max(1).optional(),
+            additionalEffects: z.array(effectSchema).optional(),
+            shieldEndHealPower: z.number().positive().optional(),
+            reflectionStun: z
+              .object({
+                chance: z.number().min(0).max(1),
+                durationMs: z.number().int().positive(),
+              })
+              .optional(),
           })
           .optional(),
       })
@@ -367,26 +455,46 @@ export function validateContent(
     }
     accessoryIds.add(accessory.id);
   }
-  for (const action of parsedActions) {
+  const validateEffectSequence = (
+    actionId: string,
+    tier: "stock" | "gold" | "platinum",
+    effects: (typeof parsedActions)[number]["effects"],
+  ) => {
     let hasPrecedingDamage = false;
-    for (const effect of action.effects) {
+    for (const effect of effects) {
       if (
         (effect.kind === "damageOverTime" || effect.kind === "healOverTime") &&
         effect.intervalMs > effect.durationMs
       ) {
         throw new Error(
-          `${action.id} has a periodic interval longer than its duration`,
+          `${actionId} (${tier}) has a periodic interval longer than its duration`,
         );
       }
-      if (effect.requiresHit && !hasPrecedingDamage) {
+      if (
+        "requiresHit" in effect &&
+        effect.requiresHit &&
+        !hasPrecedingDamage
+      ) {
         throw new Error(
-          `${action.id} has a hit-gated effect before any damage effect`,
+          `${actionId} (${tier}) has a hit-gated effect before any damage effect`,
         );
       }
       if (effect.kind === "damage") {
         hasPrecedingDamage = true;
       }
     }
+  };
+  for (const action of parsedActions) {
+    const goldEffects = [
+      ...action.effects,
+      ...(action.tierProperties?.gold?.additionalEffects ?? []),
+    ];
+    validateEffectSequence(action.id, "stock", action.effects);
+    validateEffectSequence(action.id, "gold", goldEffects);
+    validateEffectSequence(action.id, "platinum", [
+      ...goldEffects,
+      ...(action.tierProperties?.platinum?.additionalEffects ?? []),
+    ]);
     if (!presentationAssets[action.presentationId]) {
       throw new Error(
         `${action.id} references missing ${action.presentationId}`,

@@ -111,7 +111,7 @@ describe("battle guidance", () => {
     ).toEqual({
       state: "ready",
       title: "YOUR MOVE",
-      detail: "Choose a green Move · press 1, 2, or 3",
+      detail: "Press 1, 2, or 3 · 3 Moves ready",
     });
   });
 
@@ -125,7 +125,7 @@ describe("battle guidance", () => {
     ).toEqual({
       state: "ready",
       title: "YOUR MOVE",
-      detail: "Choose a green Move · press 1 or 2",
+      detail: "Press 1 or 2 · 2 Moves ready",
     });
   });
 

@@ -94,3 +94,32 @@ export function battlePresentationDuration(events: BattleEvent[]): number {
 
   return 0;
 }
+
+export function battlePresentationStateCommitDelay(
+  events: BattleEvent[],
+): number {
+  const presentationEvents = events.filter((event) => !event.periodic);
+  const types = new Set(presentationEvents.map((event) => event.type));
+  const damageCount = presentationEvents.filter(
+    (event) => event.type === "damageApplied",
+  ).length;
+  const changesVisibleState =
+    damageCount > 0 ||
+    types.has("healingApplied") ||
+    types.has("characterDefeated");
+  if (!changesVisibleState) {
+    return 0;
+  }
+  if (types.has("accessoryActivated")) {
+    return 0;
+  }
+
+  const impactDelay =
+    types.has("actionStarted") && types.has("actionCharged")
+      ? INSTANT_MOVE_IMPACT_DELAY_MS
+      : types.has("actionCharged")
+        ? CHARGED_MOVE_IMPACT_DELAY_MS
+        : REACTION_IMPACT_DELAY_MS;
+
+  return impactDelay + Math.max(0, damageCount - 1) * DAMAGE_STAGGER_MS;
+}

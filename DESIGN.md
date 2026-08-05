@@ -260,7 +260,7 @@ screenshot-led mock-up and implementation batch.
 
 The application opens on a deliberate launcher, never inside a game session. On desktop, Story Mode is the dominant image-and-copy bill while Quick Fight and Tournament form a smaller side stack; each card explains persistence and reward consequences before its explicit start or resume action. The global top rail contains Main Menu, Profile, and Settings. Once Story Mode is active, that rail switches to Story, Lineup, Collection, Store, and Missions, with a separate Exit game action back to the launcher.
 
-General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: Phaser owns the full viewport while a small pause control, timer, one opponent Health-and-Charge strip, edge Lineup portraits, and the player's Move-and-Charge field sit above it. Player Health lives on the persistent Lineup portraits. Secondary configuration, trait detail, readiness prose, difficulty, music, and the event feed move to setup, pause, focus help, or post-fight evidence instead of occupying the live arena.
+General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: Phaser owns the full viewport while a small pause control, timer, one opponent Health-and-Charge strip, edge Lineup portraits, and the player's Move-and-Charge field sit above it. Player Health belongs to the persistent active Lineup ticket; that ticket may extend one attached Health strip into the lower console instead of repeating the value on its square face. Secondary configuration, trait detail, readiness prose, difficulty, music, and the event feed move to setup, pause, focus help, or post-fight evidence instead of occupying the live arena.
 
 Spacing follows a tight print-production rhythm: micro gaps for meter and status internals, compact gaps inside tickets, base gaps between related controls, grouped gaps between modules, and fluid section insets for large surfaces. Thick solid borders establish objects; dashed rules imply perforation, receipts, or separable sections.
 
@@ -285,6 +285,11 @@ Team attack orange, Stun yellow, Team stun violet, Support mid-green, Team
 support teal, Charge control cyan, or Special chalk. Support does not use the
 brighter charge green reserved for readiness. Both meanings also have visible
 text labels. Pause contains the shared key; colour is never the only carrier.
+
+**The Deliberate Pause Rule.** Escape always toggles the blocking pause sheet.
+P follows the player's global choice: hold to pause and release to resume, or
+press to toggle. The visible pause control remains available to touch and
+pointer users, and the pause sheet states both keyboard behaviours.
 
 **The Developer Switchboard Rule.** Development builds add a dense operator surface in the same print-archive world: one-click scenario tickets lead, the custom Lineup composer sits beneath them, and diagnostics/convenience tools remain in a narrow ledger. It is visibly marked as an isolated sandbox and never masquerades as a fourth game mode.
 
@@ -379,18 +384,22 @@ three are deployed.
 
 ### Fight Setup
 
-Every player-facing fight stops at a labelled confirmation surface before the
-arena is built. Quick Fight's two-sided Lineup selector is the fullest version;
-Story uses the same versus-sheet grammar for owned, loaned, or forced Lineups;
-Tournament uses its Roster tickets for deployment and starter choice. Primary
-actions consistently say `Confirm Lineup` or `Confirm Lineups` before naming the
-mode-specific consequence. Quick Fight stages every selected Character as a
-visible portrait ticket on both sides; the first ticket is labelled as the
-starter and later tickets as the bench. Lineup bonuses display their exact Trait
-score and current effect beside each side, and the selected Accessory always
-shows its name and gameplay effect. Standard fight rules use plain language:
-Level 10, nine equal stat points, Stock Moves, no Modifications, and no Story
-rewards.
+Every player-facing fight stops at the same labelled match-contract surface
+before the arena is built. The hierarchy is fixed across Quick Fight, Story and
+Tournament: encounter title and rules, two visible Lineups, starter and bench
+state, Accessory and Trait evidence, mode-specific preparation, then one
+confirmation rail. The mode changes the content and available controls, never
+the visual order.
+
+Quick Fight is the fullest editable version. Its native Character selector is
+embedded in each visible portrait slot rather than repeated in a detached form;
+selected Characters cannot be duplicated within one Lineup. Story uses the
+same portrait stage for owned, loaned or forced builds. Tournament places its
+event, Trophy and bracket evidence above that stage, then keeps carried Health,
+deployment and starter controls below it. Primary actions consistently say
+`Confirm Lineup` or `Confirm Lineups` before naming the mode-specific
+consequence. Standard fight rules use plain language: Level 10, nine equal stat
+points, Stock Moves, no Modifications, and no Story rewards.
 
 ### Navigation
 
@@ -411,10 +420,13 @@ the battle HUD continues to show the selected title.
 
 Each Relic is a horizontal specimen ticket with a square portrait well, class
 label, health or state copy, a registration border, and a cut or notched edge.
-Battle-edge tickets never disappear: each keeps its portrait, the text
-`ACTIVE`, `READY`, or `OUT`, exact current/maximum Health, and a small tomato
-Health track visible throughout attack presentation. Active player tickets
-shift right; active enemy tickets shift left. A touch-sized `Attacks` tab
+Battle-edge tickets never disappear: each keeps its portrait and the text
+`ACTIVE`, `READY`, or `OUT`. Benched and enemy tickets retain exact
+current/maximum Health and a small tomato Health track throughout attack
+presentation. The active player ticket instead extends one attached,
+lower-console tomato Health readout and suppresses the duplicate value and
+track on its square face. Active player tickets shift right; active enemy
+tickets shift left. A touch-sized `Attacks` tab
 remains attached to every ticket. Its closed face gives the three tiers as
 `N`, `1`, or `2`; hover or activating the native disclosure by keyboard or
 touch shows all three attack names, Charge costs, and full `Normal`, `Tier 1`,
@@ -430,10 +442,14 @@ corona and attaches an explicit `POWERED +N` marker to the seal, while a reduced
 amount adds a tomato uneven pulse and an explicit `REDUCED −N` marker. These
 treatments stop under reduced motion but retain their
 different shapes, labels and colours. Readiness is communicated by fill,
-contrast and an accessible state label; tier,
-tactical category, predicted hit/effect summary, authored description and
-charge timing remain in the semantic label and focus disclosure rather than
-competing with the fighters. Unavailable Moves remain focusable and
+contrast and an accessible state label. Tactical category is the dominant
+coloured stamp on every Move: it pairs the full role name with a compact inked
+marker such as `HIT`, `STN`, `AID`, `BAR`, or `FX`. Upgrade tier remains a
+smaller, differently shaped secondary stamp. Desktop stamps are explicitly
+prefixed `Role` and `Tier`; compact stamps retain the marker, full role value,
+shape and colour when those prefixes no longer fit. Predicted hit/effect detail,
+the authored description and charge timing remain in the semantic label and
+focus disclosure rather than competing with the fighters. Unavailable Moves remain focusable and
 explanatory through `aria-disabled`; they state how much more Charge is needed
 or identify a blocking state such as Stunned. A selected Move hands the arena
 to the chosen presentation style before returning to the same control geometry.
@@ -447,15 +463,28 @@ tooltip or a banner over the arena.
 The opponent's thresholds remain represented by its independent Charge track
 and semantic action information rather than a second visible set of Move
 controls. Readiness uses hostile tomato, never the player's charge green.
+The complete opponent HUD rests at roughly four-fifths scale with slightly
+reduced opacity so the opposing Character remains visible. Mouse proximity,
+keyboard focus, or the explicit touch-sized `Opponent HUD` tab restores the
+instrument to full size without changing its contents. The tab can pin or
+reduce the full view; compact controls do not accept pointer input until the
+instrument expands. An explicit Reduce wins over retained button focus or
+proximity until the pointer leaves and approaches again, or keyboard focus
+moves into an opponent control.
 
 Each side also owns one Accessory with an independent percentage. The player's
-Accessory is a semantic button beside the lower Charge Strip. Opponent
+Accessory is a separate semantic ticket adjacent to the lower Charge Strip,
+with its own name, percentage, readiness statement and miniature meter. It may
+share the lower console row on compact layouts, but must never read as part of
+the Team Charge fill. Opponent
 Accessory state remains available to assistive technology and pause/help detail
 without adding another permanent ticket above the arena.
 
 **The Touch Explanation Rule.** Responsive compression may move the predicted
 hit/effect summary into the control's accessible name or focus disclosure, but
-it may not remove the explanation entirely.
+it may not remove the explanation entirely. Pause/help states that holding a
+Move opens its details so touch inspection is discoverable without permanent
+tutorial prose over the Charge Strip.
 
 ### Battle Pickups
 
@@ -510,11 +539,16 @@ composition that is never mirrored and is not duplicated by a live overlay.
 ### Meters
 
 Health and Charge Strips are bordered tracks paired with numeric labels where
-space permits. Health uses tomato; player Charge uses battle-only charge green
-over an indigo track. The opponent's identity and Health form one compact upper
-strip with a thinner independent Charge track directly beneath it. Player
-Health lives on the edge Lineup portraits, while the dominant player Charge
-Strip stays attached to the three Move controls. Both Charge fills track exact
+space permits. The lower resource is visibly named `Team Charge` because it is
+shared by the active Lineup; its current value remains an explicit `x / 100`.
+Health uses tomato; Team Charge uses battle-only charge green with a yellow
+leading edge, printed texture and interval marks over an indigo track. The opponent's identity and Health form one compact upper
+strip with a thinner independent Charge track directly beneath it. The active
+player Lineup ticket may extend its single Health readout into the lower combat
+console, while the dominant player Charge Strip stays attached to the three
+Move controls. The Health readout sits spatially above the Moves but beneath
+their stacking layer, with a deliberate physical gap; Move controls always win
+if responsive geometry ever approaches that boundary. Both Charge fills track exact
 fractional simulation state. Accessory percentage remains visually and
 semantically separate from normal Charge. Combat events remain available to
 assistive technology and the post-fight report but do not form permanent live

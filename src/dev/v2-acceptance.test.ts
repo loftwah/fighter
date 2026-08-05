@@ -17,17 +17,20 @@ describe("fixed-seed V2 Viking acceptance fight", () => {
       playerActionIds: result.playerActionIds,
     }).toEqual({
       outcome: "playerWon",
-      firstPlayerDecisionMs: 1_900,
-      simulationDurationMs: 23_300,
-      estimatedPlayableDurationMs: 47_670,
+      firstPlayerDecisionMs: 2_000,
+      simulationDurationMs: 31_400,
+      estimatedPlayableDurationMs: 57_870,
       playerActionIds: [
         "action.viking.shield-bash",
         "action.viking.axe-first",
         "action.viking.shield-bash",
         "action.viking.berserker-oath",
+        "action.viking.axe-first",
+        "action.viking.shield-bash",
+        "action.viking.axe-first",
       ],
     });
-    expect(result.playerHealthRatio).toBeCloseTo(0.4706, 4);
+    expect(result.playerHealthRatio).toBeCloseTo(0.4933, 4);
 
     const replay = replayBattleReport(result.report, combatContent);
     expect(replay.state.outcome).toBe(result.outcome);
@@ -40,12 +43,15 @@ describe("fixed-seed V2 Viking acceptance fight", () => {
     });
 
     expect(result.outcome).toBe("playerWon");
-    expect(result.firstPlayerDecisionMs).toBe(3_400);
+    expect(result.firstPlayerDecisionMs).toBe(3_500);
     expect(result.playerActionIds).toEqual([
       "action.viking.shield-bash",
       "action.viking.axe-first",
       "action.viking.shield-bash",
       "action.viking.berserker-oath",
+      "action.viking.axe-first",
+      "action.viking.shield-bash",
+      "action.viking.axe-first",
     ]);
     expect(result.playerHealthRatio).toBeGreaterThan(0.2);
   });

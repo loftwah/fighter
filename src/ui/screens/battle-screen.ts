@@ -5,18 +5,20 @@ export interface BattleScreenModel {
   roundLabel: string;
   difficultyOptions: string;
   musicPlaybackEnabled: boolean;
+  pauseKeyMode: "hold" | "toggle";
   devToolsEnabled: boolean;
   presentationStyle: BattlePresentationStyle;
 }
 
 export function renderBattleScreen(model: BattleScreenModel): string {
+  const pauseKeyHint = model.pauseKeyMode === "hold" ? "hold P" : "P toggles";
   return `
     <!--
     THESIS: The fight is the interface; permanent chrome is limited to the information needed for the next decision.
     OWN-WORLD: Full-screen rectangular character plates, two information-rich Charge instruments, ringed Move seals, and short graphic state transitions.
     STORY: Read the opponent's threats at the top, choose from your thresholds at the bottom, then let the impact own the stage.
     FIRST VIEWPORT: The arena fills the viewport between a mirrored opponent threat bar and player command bar; both expose three named Moves at their real Charge thresholds.
-    FORM: User-pinned Teeny Titans 2 interaction grammar translated into LOFTWAH FIGHTER's rectangular-art system.
+    FORM: INCUMBENT-POLISH · no concept roll applied; the user-pinned Teeny Titans 2 interaction grammar stays translated into LOFTWAH FIGHTER's rectangular-art system.
     FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, and DESIGN.md
     -->
     <main
@@ -32,7 +34,7 @@ export function renderBattleScreen(model: BattleScreenModel): string {
           class="battle-pause-control"
           data-command="pause-battle"
           aria-label="Pause fight"
-          title="Pause fight · Escape"
+          title="Pause fight · Escape toggles · ${pauseKeyHint}"
           disabled
         ><span aria-hidden="true">Ⅱ</span><small>Pause</small></button>
         <span class="round-label">${model.roundLabel}</span>
@@ -67,10 +69,29 @@ export function renderBattleScreen(model: BattleScreenModel): string {
           <div data-player-bench></div>
         </aside>
         <section
-            class="enemy-combat-console"
-            data-enemy-combat-console
-            aria-label="Opponent Health and Charge"
+          class="enemy-hud-shell"
+          data-enemy-hud-shell
+          data-hud-force-compact="false"
+          data-hud-pinned="false"
+          aria-label="Opponent HUD"
+        >
+          <button
+            type="button"
+            class="enemy-hud-toggle"
+            data-command="toggle-enemy-hud"
+            aria-controls="enemy-combat-console"
+            aria-expanded="false"
+            aria-label="Expand opponent HUD"
           >
+            <span>Opponent HUD</span>
+            <strong data-enemy-hud-toggle-action>View</strong>
+          </button>
+          <section
+              class="enemy-combat-console"
+              id="enemy-combat-console"
+              data-enemy-combat-console
+              aria-label="Opponent Health and Charge"
+            >
             <div class="combat-vitals-row enemy-vitals-row">
               <div class="fighter-readout enemy-readout" data-enemy-readout></div>
               <div
@@ -122,6 +143,7 @@ export function renderBattleScreen(model: BattleScreenModel): string {
                 </div>
               </div>
             </section>
+          </section>
         </section>
         <section class="arena-specimen">
           <div class="arena-canvas" id="battle-canvas" aria-hidden="true"></div>
@@ -218,7 +240,7 @@ export function renderBattleScreen(model: BattleScreenModel): string {
             >Accessory</button>
             <div class="charge-deck-heading">
               <span>
-                Your Charge
+                <b>Team Charge</b>
                 <small data-player-charge-rate>+0.0 / sec</small>
               </span>
               <strong data-player-charge-value>0 / 100</strong>
@@ -232,7 +254,7 @@ export function renderBattleScreen(model: BattleScreenModel): string {
               <div
                 class="meter charge-meter command-charge-meter"
                 role="meter"
-                aria-label="Player Charge"
+                aria-label="Team Charge"
                 aria-valuemin="0"
                 aria-valuemax="100"
                 aria-valuenow="0"

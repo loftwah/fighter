@@ -98,7 +98,7 @@ State has one owner:
 
 | State                                                  | Owner                     | Lifetime                                |
 | ------------------------------------------------------ | ------------------------- | --------------------------------------- |
-| Audio, difficulty preference, reduced motion           | global Preferences        | all profiles                            |
+| Audio, difficulty, pause-key mode, reduced motion      | global Preferences        | all profiles                            |
 | Identity, collection, Story, missions, store, upgrades | selected SaveData profile | persisted profile                       |
 | Quick Fight setup                                      | Quick session             | until leaving/reconfiguring Quick Fight |
 | Quick Fight history                                    | selected SaveData profile | persisted profile                       |
@@ -267,9 +267,11 @@ The application controller assigns `human` or `ai` ownership per side outside
 the domain engine. The engine command API remains side-agnostic. Pausing,
 pre-fight countdown, and presentation locks are application/runtime concerns:
 while any is active, the controller does not call `tickBattle` or AI selection.
-User pause also pauses Phaser scene time; countdown and presentation locks keep
-Phaser running so their authored motion can complete without modifying the
-deterministic battle state.
+User pause also pauses Phaser scene time. Escape always toggles pause; the
+persisted P-key preference resolves keydown/keyup into either hold-to-pause or
+press-to-toggle commands before the application controller changes runtime
+state. Countdown and presentation locks keep Phaser running so their authored
+motion can complete without modifying the deterministic battle state.
 
 Presentation-lock durations are fixed from semantic event types in a pure
 timing module. Phaser consumes the same events and duration but does not decide

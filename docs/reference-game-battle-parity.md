@@ -62,7 +62,8 @@ largest missing systems are:
 1. conditional and event-triggered passives;
 2. richer Charge manipulation and battle drops;
 3. bespoke Move-tier enhancements;
-4. transform, staged, channelled, summon, immunity, and disable mechanics;
+4. replacement-kit transforms, staged, channelled, summon, immunity, and
+   figure-disable mechanics;
 5. build-management controls for combat systems already in the engine.
 
 A first complete team Accessory contract and opponent Move-threshold rail were
@@ -94,55 +95,55 @@ combine it in their own authored ways.
 
 ## Timing, interruption, and targeting
 
-| Capability                                                | Confidence      | loftwah/fighter        | Gap                                                                     |
-| --------------------------------------------------------- | --------------- | ---------------------- | ----------------------------------------------------------------------- |
-| Per-Move cast time after spending bar                     | High            | Implemented            | —                                                                       |
-| Damage or stun interrupts a cast                          | High            | Implemented            | —                                                                       |
-| Dodge prevents a hit and its interruption                 | High            | Implemented            | —                                                                       |
-| Faster cast, instant-cast chance, interruption resistance | High            | Partial                | Resistance Patch exists; speed and instant-cast effects do not          |
-| Stun prevents action, switching, and bar fill             | High            | Implemented            | Bar-fill pause added 2026-07-30                                         |
-| Target remains fixed through the impact presentation      | High            | Implemented atomically | Pending actions do not support an earlier telegraphed target-lock phase |
-| Attached control requires a landed hit when authored      | High            | Implemented            | `requiresHit` prevents dodge-plus-status contradictions                 |
-| Simultaneous cast resolution policy                       | Not recoverable | Authored adaptation    | Player-side-first order remains deterministic and must be playtested    |
+| Capability                                                | Confidence      | loftwah/fighter        | Gap                                                                                                  |
+| --------------------------------------------------------- | --------------- | ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| Per-Move cast time after spending bar                     | High            | Implemented            | —                                                                                                    |
+| Damage or stun interrupts a cast                          | High            | Implemented            | —                                                                                                    |
+| Dodge prevents a hit and its interruption                 | High            | Implemented            | —                                                                                                    |
+| Faster cast, instant-cast chance, interruption resistance | High            | Partial                | Resistance Patch and tier-authored instant-charge chance exist; continuous cast-speed effects do not |
+| Stun prevents action, switching, and bar fill             | High            | Implemented            | Bar-fill pause added 2026-07-30                                                                      |
+| Target remains fixed through the impact presentation      | High            | Implemented atomically | Pending actions do not support an earlier telegraphed target-lock phase                              |
+| Attached control requires a landed hit when authored      | High            | Implemented            | `requiresHit` prevents dodge-plus-status contradictions                                              |
+| Simultaneous cast resolution policy                       | Not recoverable | Authored adaptation    | Player-side-first order remains deterministic and must be playtested                                 |
 
 ## Reusable Move and status vocabulary
 
-| Effect family                                  | Reference examples                               | loftwah/fighter                                                                  |
-| ---------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
-| Single-target damage                           | Basic strikes and projectiles                    | Implemented                                                                      |
-| Multi-hit damage                               | Rapid strikes and barrages                       | Implemented                                                                      |
-| Whole-enemy-team damage                        | Missile/area attacks                             | Implemented                                                                      |
-| Active and whole-team healing                  | Direct heal and party heal                       | Implemented                                                                      |
-| Stun                                           | Damage-plus-stun and standalone control          | Implemented                                                                      |
-| Attack/defence modification                    | Power increase/decrease, vulnerability           | Implemented                                                                      |
-| Fixed Charge gain/drain                        | Battery-style gain and bar depleters             | Implemented                                                                      |
-| Shield                                         | One-hit and lasting shields                      | Partial: consumable timed pools; one-hit and heal-on-expiry variants are missing |
-| Cleanse                                        | Remove allied negative effects                   | Implemented                                                                      |
-| Enemy dispel                                   | Remove opposing positive effects                 | Missing                                                                          |
-| Damage over time                               | Poison, Robo Buddy, mines                        | Implemented periodic status; summons and delayed mines remain missing            |
-| Healing over time/regeneration                 | Beatbox and passive regeneration                 | Implemented periodic status; passive trigger sources remain missing              |
-| Life-steal                                     | Damage while restoring health                    | Engine implemented as a data-authored ratio; representative shipped Move missing |
-| HP paid as an action cost                      | Self-damage for immediate Charge                 | Missing                                                                          |
-| Bar haste/slow                                 | Dance and Curse                                  | Implemented timed rate multiplier                                                |
-| Bar freeze/break                               | Temporary freeze or loss of accumulated progress | Partial: temporary freeze and fixed drain; complete percentage break is missing  |
-| Periodic bar damage                            | Electrocute-style Charge ticks                   | Missing                                                                          |
-| Dodge modification                             | Stackable smoke/dodge chance                     | Implemented numeric effect with a one-trigger counter stance                     |
-| Critical/Luck modification                     | Temporary positive-result chance                 | Engine implemented; representative shipped Move missing                          |
-| Undodgeable damage                             | Move enhancement or authored property            | Engine implemented; representative shipped Move missing                          |
-| Shield piercing                                | Move enhancement                                 | Engine implemented; representative shipped Move missing                          |
-| Reflection                                     | Return a percentage of incoming damage           | Implemented as queued, post-shield, non-recursive reaction damage                |
-| Counter-on-dodge                               | Triggered retaliation                            | Implemented as a queued, consumable dodge reaction                               |
-| Immunity/flight                                | Avoid eligible attacks while active              | Missing                                                                          |
-| Switch lock/root                               | Prevent voluntary switching                      | Implemented as an authored timed effect                                          |
-| Figure banish/disable                          | Temporarily prevent a figure being selected      | Missing                                                                          |
-| Individual Move-slot block                     | Waffle-style ability disable                     | Implemented as a timed team-side slot block through an Accessory                 |
-| Heal/effect block                              | Prevent a category of positive effect            | Missing                                                                          |
-| Channelled action                              | Continue while bar drains or until interrupted   | Missing                                                                          |
-| Transform/replacement kit                      | Swap to a different set of Moves                 | Missing                                                                          |
-| Staged action                                  | Several activations prime a later release        | Missing                                                                          |
-| Persistent summon                              | Repeated damage/heal or later-attack trigger     | Missing                                                                          |
-| Random authored result                         | Random attack or generated battle bonus          | Missing                                                                          |
-| On-hit/on-crit/on-dodge/on-KO/on-kill triggers | Character and chip reactions                     | Partial: dodge and damaged triggers; hit/crit/KO/kill remain                     |
+| Effect family                                  | Reference examples                               | loftwah/fighter                                                                            |
+| ---------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------ |
+| Single-target damage                           | Basic strikes and projectiles                    | Implemented                                                                                |
+| Multi-hit damage                               | Rapid strikes and barrages                       | Implemented                                                                                |
+| Whole-enemy-team damage                        | Missile/area attacks                             | Implemented                                                                                |
+| Active and whole-team healing                  | Direct heal and party heal                       | Implemented                                                                                |
+| Stun                                           | Damage-plus-stun and standalone control          | Implemented                                                                                |
+| Attack/defence modification                    | Power increase/decrease, vulnerability           | Implemented                                                                                |
+| Fixed Charge gain/drain                        | Battery-style gain and bar depleters             | Implemented                                                                                |
+| Shield                                         | One-hit and lasting shields                      | Partial: consumable timed pools and heal-on-end exist; one-hit eligibility remains missing |
+| Cleanse                                        | Remove allied negative effects                   | Implemented                                                                                |
+| Enemy dispel                                   | Remove opposing positive effects                 | Missing                                                                                    |
+| Damage over time                               | Poison, Robo Buddy, mines                        | Implemented periodic status; summons and delayed mines remain missing                      |
+| Healing over time/regeneration                 | Beatbox and passive regeneration                 | Implemented periodic status; passive trigger sources remain missing                        |
+| Life-steal                                     | Damage while restoring health                    | Engine implemented as a data-authored ratio; representative shipped Move missing           |
+| HP paid as an action cost                      | Self-damage for immediate Charge                 | Implemented as an explicit non-lethal self-Health cost                                     |
+| Bar haste/slow                                 | Dance and Curse                                  | Implemented timed rate multiplier                                                          |
+| Bar freeze/break                               | Temporary freeze or loss of accumulated progress | Implemented through freeze, fixed drain, and current-Strip percentage drain                |
+| Periodic bar damage                            | Electrocute-style Charge ticks                   | Missing                                                                                    |
+| Dodge modification                             | Stackable smoke/dodge chance                     | Implemented numeric effect with a one-trigger counter stance                               |
+| Critical/Luck modification                     | Temporary positive-result chance                 | Engine implemented; representative shipped Move missing                                    |
+| Undodgeable damage                             | Move enhancement or authored property            | Implemented and shipped on Viking and Ned Kelly                                            |
+| Shield piercing                                | Move enhancement                                 | Engine implemented; representative shipped Move missing                                    |
+| Reflection                                     | Return a percentage of incoming damage           | Implemented as queued, post-shield, non-recursive reaction damage                          |
+| Counter-on-dodge                               | Triggered retaliation                            | Implemented as a queued, consumable dodge reaction                                         |
+| Immunity/flight                                | Avoid eligible attacks while active              | Missing                                                                                    |
+| Switch lock/root                               | Prevent voluntary switching                      | Implemented as an authored timed effect                                                    |
+| Figure banish/disable                          | Temporarily prevent a figure being selected      | Missing                                                                                    |
+| Individual Move-slot block                     | Waffle-style ability disable                     | Implemented as reusable Move data and through an Accessory; whole-kit block supported      |
+| Heal/effect block                              | Prevent a category of positive effect            | Missing                                                                                    |
+| Channelled action                              | Continue while bar drains or until interrupted   | Missing                                                                                    |
+| Transform/replacement kit                      | Swap to a different set of Moves                 | Partial: bounded stat form implemented; replacement Moves and art remain missing           |
+| Staged action                                  | Several activations prime a later release        | Missing                                                                                    |
+| Persistent summon                              | Repeated damage/heal or later-attack trigger     | Missing                                                                                    |
+| Random authored result                         | Random attack or generated battle bonus          | Implemented as explicit seeded weighted boon tables                                        |
+| On-hit/on-crit/on-dodge/on-KO/on-kill triggers | Character and chip reactions                     | Partial: dodge and damaged triggers; hit/crit/KO/kill remain                               |
 
 Reliable public evidence did **not** establish a normal revive Move, true
 opponent-Move copying, a conventional sleep status, or a direct forced swap.
@@ -153,42 +154,39 @@ Case member as an authored run rule.
 
 The six shipped Relics now exercise a useful first slice of the vocabulary:
 
-| Relic         | Current playable kit                                                                                         |
-| ------------- | ------------------------------------------------------------------------------------------------------------ |
-| Viking        | Stackable next-Move Power; dependable returning hit with an undodgeable upgrade; strongest hit plus stun     |
-| Ned Kelly     | Quick damage; consumable shield plus Charge refund; charged damage, stun, and switch lock                    |
-| Tux           | Damage plus allied Charge; damage plus enemy Charge drain and slow; whole-team damage                        |
-| Moses         | Immediate heal plus regeneration; low damage plus defence reduction; whole-team heal and cleanse             |
-| Humpty Dumpty | Damage plus Evasion and a dodge counter; shield plus reflection; damage-over-time plus enemy Power reduction |
-| Grim Reaper   | Quick damage; self Power increase; whole-team damage                                                         |
+| Relic         | Current playable kit                                                                                      |
+| ------------- | --------------------------------------------------------------------------------------------------------- |
+| Viking        | Stackable next-Move Power; dependable returning hit with an undodgeable upgrade; strongest hit plus Stun  |
+| Ned Kelly     | Charged direct blast; whole-Lineup healing; team Charge acceleration with an allied-Power upgrade         |
+| Tux           | Non-lethal Health-for-Charge battery; Move disruption; multi-hit whole-Lineup damage and percentage drain |
+| Moses         | Charged Strip slowdown; direct control hit; complete opposing Move-kit disable                            |
+| Humpty Dumpty | Shield with end healing; seeded surprise boons; timed reflection with an upgraded reactive Stun           |
+| Grim Reaper   | Bounded stat form; seeded personal boon; whole-Lineup damage with damage-over-time and upgraded team Stun |
 
 This is not yet reference-scale character diversity. No shipped Move currently
-uses the implemented Fortune, undodgeable, shield-piercing, or lifesteal
-properties, and no Relic yet represents summons, transformation, channels,
-staged actions or figure disable. Move-slot blocking is represented by a team
-Accessory rather than a shipped Character Move.
-Those remain explicit content-and-engine milestones rather than hidden
-assumptions.
+uses the implemented Fortune, shield-piercing, or lifesteal properties, and no
+Relic yet represents summons, replacement-kit transformation, channels, staged
+actions or figure disable. Those remain explicit content-and-engine milestones
+rather than hidden assumptions.
 
 ## Character-build systems
 
-| System                             | Reference behaviour                                    | loftwah/fighter                                                                         |
-| ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| Four core displayed stats          | Health, Power, Dodge, Luck                             | Adapted to Vitality, Power, Evasion, Fortune, plus Tempo                                |
-| Six-class advantage wheel          | Martial → Beast → Cute → Dark → Super → Tech           | Implemented with original labels and reference-equivalent relationships                 |
-| Affiliation/team bonuses           | Named two/three-member stat bonuses                    | Adapted equivalent: six scored Team Traits with visible continuous bonuses              |
-| Move unlocking                     | Moves arrive through levels                            | All three currently available immediately                                               |
-| Move reordering                    | Unlocked later; changes threshold                      | Implemented in engine and Collection controls                                           |
-| Individual Move enhancement        | Feed figures; bespoke gold/shiny secondary property    | Partial: matching-copy consumption and generic tiers implemented; bespoke perks missing |
-| One passive Mod Chip per character | Static, start, reaction, casting, drop, and KO effects | Partial: four reusable Patches only                                                     |
-| Separate visual repaint            | Cosmetic only                                          | Deliberately deferred with art direction                                                |
+| System                             | Reference behaviour                                    | loftwah/fighter                                                                                                             |
+| ---------------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Four core displayed stats          | Health, Power, Dodge, Luck                             | Adapted to Vitality, Power, Evasion, Fortune, plus Tempo                                                                    |
+| Six-class advantage wheel          | Martial → Beast → Cute → Dark → Super → Tech           | Implemented with original labels and reference-equivalent relationships                                                     |
+| Affiliation/team bonuses           | Named two/three-member stat bonuses                    | Adapted equivalent: six scored Team Traits with visible continuous bonuses                                                  |
+| Move unlocking                     | Moves arrive through levels                            | All three currently available immediately                                                                                   |
+| Move reordering                    | Unlocked later; changes threshold                      | Implemented in engine and Collection controls                                                                               |
+| Individual Move enhancement        | Feed figures; bespoke gold/shiny secondary property    | Implemented for launch kits through cumulative tier cost, charge, instant chance, reaction and additional-effect properties |
+| One passive Mod Chip per character | Static, start, reaction, casting, drop, and KO effects | Partial: four reusable Patches only                                                                                         |
+| Separate visual repaint            | Cosmetic only                                          | Deliberately deferred with art direction                                                                                    |
 
-Numeric tier and slot scaling now improve damage, healing, periodic effects,
+Numeric tier and slot scaling improves damage, healing, periodic effects,
 shields, Charge changes, timed Charge-rate effects, buff/debuff magnitude,
-switch locks, and stun duration. That repairs pure-utility tiers and Move
-reordering, but does not replace bespoke authored tier additions such as
-`healOnExpiry` or `instantCastChance`. Undodgeable, shield-piercing, and
-lifesteal properties are available to authored damage effects.
+switch locks, and Stun duration. Authored cumulative tiers can also change
+cost, charge time, instant-charge chance, reflection reaction, and add effects.
+Undodgeable, shield-piercing, and lifesteal remain reusable damage properties.
 
 ## Team Accessory
 
@@ -270,7 +268,7 @@ architecture.
 | Restart/Leave cannot restore the previous snapshot | Implemented 2026-07-30                                                                   |
 | Per-round battle modifiers/hazards                 | Partial                                                                                  |
 | Six-character reserve roster                       | Implemented with one-to-three deployment, explicit starter, carry Health, and support XP |
-| One-use or run-limited Accessories                 | Missing with Accessory system                                                            |
+| One-use or run-limited Accessories                 | Implemented as persisted once-used Tournament exhaustion                                 |
 
 ## AI acceptance target
 
@@ -390,14 +388,14 @@ while restoring the reference game's obvious choose-versus-watch rhythm.
 
 1. Expand the implemented Accessory layer with ownership, batteries, richer
    presentation, and tournament limits only when the surrounding modes need it.
-2. Add self-health cost, percentage Charge break, enemy dispel, periodic Charge
-   damage, effect blocking, and a one-hit shield variant.
+2. Add enemy dispel, periodic Charge damage, effect blocking, and a one-hit
+   shield variant.
 3. Extend the implemented reaction queue from damaged/dodge triggers to on-hit,
    on-critical, on-KO, and on-kill Patches.
-4. Add authored tier enhancements (`instantCastChance`, `healOnExpiry`, effect
-   additions) independent of numeric multipliers.
-5. Add channel, staged action, transform/replacement kit, summon, and figure
-   disable only as original character kits require them.
+4. Extend authored tier enhancements only where a calibrated kit requires a
+   new reusable property.
+5. Extend bounded forms into replacement kits, then add channel, staged action,
+   summon, and figure disable only as original character kits require them.
 6. Add Story starting-active selection, Accessory ownership, and cosmetic
    variants to the existing build controls.
 7. Expand the implemented drop vocabulary with temporary buffs, cleanse, and

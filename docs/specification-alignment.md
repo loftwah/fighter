@@ -45,7 +45,7 @@ rather than silently replacing tested behaviour.
 | Six Combat Types                     | Aligned with deliberate wheel difference | Closed six-Type cycle plus Typeless. See deliberate decisions.                                                                                                                                                                                                                                                                  |
 | Type and Trait separation            | Aligned                                  | One Type and zero-to-two Traits per Character.                                                                                                                                                                                                                                                                                  |
 | Continuous dual-Trait contribution   | Aligned 2026-07-31                       | Dual-Trait Characters contribute `0.5` to each Trait.                                                                                                                                                                                                                                                                           |
-| Launch roster mapping                | Aligned; kit calibration in progress     | Tux, Humpty Dumpty, Moses, Viking, Ned Kelly, and Grim Reaper cover the imported Type mapping. `docs/launch-roster-calibration.md` now gates V2 on one source-role-equivalent kit per Type; Viking is the implemented benchmark.                                                                                                |
+| Launch roster mapping                | Aligned and mechanically calibrated      | Tux, Humpty Dumpty, Moses, Viking, Ned Kelly, and Grim Reaper cover the imported Type mapping. `docs/launch-roster-calibration.md` gates V2 on one source-role-equivalent kit per Type; all six signature loops now have deterministic tests.                                                                                   |
 | Level cap 25                         | Aligned                                  | Enforced by schemas and battle construction.                                                                                                                                                                                                                                                                                    |
 | Free stat respec                     | Aligned                                  | Allocation can be reclaimed outside active tournaments/battles.                                                                                                                                                                                                                                                                 |
 | Modification at level 5              | Aligned                                  | One reusable, non-destructive Modification slot.                                                                                                                                                                                                                                                                                |
@@ -74,7 +74,7 @@ rather than silently replacing tested behaviour.
 ### Charge and positions
 
 ```text
-neutral Tempo 5 full Strip: approximately 14.3 seconds
+neutral Tempo 5 full Strip: approximately 15.9 seconds
 
 1L  18 Charge  ×0.70
 1   25 Charge  ×0.80
@@ -143,10 +143,12 @@ The imported eight-second neutral Strip was implemented and rejected by live
 playtest as too fast alongside low-cost Moves, Drops, Accessories, and opposing
 AI. A ten-second follow-up remained too fast in owner testing because players
 could not read Charge, Lineup Health, and attack outcomes before the opponent
-acted again. The authoritative baseline is now approximately 14.3 seconds at
-Tempo 5, paired with a 1.4-second Normal AI decision window after presentation.
-Tempo, Traits, and explicit effects still create faster teams without making
-the opening unreadable.
+acted again. A 14.3-second follow-up improved readability, but the August 2026
+owner playtest still found the Strip slightly too quick once richer Move and
+impact feedback was present. The authoritative baseline is now approximately
+15.9 seconds at Tempo 5, paired with a 1.4-second Normal AI decision window
+after presentation. Tempo, Traits, and explicit effects still create faster
+teams without making the opening unreadable.
 
 Owner testing also rejected splitting active Health from the Charge controls.
 The retained presentation groups opponent Health with opponent Charge in the
