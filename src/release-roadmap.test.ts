@@ -51,11 +51,12 @@ describe("release roadmap contract", () => {
     expect(product).toMatch(/Public\s+app-store distribution can follow V2\.3/);
   });
 
-  it("keeps the corrected mode foundation in the active programme", () => {
-    expect(continuation).toContain("FOUNDATION PACKET F00 COMPLETE");
-    expect(continuation).toMatch(
-      /Shared Lineup is the active first visual\s+package/,
+  it("keeps the corrected mode foundation and current closeout in the active programme", () => {
+    expect(continuation).toContain("AUTONOMOUS V2 CLOSEOUT ACTIVE");
+    expect(continuation).toContain(
+      "F00, Shared Lineup, Review Fight, and result storytelling",
     );
+    expect(continuation).toContain("production-safe Fight Lab boundary");
     expect(gameDesign).toContain(
       "When a deployed Lineup loses but at least one Tournament Roster member lives",
     );

@@ -2,13 +2,16 @@ import {
   resolveImageObjectPosition,
   resolveImagePath,
 } from "../../assets/registry";
-import type { SaveData } from "../../persistence/save";
+import { defaultPlayerName, type SaveData } from "../../persistence/save";
 import { evaluateAchievements } from "../../progression/achievements";
 import { tournamentTrophies } from "../../tournaments/catalog";
 import { escapeHtml } from "../format";
 import { ICONS } from "../icons";
 
-export function renderProfileScreen(save: SaveData): string {
+export function renderProfileScreen(
+  save: SaveData,
+  profileNames: readonly string[] = ([1, 2, 3] as const).map(defaultPlayerName),
+): string {
   const storyClears = save.clearedNodeIds.length;
   const achievementProgress = evaluateAchievements(save);
   const completedAchievements = achievementProgress.filter(
@@ -67,14 +70,15 @@ export function renderProfileScreen(save: SaveData): string {
                   (slot) =>
                     `<option value="${slot}" ${
                       save.slot === slot ? "selected" : ""
-                    }>Player profile ${slot}</option>`,
+                    }>${escapeHtml(profileNames[slot - 1] ?? defaultPlayerName(slot))} · Profile ${slot}</option>`,
                 )
                 .join("")}
             </select>
           </label>
           <small>
-            Three local profiles are available in this prototype. Switching
-            profiles never changes your global Settings.
+            Three independent profiles live in this browser. The profile
+            number stays visible for recovery and exports; switching profiles
+            never changes your global Settings.
           </small>
         </fieldset>
         <section class="profile-record" aria-labelledby="profile-record-title">

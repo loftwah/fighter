@@ -117,7 +117,7 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
             </select>
           </label>
           <p class="settings-note">
-            Gameplay and tuning experiments stay in Developer Lab so normal
+            Development-only tuning overrides stay separate from Fight Lab so normal
             fights and progression cannot be contaminated accidentally.
           </p>
         </fieldset>

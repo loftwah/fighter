@@ -15,6 +15,7 @@ export interface DevLabScreenModel {
   save: SaveData;
   draft: DevBattleScenario;
   recentBattleReports: readonly BattleReport[];
+  developerOverridesEnabled: boolean;
 }
 
 function renderCharacterOptions(selectedId: string, optional: boolean): string {
@@ -86,12 +87,13 @@ export function renderDevLabScreen({
   save,
   draft,
   recentBattleReports,
+  developerOverridesEnabled,
 }: DevLabScreenModel): string {
   const recentReport = recentBattleReports[0];
 
   return `
     <!--
-    THESIS: Development is a fight switchboard, not an admin dashboard.
+    THESIS: Fight Lab is a power-user fight switchboard, not an admin dashboard.
     OWN-WORLD: Indigo drawer board, chalk scenario tickets, tomato actions, acid-yellow selection, hard registration borders.
     STORY: Pick a known test or compose one, prove it is isolated, then start paused or live with diagnostics beside the work.
     FIRST VIEWPORT: Six launch tickets lead; the Lineup composer fills the centre; a narrow diagnostic ledger stays at right; launch actions close the bottom edge.
@@ -102,15 +104,15 @@ export function renderDevLabScreen({
       <header class="dev-lab-heading">
         <div>
           <button class="text-button" data-command="main-menu">${ICONS.arrowLeft}<span>Main Menu</span></button>
-          <h1 id="dev-lab-title">Developer Lab</h1>
+          <h1 id="dev-lab-title">Fight Lab</h1>
           <p>
-            Isolated sandbox. Development fights never change Story,
+            Build, replay, and study deterministic fights. Lab fights never change Story,
             progression, Missions, rewards, or tournament runs.
           </p>
         </div>
         <div class="dev-environment-stamp">
-          <span>Environment</span>
-          <strong>Development</strong>
+          <span>Sandbox</span>
+          <strong>LAB FIGHT · NO PROGRESSION</strong>
           <small>Local state · deterministic combat</small>
         </div>
       </header>
@@ -280,16 +282,23 @@ export function renderDevLabScreen({
             }</dd></div>
           </dl>
           <div class="dev-convenience">
-            <h3>Convenience</h3>
-            <button data-command="dev-grant-collection">Grant all Characters + Modifications</button>
-            <button data-command="dev-grant-stamps" data-amount="500">Add 500 Stamps</button>
-            <button data-command="dev-unlock-story">Unlock First Run views</button>
+            <h3>Records</h3>
             <button data-command="download-profile-data">Export profile JSON</button>
             <button
               data-command="download-battle-report"
               ${recentReport ? "" : "disabled"}
             >Export last battle report</button>
           </div>
+          ${
+            developerOverridesEnabled
+              ? `<div class="dev-convenience dev-overrides">
+                  <h3>Development overrides</h3>
+                  <button data-command="dev-grant-collection">Grant all Characters + Modifications</button>
+                  <button data-command="dev-grant-stamps" data-amount="500">Add 500 Stamps</button>
+                  <button data-command="dev-unlock-story">Unlock First Run views</button>
+                </div>`
+              : ""
+          }
         </aside>
       </div>
     </section>

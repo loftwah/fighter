@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   globalNavigationRoutes,
+  initialLabOverlay,
   isRouteAvailableInSession,
   routeDefinitions,
   routeIds,
@@ -38,6 +39,9 @@ describe("application route manifest", () => {
     expect(isRouteAvailableInSession("store", "story", true)).toBe(true);
     expect(isRouteAvailableInSession("store", "tournament", true)).toBe(false);
     expect(isRouteAvailableInSession("achievements", "story", true)).toBe(true);
+    expect(isRouteAvailableInSession("dev", "dev", true)).toBe(true);
+    expect(isRouteAvailableInSession("dev", "dev", false)).toBe(false);
+    expect(routeDefinitions.dev.label).toBe("Fight Lab");
   });
 
   it("selects shell and mode tools from route metadata", () => {
@@ -46,5 +50,11 @@ describe("application route manifest", () => {
     expect(usesStoryShell("achievements", "story")).toBe(false);
     expect(showsModeTools("quick", "quick")).toBe(true);
     expect(showsModeTools("profile", "quick")).toBe(false);
+  });
+
+  it("opens production Lab pauses in the ordinary pause sheet", () => {
+    expect(initialLabOverlay(false, false)).toBe("none");
+    expect(initialLabOverlay(true, false)).toBe("pause");
+    expect(initialLabOverlay(true, true)).toBe("inspector");
   });
 });

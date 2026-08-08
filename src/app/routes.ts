@@ -117,7 +117,7 @@ export const routeDefinitions = {
   },
   dev: {
     id: "dev",
-    label: "Developer Lab",
+    label: "Fight Lab",
     family: "development",
     allowedSessions: ["dev"],
     shell: "global",
@@ -149,9 +149,9 @@ export const storyNavigationRoutes = [
 export function isRouteAvailableInSession(
   route: Route,
   sessionMode: SessionMode,
-  devToolsEnabled: boolean,
+  fightLabEnabled: boolean,
 ): boolean {
-  if (route === "dev" && !devToolsEnabled) {
+  if (route === "dev" && !fightLabEnabled) {
     return false;
   }
   const allowedSessions: readonly SessionMode[] =
@@ -178,4 +178,12 @@ export function showsModeTools(
     routeDefinitions[route].family !== "global" &&
     routeDefinitions[route].family !== "battle"
   );
+}
+
+export function initialLabOverlay(
+  startPaused: boolean,
+  developerOverridesEnabled: boolean,
+): "none" | "pause" | "inspector" {
+  if (!startPaused) return "none";
+  return developerOverridesEnabled ? "inspector" : "pause";
 }

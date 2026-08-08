@@ -44,6 +44,9 @@ direction but cannot add work to a milestone by itself.
   identifies Quick Fight as the unrestricted end-game sandbox.
 - Coherent production-facing pages, views, navigation, local profiles,
   progression, recovery, settings, accessibility, and responsive layouts.
+- A progression-neutral Fight Lab with deterministic named scenarios, custom
+  one-to-three matchups, and safe exports; development mutation tools remain
+  unavailable in production.
 - A truthful public landing page at `fighter.loftwah.com` with a deliberate
   play action, gameplay proof, browser metadata, and direct paths into the
   project documentation.

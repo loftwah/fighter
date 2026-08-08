@@ -787,8 +787,8 @@ cause and stays readable before the report-export and rematch actions.
 ### Pause Sheet and Development Inspector
 
 Escape opens a compact acid-yellow Pause Sheet and freezes the complete
-single-player simulation. Its actions resume, restart, leave, inspect the
-battle, or open the Developer Lab. The underlying battle is inert, keyboard
+single-player simulation. Its actions resume, restart, leave and, in a
+development build, inspect the battle or return to Fight Lab. The underlying battle is inert, keyboard
 focus is trapped inside the sheet, and closing restores focus to the invoking
 control.
 

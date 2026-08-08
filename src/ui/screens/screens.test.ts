@@ -32,7 +32,7 @@ describe("screen renderers", () => {
       name: "main menu",
       markup: renderMainMenuScreen({
         save,
-        devToolsEnabled: true,
+        fightLabEnabled: true,
       }),
       heading: "Choose a game.",
     },
@@ -110,13 +110,14 @@ describe("screen renderers", () => {
       heading: "The Wrong Door Cup",
     },
     {
-      name: "developer lab",
+      name: "fight lab",
       markup: renderDevLabScreen({
         save,
         draft: structuredClone(defaultDevScenario),
         recentBattleReports: [],
+        developerOverridesEnabled: false,
       }),
-      heading: "Developer Lab",
+      heading: "Fight Lab",
     },
     {
       name: "battle",
@@ -169,6 +170,43 @@ describe("screen renderers", () => {
 
     expect(markup).toContain("&lt;img");
     expect(markup).not.toContain("<img src=x");
+  });
+
+  it("names all three local profiles without hiding their recovery-safe slot", () => {
+    const markup = renderProfileScreen(save, [
+      "Headliner",
+      "Contender",
+      "Wildcard",
+    ]);
+
+    expect(markup).toContain("Headliner · Profile 1");
+    expect(markup).toContain("Contender · Profile 2");
+    expect(markup).toContain("Wildcard · Profile 3");
+    expect(markup).not.toContain("available in this prototype");
+  });
+
+  it("keeps Fight Lab public tools separate from development-only mutations", () => {
+    const publicMarkup = renderDevLabScreen({
+      save,
+      draft: structuredClone(defaultDevScenario),
+      recentBattleReports: [],
+      developerOverridesEnabled: false,
+    });
+    const developmentMarkup = renderDevLabScreen({
+      save,
+      draft: structuredClone(defaultDevScenario),
+      recentBattleReports: [],
+      developerOverridesEnabled: true,
+    });
+
+    expect(publicMarkup).toContain("LAB FIGHT · NO PROGRESSION");
+    expect(publicMarkup).toContain("Custom Fight Composer");
+    expect(publicMarkup).toContain("Export profile JSON");
+    expect(publicMarkup).not.toContain("Grant all Characters");
+    expect(publicMarkup).not.toContain("Add 500 Stamps");
+    expect(publicMarkup).not.toContain("Unlock First Run views");
+    expect(developmentMarkup).toContain("Development overrides");
+    expect(developmentMarkup).toContain("Grant all Characters");
   });
 
   it("reserves an explicit visual hit or miss verdict in the battle arena", () => {
@@ -235,7 +273,7 @@ describe("screen renderers", () => {
   });
 
   it("does not duplicate global navigation inside the Main Menu", () => {
-    const markup = renderMainMenuScreen({ save, devToolsEnabled: true });
+    const markup = renderMainMenuScreen({ save, fightLabEnabled: true });
 
     expect(markup).not.toContain("dev-launch-ticket");
     expect(markup).not.toContain('data-route="achievements"');

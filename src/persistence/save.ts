@@ -149,6 +149,7 @@ export interface CustomTournamentDefinitionData {
 export interface PlayerProfileData {
   schemaVersion: 3;
   profileId: string;
+  identityPresetVersion: 0 | 1;
   playerName: string;
   quickFightRecord: QuickFightRecord;
   customTournamentDefinitions: CustomTournamentDefinitionData[];
@@ -505,6 +506,7 @@ const customTournamentDefinitionSchema = z
 const playerProfileSchema = z.object({
   schemaVersion: z.literal(3),
   profileId: z.string().min(1),
+  identityPresetVersion: z.union([z.literal(0), z.literal(1)]).default(0),
   playerName: z.string().min(1).max(80),
   quickFightRecord: quickFightRecordSchema,
   customTournamentDefinitions: z
@@ -563,7 +565,7 @@ export function createDefaultSave(slot: 1 | 2 | 3): SaveData {
   return {
     schemaVersion: 2,
     slot,
-    playerName: "Player",
+    playerName: defaultPlayerName(slot),
     stamps: 80,
     currentNodeId: "story.first-run.00",
     clearedNodeIds: [],
@@ -591,6 +593,16 @@ export function createDefaultSave(slot: 1 | 2 | 3): SaveData {
     revealedRivalIds: [],
     updatedAt: new Date(0).toISOString(),
   };
+}
+
+const DEFAULT_PLAYER_NAMES = {
+  1: "Headliner",
+  2: "Contender",
+  3: "Wildcard",
+} as const;
+
+export function defaultPlayerName(slot: 1 | 2 | 3): string {
+  return DEFAULT_PLAYER_NAMES[slot];
 }
 
 function tournamentIdForTrophyId(trophyId: string): string {
@@ -696,7 +708,11 @@ function profileFromLegacySave(save: SaveData): PlayerProfileData {
   let profile: PlayerProfileData = {
     schemaVersion: 3,
     profileId: `profile.local.${save.slot}`,
-    playerName: save.playerName,
+    identityPresetVersion: 1,
+    playerName:
+      save.playerName === "Player"
+        ? defaultPlayerName(save.slot)
+        : save.playerName,
     quickFightRecord: structuredClone(save.quickFightRecord),
     customTournamentDefinitions: [],
     standaloneTournamentRun: structuredClone(save.standaloneTournamentRun),
@@ -1164,6 +1180,18 @@ export function loadPlayerProfile(
       candidate.success &&
       candidate.data.profileId === `profile.local.${slot}`
     ) {
+      if (candidate.data.identityPresetVersion === 0) {
+        const migrated = {
+          ...candidate.data,
+          identityPresetVersion: 1 as const,
+          playerName:
+            candidate.data.playerName === "Player"
+              ? defaultPlayerName(slot)
+              : candidate.data.playerName,
+        };
+        storage.setItem(key, JSON.stringify(migrated));
+        return migrated;
+      }
       return candidate.data;
     }
     preserveCorruptValue(

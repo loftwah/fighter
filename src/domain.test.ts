@@ -3236,6 +3236,43 @@ describe("validated persistence", () => {
     });
   });
 
+  it("gives each untouched local profile a distinct preset identity", () => {
+    expect(createDefaultSave(1).playerName).toBe("Headliner");
+    expect(createDefaultSave(2).playerName).toBe("Contender");
+    expect(createDefaultSave(3).playerName).toBe("Wildcard");
+  });
+
+  it("migrates the retired generic Player identity without replacing custom names", () => {
+    const storage = new MemoryStorage();
+    const generic = createDefaultPlayerProfile(2);
+    generic.playerName = "Player";
+    storage.setItem(
+      "riot-relics.profile.v3.2",
+      JSON.stringify({ ...generic, identityPresetVersion: undefined }),
+    );
+    const custom = createDefaultPlayerProfile(3);
+    custom.playerName = "Dean";
+    storage.setItem(
+      "riot-relics.profile.v3.3",
+      JSON.stringify({ ...custom, identityPresetVersion: undefined }),
+    );
+
+    expect(loadPlayerProfile(storage, 2).playerName).toBe("Contender");
+    expect(loadPlayerProfile(storage, 3).playerName).toBe("Dean");
+    const persisted = JSON.parse(
+      storage.getItem("riot-relics.profile.v3.2") ?? "null",
+    ) as unknown;
+    expect(persisted).toMatchObject({
+      playerName: "Contender",
+      identityPresetVersion: 1,
+    });
+
+    const explicitlyRenamed = loadPlayerProfile(storage, 2);
+    explicitlyRenamed.playerName = "Player";
+    savePlayerProfile(storage, 2, explicitlyRenamed);
+    expect(loadPlayerProfile(storage, 2).playerName).toBe("Player");
+  });
+
   it("keeps standalone and Story Trophy provenance on one global ownership record", () => {
     const awardedAt = "2026-08-07T00:00:00.000Z";
     let profile = recordTournamentTrophyOwnership(

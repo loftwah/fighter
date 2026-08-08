@@ -14,7 +14,7 @@ export interface AppShellModel {
   save: SaveData;
   preferences: Preferences;
   difficultyOptions: string;
-  devToolsEnabled: boolean;
+  fightLabEnabled: boolean;
   lockedRoutes: ReadonlySet<Route>;
   musicTitle: string | null;
 }
@@ -68,10 +68,10 @@ export function renderAppHeader(model: AppShellModel): string {
             : ""
         }
         ${
-          model.devToolsEnabled
+          model.fightLabEnabled
             ? `<button class="dev-rail-button ${
                 model.route === "dev" ? "is-active" : ""
-              }" data-command="enter-dev">DEV LAB</button>`
+              }" data-command="enter-dev">FIGHT LAB</button>`
             : ""
         }
         <button

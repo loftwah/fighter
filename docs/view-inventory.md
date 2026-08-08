@@ -28,11 +28,11 @@ Scrolling follows the job of the view rather than its game mode.
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Viewport stage                 | Intro, loading, Main Menu, Character Select, Lineup preparation, ordinary Fight Settings, Review Fight, Battle/countdown, ordinary Pause, Tournament interlude, blocking confirmation | No deliberate document scroll at `1728 × 1117` or `390 × 844`; primary action and critical state remain visible. Emergency overflow is recoverable under zoom, large text, virtual keyboard, or exceptional localisation.      |
 | Bounded internal sheet         | Battle Result, deployment/Tournament Result, development inspector, storage recovery, long help                                                                                       | The mounted stage does not scroll. One clearly owned sheet may scroll internally while its close/back action remains reachable.                                                                                                |
-| Browsing or sequential content | Profile, Achievements, Settings, Developer Lab, Story Library/Home/content, Collection, Store, Missions, Tournament Library/Lobby/Builder                                             | One screen-content scroller is permitted. Context and primary actions remain stable; avoid nested scrolling regions. Large catalogues use explicit pagination and a stable detail region rather than infinite document growth. |
+| Browsing or sequential content | Profile, Achievements, Settings, Fight Lab, Story Library/Home/content, Collection, Store, Missions, Tournament Library/Lobby/Builder                                                 | One screen-content scroller is permitted. Context and primary actions remain stable; avoid nested scrolling regions. Large catalogues use explicit pagination and a stable detail region rather than infinite document growth. |
 
 Story and Tournament therefore contain many legitimate scrolling views, but
 they are not the only contexts where content length is real. Profile,
-Achievements, Settings, Collection, Store, Missions, and Developer Lab also
+Achievements, Settings, Collection, Store, Missions, and Fight Lab also
 scroll deliberately. Selection, confirmation, and gameplay do not.
 
 ## Entry states
@@ -51,7 +51,7 @@ scroll deliberately. Selection, confirmation, and gameplay do not.
 | Achievements     | Implemented | Inspect retroactive profile awards                                                                 | Unlocked and in-progress award tickets                                                                                                               | Main Menu, Profile          |
 | Settings         | Implemented | Manage application behaviour and local data                                                        | Difficulty, reduced motion, music/SFX/dialogue controls, local-data recovery/export information                                                      | Main Menu                   |
 | Storage Recovery | Implemented | Explain invalid local data without silently destroying it                                          | Warning, backup download, safe-default action                                                                                                        | Prior view                  |
-| Developer Lab    | Implemented | Launch and inspect development-only game states                                                    | Scenario switchboard, custom Lineups, seed/Charge/time controls, diagnostics, convenience tools                                                      | Dev Battle, Main Menu       |
+| Fight Lab        | Implemented | Build, replay, and study progression-neutral deterministic fights                                  | Named scenarios, custom Lineups, seed/Charge/time controls, diagnostics, profile/report export; development builds add separately labelled overrides | Lab Battle, Main Menu       |
 
 The global shell never shows Store or Missions.
 
@@ -72,7 +72,7 @@ it does not create another record layer inside a Player.
 | Story Home, Lineup, Collection, Store, Missions                             | Story session and selected save        | matching `ui/screens/*-screen.ts`                                                                           |
 | Quick Character Select, Lineup preparation, Fight Settings and Review Fight | Quick session workflow draft           | `app/fight-workflow.ts`, `app/quick-fight-workflow.ts`, and the matching `ui/screens/*-screen.ts` renderers |
 | Tournament lobby/interlude                                                  | tournament session/run                 | `ui/screens/tournament-screen.ts`                                                                           |
-| Developer Lab                                                               | development-only scenario draft        | `ui/screens/dev-lab-screen.ts`                                                                              |
+| Fight Lab                                                                   | progression-neutral Lab scenario draft | `ui/screens/dev-lab-screen.ts`                                                                              |
 | Battle shell                                                                | battle session controller              | `ui/screens/battle-screen.ts` plus Phaser `game/` adapter                                                   |
 | Pause, inspector, victory, defeat                                           | blocking battle substates              | battle-session controller overlays                                                                          |
 
@@ -181,8 +181,8 @@ action-battler structure in the supplied reference-game brief:
   plus global/per-fight settings, then opens per-fight Lineup preparation.
   Every path finishes at the read-only shared Review Fight.
 - Every player-facing Battle requires confirmed Review Fight and a validated
-  match configuration. Developer Lab may bypass the visible setup screen, but
-  not validation, provenance, or its development/no-progression classification.
+  match configuration. Fight Lab may bypass the visible setup screen, but not
+  validation, provenance, or its Lab/no-progression classification.
 - Every non-Battle screen exposes an explicit Parent destination and Main Menu
   destination. Parent is workflow-owned and does not depend on browser history.
 - Battle Pause exposes Quit Fight to Parent and Quit to Main Menu. Leaving a
@@ -190,8 +190,9 @@ action-battler structure in the supplied reference-game brief:
 - Leaving a mode returns to the Main Menu without deleting its persisted state.
 - Story navigation contains Story, Lineup, Collection, Store, and Missions.
 - Global navigation contains Main Menu, Achievements, Profile, and Settings.
-- Development builds add Developer Lab without changing the three player-facing
-  game modes.
+- Fight Lab remains a power-user sandbox rather than a fourth progression mode.
+  Development builds add separately gated overrides without changing the three
+  player-facing game modes.
 - Tournament and Quick Fight never expose Story Store or Story Missions.
 - Audio playback intent is a persisted preference. A paused/off choice survives
   navigation and reloads, and no screen turns music back on by itself.

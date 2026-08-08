@@ -317,10 +317,10 @@ choice ownership are maintained in
 
 Uses the same combat engine with authored constraints such as forced Lineups, time limits, reduced healing, pre-applied statuses, or target objectives.
 
-### Developer Lab
+### Fight Lab and development overrides
 
-- Development builds expose a Developer Lab from the Main Menu and from the
-  pause menu during every battle.
+- Fight Lab is a production-facing power-user sandbox available from the Main
+  Menu and global shell. It is not a fourth progression mode.
 - The Lab launches validated, named scenarios or a custom one-to-three-Character
   matchup without requiring Story progress, ownership, or setup navigation.
 - The Lab may bypass the player-facing Review Fight screen for speed, but every
@@ -330,15 +330,17 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
 - Scenario controls include Lineups, levels, Move presentation tiers, Modifications,
   seed, difficulty, starting health and Charge, time limit, and whether the
   fight opens paused.
-- Development battles and their in-battle debug actions never grant rewards,
+- Lab battles never grant rewards,
   update missions, advance Story, or mutate a tournament run. A report records
-  that the fight was a development sandbox.
-- Convenience tools may inspect and export local state, open reached content,
-  and grant explicit persistent development-only progression. Persistent tools
-  are visibly separated from the isolated battle controls; destructive save
-  actions remain labelled and confirmed.
-- The Lab and its in-battle inspector are development surfaces, not a fourth
-  player-facing game mode.
+  that the fight was a progression-neutral sandbox, and the battle is visibly
+  marked `LAB FIGHT · NO PROGRESSION`.
+- Production Fight Lab may export the selected Profile and latest battle
+  report. It cannot grant currency or ownership, unlock Story, change save
+  progress, mutate a live battle, or expose raw state.
+- Development builds may add an in-battle inspector, simulation speed/state
+  controls, grants, and Story unlocks. These development overrides are visibly
+  separated from Fight Lab's player-safe controls and remain unavailable in
+  production.
 
 ## 5. Combat rules
 
@@ -895,7 +897,7 @@ The launch experiment choices are **Kinetic Print**, a single dominant moving
 plate, and **Comic Cutaways**, three staggered lead/action/reaction frames.
 Both consume the same semantic events, interaction shell, reduced-motion
 preference, and presentation-lock duration. Gameplay experiments remain named
-fixed-seed Developer Lab scenarios so they cannot contaminate normal fights or
+fixed-seed Fight Lab scenarios so they cannot contaminate normal fights or
 progression.
 
 The launch roster's implemented bitmap direction is **Saturday-Night Toybox**:
@@ -936,8 +938,11 @@ loftwah/fighter identity and name are not the raster-art target.
 
 ## 14. Profiles, saves, and accessibility
 
-- The prototype supports three local Player profiles. Slot-shaped storage is
-  an implementation detail; the player manages global identity, Story Saves,
+- The release supports three local Player profiles, initially named Headliner,
+  Contender, and Wildcard. Names remain editable; the numeric slot stays visible
+  for recovery and export. A stored untouched legacy name of `Player` migrates
+  to the corresponding preset without replacing a custom name. Slot-shaped
+  storage is an implementation detail; the player manages global identity, Story Saves,
   records, custom Tournaments, Tournament Trophies, and Story completion awards
   from Profile, not Settings.
 - The Player Profile does not own Characters or Story economy/progression.

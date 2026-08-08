@@ -118,14 +118,16 @@ states.
 
 ## Session and match composition
 
-Story, Quick Fight, Tournament, and Developer Lab are orchestration contexts
-around one combat engine, not separate battle implementations. Developer Lab
-is an isolated development adapter rather than a fourth player-facing mode.
+Story, Quick Fight, Tournament, and Fight Lab are orchestration contexts around
+one combat engine, not separate battle implementations. Fight Lab is a
+production-safe, progression-neutral adapter rather than a fourth progression
+mode. Development-only inspectors and mutation controls sit behind a separate
+compile-time capability boundary.
 
 ```text
 Profile ──→ Mode Session ──→ Match Draft ──→ Validated Match Configuration
                                                                   │
-Developer Lab ──→ Development Scenario Draft ────────────────┘
+Fight Lab ──────→ Validated Lab Scenario Draft ──────────────┘
                                                                   ▼
                                                           Combat Engine
                                                     Transition { state, events }
@@ -210,12 +212,12 @@ one produces a new draft whose affected controls immediately reflect the
 result. A later edit to an affected value derives the `Custom` state without
 losing the draft. The player-facing **Full Power** default uses a dedicated
 max-sandbox build factory; deterministic Level 10 Standard Builds remain
-calibration fixtures for tests, authored encounters, or Developer Lab and must
+calibration fixtures for tests, authored encounters, or Fight Lab and must
 not leak into the default Quick launch copy. A preset may provide default
 Accessory IDs, but those values are applied to and subsequently edited through
 the corresponding Lineup draft.
 
-Developer Lab may deliberately bypass the player-facing Review Fight screen so
+Fight Lab may deliberately bypass the player-facing Review Fight screen so
 named scenarios can start quickly, but it does not bypass the configuration
 resolver. Its adapter must produce the same validated gameplay input, classify
 the report as `dev`, disable progression/rewards/achievements, and expose any
@@ -290,7 +292,7 @@ closed schema value, deterministic engine handling, UI copy, and tests in the
 same change.
 
 `src/combat/standard-build.ts` is the single even-build calibration constructor.
-Authored encounters, tests, Developer Lab, and Tournament definitions may use
+Authored encounters, tests, Fight Lab, and Tournament definitions may use
 it when they explicitly request Standard Builds. Player-facing Quick Fight uses
 a separate Full Power sandbox constructor for its default and never infers
 builds from authored Character levels or the active Story profile. Standalone
@@ -299,7 +301,7 @@ encounters continue to use owned builds or explicit loan builds.
 
 `src/combat/quick-fight-seed.ts` derives the stable seed from both Lineups and
 Accessories. The default Gate 1 configuration is
-`v2.viking-acceptance`/`3844240869`; the matching Developer Lab preset and
+`v2.viking-acceptance`/`3844240869`; the matching Fight Lab preset and
 headless diagnostic use the same content IDs rather than maintaining a second
 fight definition.
 
@@ -335,7 +337,7 @@ explicit additive migration; authored positions remain the fallback.
   original simulation deltas, reapplies each timestamped side-agnostic command,
   and verifies the same deterministic state/event stream. Pause/resume metadata
   is harmless because it does not advance simulation time. Reports containing
-  unsupported direct Developer Lab state edits are rejected rather than falsely
+  unsupported direct development-override state edits are rejected rather than falsely
   presented as authoritative replays.
 - Reports also retain exact participant instance IDs, levels, Move order, and
   equipped Modification IDs so rewards and missions never have to infer a build from
@@ -479,11 +481,12 @@ Achievements are evaluated from the selected validated save by pure progression
 code. They are not separately persisted while the source profile facts can
 derive them.
 
-Development scenarios follow the same data rule. `src/dev/` owns validated
-scenario definitions made only from stable content IDs and explicit starting
-state. Launching a development scenario creates a non-progressing battle report
-with mode `dev`; debug state changes are labelled in the report and cannot flow
-into rewards, missions, Story, or tournament persistence.
+Fight Lab scenarios follow the same data rule. `src/dev/` retains the internal
+module name and owns validated scenario definitions made only from stable
+content IDs and explicit starting state. Launching a Lab scenario creates a
+non-progressing battle report with internal mode `dev`; development-only debug
+state changes are labelled in the report and cannot flow into rewards, missions,
+Story, or tournament persistence.
 
 ## Persistence
 
@@ -521,6 +524,13 @@ Because the old schema did not retain Trophy provenance, a Trophy required by
 the migrated First Run completion state receives a conservative
 `legacy-imported` Story-local record so migration cannot revoke completion.
 The old snapshot remains available for rollback/recovery.
+
+Fresh local profiles use the editable preset identities Headliner, Contender,
+and Wildcard. Loading an otherwise valid profile whose untouched name is the
+retired exact value `Player` updates only that name to its slot preset and
+persists identity-preset marker version 1. The marker makes this a one-time
+migration, so a later explicit rename to `Player` and every other custom name
+remain preserved.
 
 - The original development namespace remains in storage keys solely to preserve
   existing local profiles. It is not product identity.

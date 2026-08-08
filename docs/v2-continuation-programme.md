@@ -1,6 +1,6 @@
 # V2 continuation programme
 
-Status: **EXECUTION HANDOFF — FOUNDATION PACKET F00 COMPLETE; SHARED LINEUP ACTIVE**
+Status: **EXECUTION HANDOFF — AUTONOMOUS V2 CLOSEOUT ACTIVE**
 
 Prepared: 2026-08-01
 
@@ -154,9 +154,10 @@ F00 now persists schema-v3 Player Profiles with nested Story Saves and a
 preserved v2 rollback snapshot, validates Story Level steps and Tournament
 nodes, records source-aware Trophy provenance, carries both sides' Health across
 Tournament redeployments, and rejects Battle launches without confirmed Lineup
-or validated Developer Lab provenance. Shared Lineup is the active first visual
-package. Launcher/header work waits because its destinations and navigation
-should reflect the corrected mode model.
+or validated Fight Lab provenance. Shared Lineup, the Review Fight replacement,
+and result-storytelling polish are implemented. The current autonomous closeout
+focus is Profile completion, production-safe Fight Lab, critical-path browser
+evidence, performance/accessibility evidence, and release-candidate assembly.
 
 ## 1. Reconciled starting point
 
@@ -182,7 +183,7 @@ The repository and current evidence agree on the following state:
 - `CreateBattleInput` already carries starting Charge and time limit, while
   `DevBattleScenario` separately carries those values plus controllers and
   starting health. `App.startBattle` currently branches across Story, Quick
-  Fight, Tournament and Developer Lab before calling the one combat engine.
+  Fight, Tournament and Fight Lab before calling the one combat engine.
 - Battle Report schema v2 records the initial state, exact simulation deltas,
   commands, difficulty changes and debug actions. Replay uses those deltas and
   rejects direct development state edits. It does not yet record one resolved
@@ -194,10 +195,10 @@ The repository and current evidence agree on the following state:
   launcher, navigation or setup composition. It improves determinism and test
   leverage while Dean playtests.
 
-The highest-leverage work is now F00: correct ownership, persistence and entry
-contracts without changing the accepted Battle behaviour. The typed encounter
-modifier and explicit Dev Mode boundary in Packet M01 remain subsequent engine
-work rather than the immediate handoff.
+F00 and Shared Lineup are complete. The highest-leverage autonomous work is now
+closing production flow, accessibility, performance, and release evidence
+without reopening accepted Battle behaviour. Typed encounter modifiers remain
+post-freeze work unless a concrete V2 defect requires them.
 
 ## 2. Decision boundary
 
@@ -220,7 +221,7 @@ Agents may complete the following without crossing an owner boundary:
 
 - typed modifier schema, resolver, provenance, eligibility classification,
   report schema and replay support;
-- explicit global Dev Mode off/on boundary and migration-safe local storage;
+- explicit production-safe Fight Lab and build-gated development-override boundary;
 - deterministic tests, mode-construction tests and semantic automation hooks;
 - assisted copies of development scenarios, clearly separated from official
   acceptance evidence;
@@ -239,7 +240,7 @@ Agents may complete the following without crossing an owner boundary:
 Dean's first playtest is open-ended target-user observation, not a
 questionnaire. Give only the route needed to reach the candidate:
 
-> Open Developer Lab, start V2 Viking Acceptance, and play naturally. Try
+> Open Fight Lab, start V2 Viking Acceptance, and play naturally. Try
 > whatever seems sensible. Mistakes, uncertainty and experimentation are useful.
 > Send any notes, screenshots or recordings in whatever form is easiest.
 
@@ -324,7 +325,7 @@ The resolver accepts ordered source layers:
 production defaults
   → authored encounter modifiers
   → permitted player-selected custom rules
-  → permitted developer overrides when Dev Mode is on
+  → permitted developer overrides in a development build
   → validated ResolvedBattleConfiguration
 ```
 
@@ -338,7 +339,7 @@ to reward call sites.
 - mode and encounter ID;
 - seed and controller ownership;
 - resolved modifiers with per-field provenance;
-- Dev Mode state and whether any developer override is active;
+- developer-override capability and whether any developer override is active;
 - progression, reward, achievement and release-acceptance eligibility;
 - a stable ruleset fingerprint for reports and automation.
 
@@ -388,32 +389,25 @@ consumes the resolver's eligibility result rather than reconstructing policy.
   modifiers. Presentation playback consumes recorded presentation scale/events
   but cannot affect combat verification.
 
-### 4.4 Dev Mode boundary
+### 4.4 Fight Lab and development-override boundary
 
-Add one explicit global **Dev Mode** toggle, default off. It is a local
-preference separate from all Player profiles and production progression.
+Fight Lab is deliberately available in production as a progression-neutral
+power-user sandbox. It exposes validated named scenarios, a deterministic
+custom composer, and safe exports. Every Lab battle is visibly labelled
+**LAB FIGHT · NO PROGRESSION** and cannot change Story, economy, Missions,
+Tournament runs, rewards, or achievements.
 
-- Dev Mode off hides Developer Lab, development settings, the in-battle DEV
-  control, inspector mutation controls, development grants and developer query
-  overrides. Deep links to development routes return to a safe production
-  route. Existing build-time development availability is necessary but no
-  longer sufficient.
-- Dev Mode on exposes the permitted typed modifiers in Settings, Developer Lab
-  and the paused inspector. Every developer control says **Developer override**
-  and every affected fight says **ASSISTED / NO PROGRESSION / NOT ACCEPTANCE**.
-- Enabling Dev Mode may require a deliberate Settings action; it must not be
-  enabled by loading a development scenario or query string.
-- Turning Dev Mode off clears session overrides and exits development routes,
-  but does not erase reports. It does not alter profile saves.
-- Direct state edits should migrate onto typed modifiers or clearly versioned
-  debug actions. Unsupported edits remain unreplayable and acceptance-invalid.
+Development builds add a separately labelled override surface: grants, Story
+unlocks, raw-state inspection, stepping, Charge mutation, and simulation speed.
+Those controls remain compile-time gated and are unavailable in production.
+Unsupported direct state edits remain unreplayable and acceptance-invalid.
 
 ### 4.5 Mode-by-mode modifier policy
 
 Legend used below: `pre` means before Battle only; `paused` means changeable
 only from a blocking paused inspector; `encounter` means resets when the fight
 ends; `preference` means the selected visual/accessibility preference persists.
-All developer-controlled entries require Dev Mode on and invalidate progression,
+All developer-controlled entries require a development build and invalidate progression,
 rewards, achievements and release acceptance for that run, even when a row
 would otherwise be eligible.
 
@@ -496,10 +490,11 @@ assisted rather than acceptance-valid.
 | Opponent cannot be defeated | Developer only                                                              | Pre                   | Assisted; invalid                                                 | Encounter               |
 | Timer override              | Author; developer                                                           | Pre                   | Eligible when authored; assisted when developer-set               | Encounter               |
 
-#### Developer Lab
+#### Fight Lab
 
-Every control is visible only with Dev Mode on. No Developer Lab run changes
-Story, Tournament, Missions, collection, Stamps or official achievements.
+The ordinary composer and named scenarios are visible in production. The
+developer-only controls in this table remain build-gated. No Fight Lab run
+changes Story, Tournament, Missions, collection, Stamps or official achievements.
 
 | Modifier                    | Configurer and visibility | Change in Battle | Eligibility and acceptance     | Lifetime  |
 | --------------------------- | ------------------------- | ---------------- | ------------------------------ | --------- |
@@ -533,7 +528,7 @@ variants use distinct IDs and cannot replace its report.
 | Timer override              | Canonical 90 seconds; assisted copy only                                             | Never                                    | Canonical valid; assisted invalid | Encounter |
 
 The `v2.viking-acceptance` resolver test must assert its complete standard
-fingerprint. A scenario carrying any non-canonical gameplay value, Dev Mode
+fingerprint. A scenario carrying any non-canonical gameplay value, developer
 override or debug state edit fails acceptance classification even if its
 lineups, seed and outcome match.
 
@@ -559,8 +554,8 @@ the running application and captures `390 × 844`, `844 × 390`, and
   section 4, `docs/brand-and-site.md`, `DESIGN.md` spatial approval status and
   `docs/view-inventory.md`.
 - Capture real states: fresh profile, resumable Story, completed Story/open
-  Quick Fight, active standalone Tournament, storage warning, and Dev Mode
-  off/on where it changes visibility.
+  Quick Fight, active standalone Tournament, storage warning, and production
+  versus development Fight Lab where override visibility changes.
 - Produce at least three compositions that genuinely change hierarchy and
   spatial ownership, not palette: Story-led bill, equal mode selection, and a
   compact roster/session-led launcher are valid hypotheses.
@@ -636,11 +631,11 @@ stabilise. V2-08 alone freezes scope, accepted evidence, artefact and tag.
 
 ## 7. Bounded implementation packets
 
-### M01 — typed modifier and Dev Mode foundation
+### M01 — typed modifier and development-override foundation (deferred)
 
 - **Objective:** Add the validated modifier vocabulary, source resolver,
-  eligibility result and explicit global Dev Mode boundary with production
-  defaults unchanged.
+  eligibility result and explicit build-gated development-override boundary
+  with production defaults unchanged.
 - **Authorities:** release specification sections 3.3–3.6 and gates V2-02–04;
   game design sections 4–5, 12 and 14; technical design session composition,
   determinism, content, persistence and testing; specification alignment.
@@ -648,19 +643,19 @@ stabilise. V2-08 alone freezes scope, accepted evidence, artefact and tag.
   `src/content/schema.ts`; `src/dev/scenarios.ts`; preferences adapter;
   `src/app/App.ts`; route/screen visibility selectors.
 - **Tests/browser states:** schema bounds and source precedence; default
-  fingerprint; each mode rejects forbidden sources; Dev Mode off/on route and
+  fingerprint; each mode rejects forbidden sources; production/development
   control visibility; no-mutation default engine comparisons.
-- **Evidence:** focused test output plus Settings/Main Menu/Developer Lab states
-  with Dev Mode off and on at one narrow and one desktop viewport.
+- **Evidence:** focused test output plus Settings/Main Menu/Fight Lab states in
+  production and development at one narrow and one desktop viewport.
 - **Owner decision:** none.
-- **Completion:** all existing fights resolve the standard defaults; Dev Mode
-  off removes developer-only controls; no reward code is yet duplicated.
+- **Completion:** all existing fights resolve the standard defaults; production
+  removes developer-only controls; no reward code is yet duplicated.
 - **Dependencies:** none beyond current Gate 1 implementation.
 - **Before playtest:** yes; this is the next safe packet.
 
 ### M02 — versioned report, replay and acceptance classification
 
-- **Objective:** Record resolved modifiers, provenance, Dev Mode, eligibility,
+- **Objective:** Record resolved modifiers, provenance, development override, eligibility,
   fingerprint and permitted runtime speed changes in a new Battle Report schema;
   replay from those recorded facts.
 - **Authorities:** technical-design determinism/report rules and release
@@ -707,7 +702,7 @@ stabilise. V2-08 alone freezes scope, accepted evidence, artefact and tag.
 - **Likely surface:** Story encounter data, Tournament round data, Quick Fight
   session model, new configuration builders and construction tests.
 - **Tests/browser states:** Story, authored Tournament, Quick Fight, custom
-  Tournament, Developer Lab and acceptance builders; reward/eligibility matrix;
+  Tournament, Fight Lab and acceptance builders; reward/eligibility matrix;
   rules summary model.
 - **Evidence:** fixture table of resolved configurations and fingerprints.
 - **Owner decision:** none for foundation; ordinary custom-rule exposure remains
@@ -719,13 +714,13 @@ stabilise. V2-08 alone freezes scope, accepted evidence, artefact and tag.
 
 ### M05 — semantic modifier controls
 
-- **Objective:** Expose only the permitted subsets in Developer Lab, Settings,
+- **Objective:** Expose only the permitted subsets in Fight Lab, Settings,
   paused inspector, Quick Fight custom rules and custom Tournament.
 - **Authorities:** modifier policy above; semantic DOM and accessibility rules.
 - **Likely surface:** pure screen models/renderers, App event delegation,
-  settings, Developer Lab, Fight Setup rules summary.
-- **Tests/browser states:** keyboard/touch selection, validation errors, Dev Mode
-  off/on, standard/custom/assisted labels, report download.
+  settings, Fight Lab, Fight Setup rules summary.
+- **Tests/browser states:** keyboard/touch selection, validation errors,
+  production/development boundaries, standard/custom/assisted labels, report download.
 - **Evidence:** screenshots at all three viewports once attached to the approved
   setup composition; DOM tests may precede it.
 - **Owner decision:** setup placement waits for U03; control semantics do not.
@@ -879,22 +874,23 @@ weight:
 1. **IN-007 Trophy-family review — ready, not a current V2 blocker.**
    Functional Trophy persistence is implemented. The review primarily locks a
    reusable V2.1 Tournament-art family unless it uncovers a V2 defect.
-2. **IN-009 landing-page composition — ready, Gate V2-03 dependency.** The
-   decision unblocks landing implementation and its social image.
+2. **IN-009 landing-page composition — owner acceptance remains a Gate V2-03
+   dependency.** Implementation and its social image can continue to be tested
+   while that final composition call remains open.
 
 IN-008 developer memberships waits until after V2.3. IN-010 is retired because
 multiplayer has no committed milestone. IN-001 through IN-006, IN-011, and
-IN-012 are complete. F00 is complete and no new owner question is required to
-implement the Shared Lineup package.
+IN-012 are complete. F00, Shared Lineup, Review Fight, and result storytelling
+are implemented. Rights approval, physical-device feel, and final release
+acceptance remain owner/external checkpoints.
 
 ## 9. Immediate handoff
 
-Implement **Package 01 — Shared Lineup** against the completed F00 contracts.
-Quick Fight may arrive pre-filled or fully editable, Story supplies only
-eligible Story-owned/loaned instances, and Tournament supplies only living
-members of its locked six. All three choose one to three, choose one starter,
-show current build/Health/Accessory/rules evidence, and produce exactly one
-validated Lineup confirmation before Battle.
+Continue the autonomous V2 closeout: finish Profile-facing evidence, prove the
+production-safe Fight Lab boundary, complete browser critical paths and the
+performance/accessibility evidence, reconcile release records, and assemble a
+release candidate. Do not expand Character, Story, Tournament, platform, or
+multiplayer breadth.
 
 At the end of each packet, update the owning authorities, schema, tests,
 mechanic registry and trays together only where their facts changed. Run

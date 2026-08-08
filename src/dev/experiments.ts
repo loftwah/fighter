@@ -60,7 +60,7 @@ export const experimentRegistry: readonly ExperimentDefinition[] = [
     affectsBattleReport: true,
     settingsVisible: false,
     description:
-      "Owns costs, damage, statuses, AI and legal commands. Rule experiments belong in deterministic Developer Lab scenarios.",
+      "Owns costs, damage, statuses, AI and legal commands. Rule experiments belong in deterministic Fight Lab scenarios.",
   },
 ] as const;
 

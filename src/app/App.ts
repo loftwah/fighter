@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
 import {
+  initialLabOverlay,
   isRouteAvailableInSession,
   routeIds,
   type Route,
@@ -143,6 +144,7 @@ import {
   acceptSafeDefaults,
   collectCorruptBackups,
   createOwnedCharacter,
+  defaultPlayerName,
   loadActiveSaveSlot,
   loadPreferences,
   loadStorageWarning,
@@ -325,6 +327,7 @@ interface PendingFightSetup {
 }
 
 const CUP_COMPLETION_BONUS = 240;
+const FIGHT_LAB_ENABLED = true;
 const DEV_TOOLS_ENABLED = import.meta.env.DEV;
 
 function renderCombatStatus(status: StatusState): string {
@@ -941,7 +944,7 @@ export class App {
         this.navigate("tournament");
         break;
       case "enter-dev":
-        if (DEV_TOOLS_ENABLED) {
+        if (FIGHT_LAB_ENABLED) {
           this.#sessionMode = "dev";
           this.navigate("dev");
         }
@@ -1386,7 +1389,7 @@ export class App {
           ...validateDevScenario(this.#devDraft),
           id: "dev.custom",
           name: "Custom Fight",
-          description: "A developer-composed deterministic matchup.",
+          description: "A player-composed deterministic Lab matchup.",
           startPaused: command.dataset.paused === "true",
         });
         break;
@@ -1768,7 +1771,7 @@ export class App {
       this.updateTournamentSelection(target);
       return;
     }
-    if (target.dataset.devField && DEV_TOOLS_ENABLED) {
+    if (target.dataset.devField && FIGHT_LAB_ENABLED) {
       this.updateDevDraftFromControl(target);
     }
     if (target.name === "profileSlot") {
@@ -1779,7 +1782,9 @@ export class App {
         this.normaliseLoadedTournamentRun();
         this.#storageWarning = loadStorageWarning(localStorage);
         this.render();
-        this.announce(`Save slot ${slot} opened.`);
+        this.announce(
+          `${this.#save.playerName} opened. Local profile ${slot}.`,
+        );
       }
     }
     if (target.name === "reducedMotion" && target instanceof HTMLInputElement) {
@@ -1840,7 +1845,8 @@ export class App {
       this.#audio.applyPreferences(this.#preferences);
     }
     if (target.name === "playerName") {
-      this.#save.playerName = target.value.trim() || "Player";
+      this.#save.playerName =
+        target.value.trim() || defaultPlayerName(this.#save.slot);
       this.#save = saveSlot(localStorage, this.#save);
       this.render();
     }
@@ -2097,7 +2103,7 @@ export class App {
 
   private routeLocked(route: Route): boolean {
     if (
-      !isRouteAvailableInSession(route, this.#sessionMode, DEV_TOOLS_ENABLED)
+      !isRouteAvailableInSession(route, this.#sessionMode, FIGHT_LAB_ENABLED)
     ) {
       return true;
     }
@@ -2294,7 +2300,7 @@ export class App {
         this.#preferences.difficulty,
         true,
       ),
-      devToolsEnabled: DEV_TOOLS_ENABLED,
+      fightLabEnabled: FIGHT_LAB_ENABLED,
       lockedRoutes: new Set(
         routeIds.filter((route) => this.routeLocked(route)),
       ),
@@ -3082,7 +3088,7 @@ export class App {
       case "menu":
         return renderMainMenuScreen({
           save: this.#save,
-          devToolsEnabled: DEV_TOOLS_ENABLED,
+          fightLabEnabled: FIGHT_LAB_ENABLED,
         });
       case "story":
         return renderStoryScreen(this.#save);
@@ -3180,7 +3186,12 @@ export class App {
       case "achievements":
         return renderAchievementsScreen(this.#save);
       case "profile":
-        return renderProfileScreen(this.#save);
+        return renderProfileScreen(
+          this.#save,
+          ([1, 2, 3] as const).map(
+            (slot) => loadFirstRunSave(localStorage, slot).playerName,
+          ),
+        );
       case "settings":
         return renderSettingsScreen({
           preferences: this.#preferences,
@@ -3191,15 +3202,16 @@ export class App {
           experiments: this.#devExperiments,
         });
       case "dev":
-        return DEV_TOOLS_ENABLED
+        return FIGHT_LAB_ENABLED
           ? renderDevLabScreen({
               save: this.#save,
               draft: this.#devDraft,
               recentBattleReports: this.#recentBattleReports,
+              developerOverridesEnabled: DEV_TOOLS_ENABLED,
             })
           : renderMainMenuScreen({
               save: this.#save,
-              devToolsEnabled: DEV_TOOLS_ENABLED,
+              fightLabEnabled: FIGHT_LAB_ENABLED,
             });
       case "battle":
         return "";
@@ -3358,7 +3370,7 @@ export class App {
     const roundLabel = this.#isTournamentFight
       ? `${this.#tournamentName.toUpperCase()} · ROUND ${this.#tournamentRoundIndex + 1} · ${this.#tournamentFightTitle.toUpperCase()}`
       : this.#isDevFight && this.#devScenario
-        ? `DEV LAB · ${this.#devScenario.name.toUpperCase()}`
+        ? `FIGHT LAB · ${this.#devScenario.name.toUpperCase()}`
         : this.#isQuickFight
           ? `QUICK FIGHT · ${this.#quickPlayerIds.length} VS ${this.#quickEnemyIds.length}`
           : firstRunEncounter(this.#storyBattleNodeId).railLabel;
@@ -4362,14 +4374,14 @@ export class App {
   }
 
   private battleParentLabel(): string {
-    if (this.#isDevFight) return "Developer Lab";
+    if (this.#isDevFight) return "Fight Lab";
     if (this.#isQuickFight) return "Review Fight";
     if (this.#isTournamentFight) return "Tournament";
     return "Story";
   }
 
   private startDevBattle(scenarioDefinition: DevBattleScenario): void {
-    if (!DEV_TOOLS_ENABLED) {
+    if (!FIGHT_LAB_ENABLED) {
       return;
     }
     const validated = validateDevScenario(scenarioDefinition);
@@ -4421,9 +4433,13 @@ export class App {
       enemy: "ai",
     };
     this.#battleReady = false;
-    this.#battlePaused = devScenario?.startPaused ?? false;
-    this.#pauseMenuOpen = false;
-    this.#devInspectorOpen = Boolean(devScenario?.startPaused);
+    const initialOverlay = initialLabOverlay(
+      devScenario?.startPaused ?? false,
+      DEV_TOOLS_ENABLED,
+    );
+    this.#battlePaused = initialOverlay !== "none";
+    this.#pauseMenuOpen = initialOverlay === "pause";
+    this.#devInspectorOpen = initialOverlay === "inspector";
     this.#battleTimeScale = 1;
     this.#actionTraySignature = "";
     this.#cupCompletedThisBattle = false;
@@ -5035,7 +5051,7 @@ export class App {
             <button data-command="close-dev-inspector">Back to pause</button>
           </header>
           <div class="dev-inspector-toolbar">
-            <button data-command="enter-dev">Open Developer Lab</button>
+            <button data-command="enter-dev">Open Fight Lab</button>
             <button data-command="dev-copy-state">Copy state</button>
             <button data-command="download-battle-report">Export report</button>
             <button class="primary-action" data-command="resume-battle">Resume fight</button>
@@ -5125,7 +5141,7 @@ export class App {
                 ? `
                   <button data-command="open-dev-inspector">Inspect battle</button>
                   <button data-command="hide-battle-overlay">View frozen battle</button>
-                  <button data-command="enter-dev">Open Developer Lab</button>
+                  <button data-command="enter-dev">Open Fight Lab</button>
                 `
                 : ""
             }
@@ -7080,7 +7096,7 @@ export class App {
           ? "Your Roster made it through every round. The Trophy and final purse are yours."
           : "Your Roster's Health is saved. Choose a drop, then prepare for the next round."
         : this.#isDevFight
-          ? "Run the scenario again, inspect the report, or return to the Developer Lab."
+          ? "Run the scenario again, inspect the report, or return to Fight Lab."
           : this.#isQuickFight
             ? "Run it back with the same matchup, or return to Review Fight and make changes."
             : storyEncounter.victoryCopy
@@ -7089,7 +7105,7 @@ export class App {
           ? "The opposing Squad keeps its damage. Choose from your surviving Roster and have another bite."
           : "Your full Roster is down. Start a fresh Tournament when you're ready."
         : this.#isDevFight
-          ? "Run the scenario again, inspect the report, or return to the Developer Lab."
+          ? "Run the scenario again, inspect the report, or return to Fight Lab."
           : this.#isQuickFight
             ? "Run it back with the same matchup, or return to Review Fight and change your approach."
             : "You can fight again whenever you're ready.";
@@ -7111,7 +7127,7 @@ export class App {
             ? "Choose another Lineup"
             : "Leave Tournament"
       : this.#isDevFight
-        ? "Developer Lab"
+        ? "Fight Lab"
         : this.#isQuickFight
           ? "Review Fight"
           : "Return to Story";

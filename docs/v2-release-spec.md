@@ -251,7 +251,9 @@ Tournament-content release.
 
 V2 includes:
 
-- three local Player profiles;
+- three local Player profiles with distinct editable preset identities:
+  Headliner, Contender, and Wildcard. The numeric profile slot remains visible
+  for recovery, migration, and export;
 - versioned, migration-safe local saves;
 - autosave and corrupt-save recovery;
 - a global Player/Profile boundary for identity, records, Story Save selection,
@@ -283,9 +285,12 @@ Every production-facing V2 view must have:
   unexplained locked state;
 - consistent use of the global shell and mode-owned navigation.
 
-The authoritative surface list is `docs/view-inventory.md`. Developer Lab may
-remain a development-only surface and must never mutate production progression
-through isolated battle controls.
+The authoritative surface list is `docs/view-inventory.md`. Fight Lab is a
+production-facing, progression-neutral power-user sandbox for named seeded
+scenarios, custom one-to-three matchups, and report/profile export. Every Lab
+fight is visibly marked `LAB FIGHT · NO PROGRESSION`. Development builds may
+add inspectors, grants, unlocks, and direct simulation controls, but those
+overrides remain separately labelled and unavailable in production.
 
 ### 3.7 Presentation and audio
 
@@ -400,7 +405,7 @@ complete only when all gates pass together.
 - `fighter.loftwah.com` presents LOFTWAH FIGHTER clearly, demonstrates a real
   gameplay decision, and reaches the launcher intentionally through one primary
   play action.
-- Main Menu, Profile, Settings, Quick Fight, Story, Tournament, Collection,
+- Main Menu, Profile, Settings, Fight Lab, Quick Fight, Story, Tournament, Collection,
   Lineup, Store, Missions, Achievements, battle, result, pause, help/key, and
   recovery states connect correctly wherever their session permits them.
 - No view relies on browser refresh, hidden developer controls, or prior local

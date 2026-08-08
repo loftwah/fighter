@@ -4,7 +4,7 @@ import { ICONS } from "../icons";
 
 export interface MainMenuScreenModel {
   save: SaveData;
-  devToolsEnabled: boolean;
+  fightLabEnabled: boolean;
 }
 
 export function renderMainMenuScreen(model: MainMenuScreenModel): string {
@@ -98,6 +98,11 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
             model.save.tournamentTrophyIds.length === 1 ? "Trophy" : "Trophies"
           }</span>
         </div>
+        ${
+          model.fightLabEnabled
+            ? `<button class="text-button" data-command="enter-dev">Open Fight Lab ${ICONS.arrowRight}</button>`
+            : ""
+        }
       </footer>
     </section>
   `;
