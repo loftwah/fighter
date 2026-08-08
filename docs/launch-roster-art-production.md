@@ -222,7 +222,9 @@ and no labels. Character-specific invariants:
   registration.
 - Environments were reviewed as one contact sheet for a calm central decision
   plane.
-- Launch provenance remains `development-review`, not distribution approval.
-  Tux needs mascot/licence/attribution review; Moses needs cultural/religious
-  review; Ned Kelly must remain free of performer likeness or copied modern
-  costume design.
+- On 2026-08-09 the owner approved all six records for the current V2 web
+  playground. This is deliberately not permanent approval for materially
+  changed art, commercial or merchandise use, or the V2.1 twenty-Character
+  package. Tux retains an attribution/mascot review trigger; Moses retains a
+  cultural-context trigger; Ned Kelly must remain free of performer likeness
+  or copied modern costume design.

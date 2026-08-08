@@ -467,7 +467,9 @@ Rights and source metadata do not belong in the pure combat definition.
 `src/content/character-provenance.ts` is the validated external manifest keyed
 by Character ID. Public roster packaging must reject missing records and any
 record not explicitly marked `approved-for-distribution`; the launch prototype
-keeps all six records at `development-review`.
+records all six as owner-approved for the current V2 web playground. Each note
+retains its specific review triggers, and V2.1 does not inherit that approval
+for new Characters or materially changed art.
 
 Content validation rejects periodic intervals longer than their status duration
 and hit-gated effects that appear before any damage effect in the same ordered

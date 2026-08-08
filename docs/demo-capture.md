@@ -65,7 +65,7 @@ mix for social playback.
 
 The capture keeps recording for at least 60 seconds and requires a real result.
 The render task derives its minimum source duration from the latest authored
-trim (currently about 59.1 seconds) and validates every chapter anchor against
+trim (currently about 68.3 seconds) and validates every chapter anchor against
 the capture metadata, so timing drift fails clearly instead of silently replacing
 the final Victory hold with combat or exhausted footage.
 
@@ -76,3 +76,16 @@ rendered video remain ignored.
 Run `mise run video:check` to lint and type-check the video project independently.
 For audio-only iteration after a successful render, set
 `FIGHTER_TRAILER_REUSE_RENDER=1` when running `mise run demo:trailer`.
+
+## Latest verified output
+
+The 2026-08-09 recapture used the corrected real game at `1920 × 1080` and
+reached its result with zero browser console errors. The authentic gameplay
+export is 69.48 seconds (`SHA-256
+1afb10bfa32f703298d302a60f0a72203b98be19c94650fccf96c1455234aa4d`). The
+edited showcase is 50.218 seconds (`SHA-256
+d2f425cfa8966bcb440568e286f7ad925fbb63e3f56eb8eb1b4946b8ffb90f78`). Both
+are H.264/AAC, `yuv420p`, and 30 frames per second. Battle recalibration moved
+the real result chapter to 64.761 seconds; the showcase result source anchor is
+therefore frame 1943, leaving more than one second of verified source after the
+3.5-second result hold.

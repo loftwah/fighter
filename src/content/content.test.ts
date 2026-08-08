@@ -174,7 +174,7 @@ describe("authored content", () => {
     );
   });
 
-  it("tracks a validated rights-review record for every launch Character", () => {
+  it("tracks an approved V2 playground record for every launch Character", () => {
     const validatedProvenance = launchCharacterProvenance.map((entry) =>
       characterProvenanceSchema.parse(entry),
     );
@@ -184,7 +184,12 @@ describe("authored content", () => {
     ).toEqual(new Set(characters.map((character) => character.id)));
     expect(
       validatedProvenance.every(
-        (entry) => entry.rightsStatus !== "approved-for-distribution",
+        (entry) => entry.rightsStatus === "approved-for-distribution",
+      ),
+    ).toBe(true);
+    expect(
+      validatedProvenance.every((entry) =>
+        entry.rightsNote.includes("current V2 web playground"),
       ),
     ).toBe(true);
   });

@@ -63,7 +63,7 @@ export const captureTimeline = {
   result: {
     chapter: "result",
     durationInFrames: 105,
-    sourceStartFrame: 1893,
+    sourceStartFrame: 1943,
   },
 } as const;
 

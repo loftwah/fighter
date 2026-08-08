@@ -425,6 +425,11 @@ complete only when all gates pass together.
   pass their contracts.
 - Content templates can recreate the release structures without bespoke code.
 
+On 2026-08-09 the owner approved the six current Character records for this V2
+web playground. The approval is intentionally scoped: materially changed art,
+commercial or merchandise use, and the V2.1 expansion to twenty Characters
+trigger a fresh review. It is not a blocker for the present playground build.
+
 ### Gate V2-05 — Target-device quality
 
 - The complete critical path is played on a physical iPhone 14 in portrait.

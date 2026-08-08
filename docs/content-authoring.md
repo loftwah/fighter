@@ -158,6 +158,11 @@ in a preset roster must have exactly one validated entry in
 distribution-review state, and an actionable note. `development-review` is not
 permission to ship; only an explicitly reviewed
 `approved-for-distribution` entry may enter a public production preset.
+Approval is interpreted with the scope and review triggers written in that
+entry's rights note. The six V2 launch records are owner-approved for the
+current web playground; materially changed art, commercial or merchandise use,
+and the V2.1 expansion to twenty Characters require a fresh review rather than
+silently inheriting that decision.
 
 ## Story definition and Level-step contract
 

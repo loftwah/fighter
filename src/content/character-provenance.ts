@@ -21,43 +21,43 @@ export const launchCharacterProvenance = [
   {
     characterId: "character.tux",
     sourceKind: "open-source-culture",
-    rightsStatus: "development-review",
+    rightsStatus: "approved-for-distribution",
     rightsNote:
-      "Create original game art and complete mascot, trademark, licence, and attribution review before distribution.",
+      "Owner-approved for the current V2 web playground. Re-review attribution, mascot/trademark context, materially changed art, and any commercial or merchandise use.",
   },
   {
     characterId: "character.humpty",
     sourceKind: "public-domain-fiction",
-    rightsStatus: "development-review",
+    rightsStatus: "approved-for-distribution",
     rightsNote:
-      "Use the nursery-rhyme character only; create an original visual interpretation and verify the final asset package.",
+      "Owner-approved for the current V2 web playground as an original interpretation of the public-domain nursery-rhyme character. Re-review materially changed art or commercial use.",
   },
   {
     characterId: "character.moses",
     sourceKind: "religious-mythological",
-    rightsStatus: "development-review",
+    rightsStatus: "approved-for-distribution",
     rightsNote:
-      "Use a respectful original interpretation and review cultural, religious, regional, and distribution context.",
+      "Owner-approved for the current V2 web playground as an original interpretation. Re-review materially changed art, cultural context, or commercial use.",
   },
   {
     characterId: "character.viking",
     sourceKind: "historical-archetype",
-    rightsStatus: "development-review",
+    rightsStatus: "approved-for-distribution",
     rightsNote:
-      "Generic historical archetype; avoid copying a specific modern production design and review final assets.",
+      "Owner-approved for the current V2 web playground as a generic historical archetype. Re-review materially changed art or commercial use.",
   },
   {
     characterId: "character.ned-kelly",
     sourceKind: "historical-figure",
-    rightsStatus: "development-review",
+    rightsStatus: "approved-for-distribution",
     rightsNote:
-      "Use original stylisation based on historical material; do not copy a performer likeness or modern production design.",
+      "Owner-approved for the current V2 web playground as an original historical stylisation without a performer likeness. Re-review materially changed art or commercial use.",
   },
   {
     characterId: "character.grim-reaper",
     sourceKind: "religious-mythological",
-    rightsStatus: "development-review",
+    rightsStatus: "approved-for-distribution",
     rightsNote:
-      "Use an original personification-of-death design and review the complete visual package before distribution.",
+      "Owner-approved for the current V2 web playground as an original personification-of-death design. Re-review materially changed art or commercial use.",
   },
 ] satisfies CharacterProvenance[];
