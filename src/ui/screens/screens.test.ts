@@ -406,6 +406,19 @@ describe("screen renderers", () => {
     expect(startupAdvanceDelay("loading", false)).toBeGreaterThan(0);
   });
 
+  it("provides responsive startup backdrops without always selecting landscape", () => {
+    const markup = renderStartupScreen({
+      stage: "intro",
+      beat: startupSequence[0]!,
+      beatIndex: 0,
+      beatCount: startupSequence.length,
+    });
+
+    expect(markup).toContain("--startup-backdrop-landscape");
+    expect(markup).toContain("--startup-backdrop-portrait");
+    expect(markup).not.toMatch(/--startup-backdrop:/);
+  });
+
   it("marks every player-facing pre-fight surface as Fight Setup", () => {
     const storySetup = renderLineupScreen({
       save,

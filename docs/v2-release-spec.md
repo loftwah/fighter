@@ -452,9 +452,11 @@ complete only when all gates pass together.
 
 Exact numeric transfer and frame-pacing budgets are set after the first
 instrumented device baseline; the absence of that baseline blocks V2 freeze.
-The 2026-08-08 local production-preview observation now records an initial
-`390 × 844` landing transfer of 2,591,025 encoded bytes with no Phaser request,
-followed by 5,912,216 encoded bytes for the default 1v1 battle, including the
+The 2026-08-09 local production-preview observation records a cold `390 × 844`
+intro transfer of 854,741 encoded bytes, down 67.0% from the original 2,591,025
+bytes, with no Phaser, audio, Story/Tournament art, or unused landscape intro
+request. `mise run performance:audit` enforces a conservative 1 MB regression
+guard. The default 1v1 battle observation remains 5,912,216 encoded bytes, including the
 340,199-byte encoded lazy Phaser chunk and encounter-specific images. The
 production artefact verifier rejects source maps and an eager Phaser script.
 This is browser instrumentation, not the still-required physical-device

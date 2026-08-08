@@ -15,6 +15,7 @@ override them.
 | Where the product may evolve after the fighter proof   | [Platform direction](platform-direction.md)               |
 | How the game plays                                     | [Game design](game-design.md)                             |
 | How the application is built                           | [Technical design](technical-design.md)                   |
+| How production startup transfer is measured            | [V2 performance baseline](v2-performance-baseline.md)     |
 | How every fight is selected, reviewed, and launched    | [Match-launch flows](match-launch-flows.md)               |
 | How the implemented interface should look and behave   | [`DESIGN.md`](../DESIGN.md)                               |
 | How interface and combat icons are sourced             | [Icon system](icon-system.md)                             |

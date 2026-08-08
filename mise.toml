@@ -68,6 +68,10 @@ run = "pnpm demo:trailer"
 description = "Lint and type-check the Remotion trailer project"
 run = "pnpm video:check"
 
+[tasks."performance:audit"]
+description = "Build and measure the cold production mobile intro boundary"
+run = "pnpm performance:audit"
+
 [tasks.check]
 description = "Run the complete local quality gate"
 depends = ["lint", "format", "typecheck", "test", "build", "content:validate", "video:check"]

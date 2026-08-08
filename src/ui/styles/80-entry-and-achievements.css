@@ -52,10 +52,18 @@
   inset: -3rem;
   background:
     linear-gradient(rgb(7 16 31 / 44%), rgb(7 16 31 / 44%)),
-    var(--startup-backdrop) center / cover no-repeat;
+    var(--startup-backdrop-landscape) center / cover no-repeat;
   content: "";
   filter: blur(1.6rem) saturate(0.8);
   transform: scale(1.05);
+}
+
+@media (max-width: 760px) {
+  .startup-picture::before {
+    background:
+      linear-gradient(rgb(7 16 31 / 44%), rgb(7 16 31 / 44%)),
+      var(--startup-backdrop-portrait) center / cover no-repeat;
+  }
 }
 
 .startup-picture .startup-media {

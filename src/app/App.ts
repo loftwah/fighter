@@ -6,6 +6,7 @@ import {
   type Route,
   type SessionMode,
 } from "./routes";
+import { modeArtAssetsForStartupStage } from "./startup-assets";
 import {
   validateBattleLaunchRequest,
   type BattleLaunchRequest,
@@ -447,15 +448,10 @@ export class App {
   #musicSessionSeed = Date.now() >>> 0;
   #musicSelectionSequence = 0;
   #musicContext: MusicContext | null = null;
+  #loadedModeArtProperties = new Set<string>();
 
   constructor(root: HTMLElement) {
     this.#root = root;
-    for (const [property, assetId] of [
-      ["--art-story", "image.story.first-run"],
-      ["--art-tournament", "image.tournament.cheap-seats"],
-    ] as const) {
-      this.setCssImageWithFallback(property, assetId);
-    }
     this.#preferences = loadPreferences(localStorage);
     this.#quickWorkflow = createQuickFightWorkflow(
       "quick.full-power",
@@ -741,6 +737,16 @@ export class App {
       probe.src = path;
     };
     tryAsset(assetId, resolveImagePath(assetId));
+  }
+
+  private loadModeArtForCurrentStartupStage(): void {
+    for (const [property, assetId] of modeArtAssetsForStartupStage(
+      this.#startupStage,
+    )) {
+      if (this.#loadedModeArtProperties.has(property)) continue;
+      this.#loadedModeArtProperties.add(property);
+      this.setCssImageWithFallback(property, assetId);
+    }
   }
 
   private onKeyDown = (event: KeyboardEvent): void => {
@@ -2229,6 +2235,7 @@ export class App {
       this.renderBattle();
       return;
     }
+    this.loadModeArtForCurrentStartupStage();
     const shellModel = this.appShellModel();
     this.#root.innerHTML = `
       <div class="app-shell">

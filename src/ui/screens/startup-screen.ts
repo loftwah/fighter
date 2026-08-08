@@ -88,7 +88,8 @@ function renderStartupMedia(beat: StartupBeat): string {
       <picture
         class="startup-picture"
         style="
-          --startup-backdrop: url('${resolveImagePath(beat.imageAssetId)}');
+          --startup-backdrop-landscape: url('${resolveImagePath(beat.imageAssetId)}');
+          --startup-backdrop-portrait: url('${resolveImagePath(beat.portraitImageAssetId)}');
           --startup-portrait-position: ${resolveImageObjectPosition(beat.portraitImageAssetId)};
         "
       >

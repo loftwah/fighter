@@ -792,12 +792,16 @@ change or Rollup merges modules. The 2026-08-08 production build measured
 172,192,552 static bytes with zero source maps; its initial JS and CSS measured
 815,192 raw bytes and 183,985 gzip bytes.
 
-A local production-preview baseline at `390 × 844` measured 2,591,025 encoded
-bytes across nine landing resources. It did not request the lazy Phaser chunk.
+A local production-preview baseline at `390 × 844` originally measured
+2,591,025 encoded bytes across nine landing resources. Deferring Main Menu art
+and selecting one responsive intro backdrop reduced the repeatable cold intro
+to 854,741 encoded bytes, a 67.0% reduction. The automated
+`mise run performance:audit` guard caps this boundary at 1 MB and rejects eager
+Phaser, audio, Story/Tournament art, or the unused intro orientation.
 Starting the default Viking-versus-Grim-Reaper 1v1 requested a further
 5,912,216 encoded bytes across fourteen resources: the 340,199-byte encoded
 Phaser chunk and only that encounter's arena, Move, idle, and reaction images.
-These figures establish the first browser-driven transfer observation; they do not
+These figures establish browser-driven transfer observations; they do not
 set the physical-device budget or prove frame pacing, decoded image memory, or
 thermal behaviour. V2.1 must use selective application-shell and content-pack
 caching rather than pre-caching the complete library.
