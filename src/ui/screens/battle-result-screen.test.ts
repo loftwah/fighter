@@ -46,6 +46,30 @@ describe("battle result screen", () => {
     expect(markup).not.toContain("Game type");
   });
 
+  it("retains player choices when every evidence category is present", () => {
+    const markup = renderBattleResultScreen(
+      quickResult({
+        explanation: {
+          heading: "How you won",
+          decisiveMoment: "Axe First landed the final blow.",
+          evidence: [
+            "Winning damage.",
+            "Losing damage.",
+            "Type edge.",
+            "Luck record.",
+            "You used 7 Moves: Axe First ×3 and Battle Boast ×3. You switched 0 times.",
+          ],
+        },
+      }),
+    );
+
+    expect(markup).toContain("Winning damage.");
+    expect(markup).toContain("Losing damage.");
+    expect(markup).toContain("Type edge.");
+    expect(markup).toContain("Luck record.");
+    expect(markup).toContain("You used 7 Moves");
+  });
+
   it("omits the reward ledger when the mode does not own rewards", () => {
     const markup = renderBattleResultScreen(
       quickResult({

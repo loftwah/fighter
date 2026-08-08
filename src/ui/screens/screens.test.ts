@@ -343,6 +343,12 @@ describe("screen renderers", () => {
     expect(markup).toContain("data-enemy-hud-shell");
     expect(markup).toContain('data-hud-force-compact="false"');
     expect(markup).toContain('data-command="toggle-enemy-hud"');
+    const arenaStart = markup.indexOf('class="arena-specimen"');
+    const arenaEnd = markup.indexOf("</section>", arenaStart);
+    const pickupTray = markup.indexOf("data-player-pickups");
+    expect(arenaStart).toBeGreaterThanOrEqual(0);
+    expect(arenaEnd).toBeGreaterThan(arenaStart);
+    expect(pickupTray).toBeGreaterThan(arenaEnd);
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain('data-command="inspect-battle-detail"');
     expect(markup).toContain('title="Pause fight · Escape toggles · hold P"');

@@ -44,7 +44,6 @@ function renderEvidence(explanation: BattleResultExplanation | undefined) {
       <p>${escapeHtml(explanation.decisiveMoment)}</p>
       <ul>
         ${explanation.evidence
-          .slice(0, 4)
           .map((item) => `<li>${escapeHtml(item)}</li>`)
           .join("")}
       </ul>

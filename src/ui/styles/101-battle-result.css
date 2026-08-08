@@ -460,10 +460,6 @@
     font-size: 0.66rem;
   }
 
-  .battle-result-evidence li:nth-child(n + 4) {
-    display: none;
-  }
-
   .battle-result-rewards {
     flex-wrap: nowrap;
   }
@@ -545,21 +541,35 @@
   }
 
   .battle-result-copy h2 {
-    font-size: 2.7rem;
+    font-size: 2.2rem;
   }
 
   .battle-result-copy > header p,
   .battle-result-evidence li,
   .battle-result-evidence > p {
-    font-size: 0.65rem;
+    font-size: 0.58rem;
+  }
+
+  .battle-result-copy > header p,
+  .battle-result-evidence > p {
+    margin-top: 0.22rem;
+  }
+
+  .battle-result-evidence ul {
+    gap: 0 0.8rem;
+    margin-top: 0.18rem;
+  }
+
+  .battle-result-evidence li {
+    padding-block: 0.1rem;
   }
 
   .battle-result-evidence {
-    padding: 0.4rem 0.65rem;
+    padding: 0.25rem 0.65rem;
   }
 
   .battle-result-evidence h3 {
-    font-size: 1.8rem;
+    font-size: 1.45rem;
   }
 
   .battle-result-footer {

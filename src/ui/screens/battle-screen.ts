@@ -170,12 +170,6 @@ export function renderBattleScreen(model: BattleScreenModel): string {
             <span data-battle-impact-detail>0 DAMAGE</span>
           </div>
           <div class="matchup-stamp" data-matchup></div>
-          <div
-            class="battle-pickup-tray"
-            data-player-pickups
-            aria-label="Available battle pickups"
-            aria-live="polite"
-          ></div>
           <div class="battle-loading" data-battle-loading role="status" hidden>
             <div class="waiting-spinner" aria-hidden="true">
               <span></span><span></span><span></span>
@@ -203,6 +197,12 @@ export function renderBattleScreen(model: BattleScreenModel): string {
             <span>Stand by</span>
           </div>
         </section>
+        <div
+          class="battle-pickup-tray"
+          data-player-pickups
+          aria-label="Available battle pickups"
+          aria-live="polite"
+        ></div>
         <aside class="bench-rail enemy-bench" aria-label="Enemy Lineup">
           <h2>Enemy Lineup</h2>
           <div data-enemy-bench></div>

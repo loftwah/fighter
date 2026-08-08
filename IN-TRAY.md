@@ -42,13 +42,18 @@ Status values: `READY`, `IN PROGRESS`, `WAITING`, `DONE`, `DEFERRED`.
 - **Style comparison:** **Kinetic Print** and **Comic Cutaways** remain the two
   retained presentation treatments. They may be revisited without reopening
   the surrounding application programme.
-- **Evidence:** The semantic-control path completes the intended four-Move win
-  at all three Tier 1 viewport sizes. Automated geometry inspection reports no
-  out-of-bounds critical regions or sibling intersections at `390 × 844`,
-  `844 × 390`, and `1728 × 1117`. Final review also exercised two roster
-  defeats followed by repeated responsive layout passes without a Phaser
-  texture error; compact landscape statuses remain visible and Pause plus
-  Accessory meet the 44-pixel target floor.
+- **Evidence:** After damage recalibration, the semantic-control path completes
+  the intended seven-Move win at `390 × 844`, `844 × 390`, and `1728 × 1117`.
+  The exported reports agree on seed `3844240869`, a player win, 170 Axe First
+  damage, two critical hits, no dodges, and 31.44–31.50 seconds of simulation.
+  Result posters show all five report-backed evidence categories without page
+  overflow. Final review also exercised two roster defeats followed by repeated
+  responsive layout passes without a Phaser texture error; compact landscape
+  statuses remain visible and Pause plus Accessory meet the 44-pixel target
+  floor.
+- **Recalibration follow-up:** The 2026-08-07 approval remains evidence for the
+  Battle spatial direction. Final owner feel approval for the recalibrated
+  lethality is still open.
 - **Still separate:** Shared Lineup, Main Menu, and navigation retain their
   dedicated screenshot-led mock-up and implementation batches.
 

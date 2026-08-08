@@ -401,6 +401,7 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"] .battle-pickup-tray {
+  z-index: 46;
   right: 0.4rem;
   bottom: 0.4rem;
   left: auto;

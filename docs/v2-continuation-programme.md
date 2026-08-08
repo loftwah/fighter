@@ -165,14 +165,17 @@ The repository and current evidence agree on the following state:
 - Gate 0 and Gate V2-01 are complete. All 44 questionnaire answers and all 117
   mechanic-registry rows are reconciled. Do not repeat that work or reopen the
   completed questionnaire.
-- Gate V2-02 is accepted as the current Battle hold point. The owner confirmed
-  on 2026-08-07 that gameplay is in a good place while surrounding application
+- Gate V2-02 is the current Battle hold point. The owner confirmed on
+  2026-08-07 that gameplay is in a good place while surrounding application
   structure is corrected. `v2.viking-acceptance`, seed `3844240869`, remains
-  the fixed regression candidate.
+  the fixed regression candidate, with final feel approval still reserved for
+  the owner after the damage recalibration.
 - The fixed benchmark remains Standard-build Viking versus Standard-build Grim
-  Reaper on Normal with ordinary 90-second rules. Its semantic-control run wins
-  with 65/147 Health remaining. Headless, replay, delayed-command and responsive
-  browser evidence and owner feel acceptance now exist.
+  Reaper on Normal with ordinary 90-second rules. The recalibrated seven-Move
+  semantic-control policy wins at all three Tier 1 viewports, records 170 Axe
+  First damage, and takes 31.44–31.50 seconds of simulation. Headless, replay,
+  delayed-command, responsive browser, exported-report, and result-explanation
+  evidence now exist; physical-device and owner feel acceptance remain open.
 - Main Menu, navigation and Shared Fight Setup are implemented production
   surfaces but are not spatially approved. Each needs its own replacement,
   real-application screenshot-led batch.

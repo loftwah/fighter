@@ -136,8 +136,9 @@ script makes its first decision at 2.0 seconds, uses Battle Boast → Axe First 
 Battle Boast → Berserker Oath → Axe First → Battle Boast → Axe First, wins
 after 31.4 seconds of simulation and about 57.87 seconds including countdown
 and presentation holds, finishes at about 49% Health, and records 170 landed
-damage from Axe First. Berserker Oath is dodged in this seed, so its reauthored
-pool does not silently change the benchmark's duration or finishing Health.
+damage from Axe First. Under the fixed headless controller and 100-millisecond
+tick schedule, Berserker Oath is dodged, so its reauthored pool does not
+silently change that benchmark's duration or finishing Health.
 Between those Moves, the reference controller collects any
 available player Drop and activates Second Wind when fully charged. This is a
 regression benchmark, not a claim that one scripted sequence is the only good
@@ -150,12 +151,17 @@ requiring a zero-latency controller.
 The benchmark passes Gate 1 only when the same policy can be completed through
 the real semantic controls at the Tier 1 viewports and the result explanation
 matches its Battle Report. A headless win alone is necessary deterministic
-evidence, not player-facing acceptance. The development candidate now meets
-that operability check before the full Grim Reaper calibration: one
-real-control run recorded the earlier four-Move policy, finished with 65/147
-Viking Health, and explained the Type edge from report data. The recalibrated
-seven-Move benchmark still needs the equivalent real-control completion. Owner
-feel playtesting remains open.
+evidence, not player-facing acceptance. On 2026-08-08, the recalibrated
+seven-Move policy completed at `390 × 844`, `844 × 390`, and `1728 × 1117`
+through the semantic Move, Drop, and Accessory controls. The three exported
+reports recorded the expected seed, player win, seven Moves, 170 Axe First
+damage, two critical hits, no dodges, and 31.44–31.50 seconds of simulation.
+In those real-control runs Berserker Oath was interrupted rather than dodged.
+The explicit seed remains deterministic for a given input and tick schedule;
+real browser input/tick cadence explains both that branch and the sub-0.1-second
+duration spread from the fixed headless schedule. Each result poster showed the
+decisive hit, both sides' leading damage, Type edge, random-event record, and
+named Move counts with no page overflow. Owner feel playtesting remains open.
 
 ### 3.4 Modes
 

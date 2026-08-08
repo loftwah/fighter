@@ -91,13 +91,61 @@ function luckEvidence(report: BattleReport): string {
   if (criticals === 0 && dodges === 0) {
     return "No critical hits or dodges swung the fight.";
   }
-  if (criticals === 0) {
-    return `${dodges} dodge${dodges === 1 ? "" : "s"} changed the damage race.`;
+  return `The fight recorded ${criticals} critical hit${criticals === 1 ? "" : "s"} and ${dodges} dodge${dodges === 1 ? "" : "s"}.`;
+}
+
+function readableList(values: readonly string[]): string {
+  if (values.length <= 1) return values[0] ?? "";
+  if (values.length === 2) return `${values[0]} and ${values[1]}`;
+  return `${values.slice(0, -1).join(", ")}, and ${values.at(-1)}`;
+}
+
+function playerChoiceEvidence(
+  report: BattleReport,
+  content: CombatContent,
+): string {
+  const moveCounts = new Map<string, number>();
+  const switchDestinations = new Map<string, number>();
+  for (const decision of report.decisions) {
+    if (decision.side !== "player") continue;
+    if (decision.command.kind === "action") {
+      moveCounts.set(
+        decision.command.actionId,
+        (moveCounts.get(decision.command.actionId) ?? 0) + 1,
+      );
+    }
+    if (decision.command.kind === "switch") {
+      const target =
+        report.initialState.player.squad[decision.command.targetIndex];
+      const destination = participantName(report, content, target?.instanceId);
+      switchDestinations.set(
+        destination,
+        (switchDestinations.get(destination) ?? 0) + 1,
+      );
+    }
   }
-  if (dodges === 0) {
-    return `${criticals} critical hit${criticals === 1 ? "" : "s"} changed the damage race.`;
-  }
-  return `${criticals} critical hit${criticals === 1 ? "" : "s"} and ${dodges} dodge${dodges === 1 ? "" : "s"} changed the damage race.`;
+  const moveCount = [...moveCounts.values()].reduce(
+    (total, count) => total + count,
+    0,
+  );
+  const namedMoves = [...moveCounts.entries()]
+    .sort((left, right) => right[1] - left[1])
+    .map(
+      ([actionId, count]) =>
+        `${content.actions[actionId]?.name ?? actionId} ×${count}`,
+    );
+  const namedSwitches = [...switchDestinations.entries()]
+    .sort(
+      (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
+    )
+    .map(([name, count]) => `${name} ×${count}`);
+  const moveSentence = `You used ${moveCount} Move${moveCount === 1 ? "" : "s"}${namedMoves.length > 0 ? `: ${readableList(namedMoves)}` : ""}.`;
+  const switchCount = [...switchDestinations.values()].reduce(
+    (total, count) => total + count,
+    0,
+  );
+  const switchSentence = `You switched ${switchCount} time${switchCount === 1 ? "" : "s"}${namedSwitches.length > 0 ? `: ${readableList(namedSwitches)}` : ""}.`;
+  return `${moveSentence} ${switchSentence}`;
 }
 
 export function explainBattleResult(
@@ -164,17 +212,7 @@ export function explainBattleResult(
   }
 
   evidence.push(luckEvidence(report));
-  const playerMoves = report.decisions.filter(
-    (decision) =>
-      decision.side === "player" && decision.command.kind === "action",
-  ).length;
-  const playerSwitches = report.decisions.filter(
-    (decision) =>
-      decision.side === "player" && decision.command.kind === "switch",
-  ).length;
-  evidence.push(
-    `You used ${playerMoves} Move${playerMoves === 1 ? "" : "s"} and switched ${playerSwitches} time${playerSwitches === 1 ? "" : "s"}.`,
-  );
+  evidence.push(playerChoiceEvidence(report, content));
 
   return {
     heading: playerWon ? "How you won" : "What went wrong",

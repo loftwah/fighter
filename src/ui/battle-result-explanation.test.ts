@@ -72,9 +72,11 @@ describe("battle result explanation", () => {
     expect(explanation.heading).toBe("How you won");
     expect(explanation.decisiveMoment).toContain("Berserker Oath");
     expect(explanation.evidence.join(" ")).toContain("Brawler");
-    expect(explanation.evidence.join(" ")).toContain("1 critical hit");
+    expect(explanation.evidence).toContain(
+      "The fight recorded 1 critical hit and 0 dodges.",
+    );
     expect(renderBattleResultExplanation(report, combatContent)).toContain(
-      "You used 1 Move and switched 0 times.",
+      "You used 1 Move: Axe First ×1. You switched 0 times.",
     );
   });
 
@@ -96,6 +98,38 @@ describe("battle result explanation", () => {
 
     expect(explainBattleResult(report, combatContent).evidence).toContain(
       "No critical hits or dodges swung the fight.",
+    );
+  });
+
+  it("names the player's switch destination", () => {
+    const created = createBattle(
+      {
+        playerCharacterIds: ["character.viking", "character.humpty"],
+        enemyCharacterIds: ["character.grim-reaper"],
+        seed: 4,
+        difficulty: "normal",
+      },
+      combatContent,
+    );
+    const report = createBattleReport(created.state, created.events, {
+      mode: "quick",
+      encounterId: "explanation.switch",
+    });
+    const playerId = report.participants.find(
+      (participant) => participant.side === "player",
+    )!.instanceId;
+    for (let sequence = 1; sequence <= 3; sequence += 1) {
+      report.decisions.push({
+        sequence,
+        elapsedMs: sequence * 1_000,
+        side: "player",
+        sourceInstanceId: playerId,
+        command: { kind: "switch", targetIndex: 1 },
+      });
+    }
+
+    expect(renderBattleResultExplanation(report, combatContent)).toContain(
+      "You used 0 Moves. You switched 3 times: Humpty Dumpty ×3.",
     );
   });
 
