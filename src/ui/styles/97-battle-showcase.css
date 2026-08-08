@@ -1311,13 +1311,19 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"]
-  .bench-ticket.is-team-hit
+  .bench-damage-receipt[data-receipt-outcome="dodge"] {
+  background: var(--acid-yellow);
+  color: var(--ink);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .bench-ticket:is(.is-team-hit, .is-team-dodge)
   .bench-art {
   animation: bench-team-impact 420ms cubic-bezier(0.2, 0.75, 0.2, 1);
 }
 
 .battle-stage[data-battle-layout="rail-first"]
-  .bench-ticket.is-team-hit
+  .bench-ticket:is(.is-team-hit, .is-team-dodge)
   .bench-damage-receipt {
   animation: bench-damage-stamp 520ms cubic-bezier(0.2, 0.75, 0.2, 1);
 }
@@ -1355,7 +1361,7 @@
 @media (prefers-reduced-motion: reduce) {
   .battle-stage[data-battle-layout="rail-first"] .bench-health > span,
   .battle-stage[data-battle-layout="rail-first"]
-    .bench-ticket.is-team-hit
+    .bench-ticket:is(.is-team-hit, .is-team-dodge)
     :is(.bench-art, .bench-damage-receipt) {
     transition: none;
     animation: none;
@@ -1363,6 +1369,11 @@
 
   .battle-stage[data-battle-layout="rail-first"] .bench-ticket.is-team-hit {
     outline: 0.18rem solid var(--tomato);
+    outline-offset: 0.12rem;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"] .bench-ticket.is-team-dodge {
+    outline: 0.18rem solid var(--acid-yellow);
     outline-offset: 0.12rem;
   }
 }
@@ -1373,7 +1384,7 @@ html[data-reduced-motion="true"]
   > span,
 html[data-reduced-motion="true"]
   .battle-stage[data-battle-layout="rail-first"]
-  .bench-ticket.is-team-hit
+  .bench-ticket:is(.is-team-hit, .is-team-dodge)
   :is(.bench-art, .bench-damage-receipt) {
   transition: none;
   animation: none;
@@ -1383,6 +1394,13 @@ html[data-reduced-motion="true"]
   .battle-stage[data-battle-layout="rail-first"]
   .bench-ticket.is-team-hit {
   outline: 0.18rem solid var(--tomato);
+  outline-offset: 0.12rem;
+}
+
+html[data-reduced-motion="true"]
+  .battle-stage[data-battle-layout="rail-first"]
+  .bench-ticket.is-team-dodge {
+  outline: 0.18rem solid var(--acid-yellow);
   outline-offset: 0.12rem;
 }
 

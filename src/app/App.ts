@@ -128,10 +128,9 @@ import type { BattleScene } from "../game/BattleScene";
 import {
   aiDecisionReady,
   BATTLE_COUNTDOWN,
-  battlePresentationImpactDelay,
+  battleEventImpactDelay,
   battlePresentationDuration,
   battlePresentationStateCommitDelay,
-  DAMAGE_STAGGER_MS,
   holdAiDecisionClock,
 } from "../game/presentation-timing";
 import { evaluateMissionProgress } from "../missions/evaluate";
@@ -216,6 +215,7 @@ import {
   type DevMoveTier,
 } from "../dev/scenarios";
 import {
+  battleDecisionAnnouncement,
   battleDecisionGuidance,
   battlePresentationGuidance,
   opponentDecisionGuidance,
@@ -5176,18 +5176,11 @@ export class App {
       transition.state,
       combatContent,
       {
-        firstImpactDelayMs: battlePresentationImpactDelay(transition.events),
-        damageStaggerMs: DAMAGE_STAGGER_MS,
+        impactDelayForEvent: (eventIndex) =>
+          battleEventImpactDelay(transition.events, eventIndex),
       },
     );
     this.#battle = transition.state;
-    if (damageReceipts.length > 0) {
-      this.scheduleTeamDamageReceipts(damageReceipts);
-    } else if (
-      transition.events.some((event) => event.type === "actionStarted")
-    ) {
-      this.clearTeamDamageReceipts(true);
-    }
     if (stateCommitDelay > 0 && presentationMs > 0 && previousState) {
       this.scheduleBattleStateCommit(stateCommitDelay);
     } else if (
@@ -5199,6 +5192,13 @@ export class App {
       )
     ) {
       this.commitVisibleBattleState();
+    }
+    if (damageReceipts.length > 0) {
+      this.scheduleTeamDamageReceipts(damageReceipts);
+    } else if (
+      transition.events.some((event) => event.type === "actionStarted")
+    ) {
+      this.clearTeamDamageReceipts(true);
     }
     this.updateChargeRails();
     if (!this.#battlePaused && presentationMs > 0 && previousState) {
@@ -5287,9 +5287,12 @@ export class App {
       0,
       Math.min(1, receipt.currentHealth / receipt.maximumHealth),
     );
-    ticket.classList.remove("is-team-hit");
+    ticket.classList.remove("is-team-hit", "is-team-dodge");
     void ticket.offsetWidth;
-    ticket.classList.add("is-team-hit", "has-team-damage-receipt");
+    ticket.classList.add(
+      receipt.outcome === "dodge" ? "is-team-dodge" : "is-team-hit",
+      "has-team-damage-receipt",
+    );
     const stateValue = ticket.querySelector<HTMLElement>(".bench-state small");
     if (stateValue) {
       stateValue.textContent = `${receipt.currentHealth}/${receipt.maximumHealth}`;
@@ -5329,14 +5332,18 @@ export class App {
       damage.setAttribute("aria-hidden", "true");
       ticket.append(damage);
     }
-    damage.textContent = `−${receipt.amount}`;
+    damage.dataset.receiptOutcome = receipt.outcome;
+    damage.textContent =
+      receipt.outcome === "dodge" ? "DODGE" : `−${receipt.amount}`;
+    const receiptAnnouncement =
+      receipt.outcome === "dodge"
+        ? `Dodged the team attack. ${receipt.currentHealth} of ${receipt.maximumHealth} Health.`
+        : `Took ${receipt.amount} team damage. ${receipt.currentHealth} of ${receipt.maximumHealth} Health.`;
     ticket.setAttribute(
       "aria-label",
-      `${receipt.characterName}, ${receipt.currentHealth} of ${receipt.maximumHealth} Health. Took ${receipt.amount} team damage.`,
+      `${receipt.characterName}. ${receiptAnnouncement}`,
     );
-    this.announce(
-      `${receipt.characterName} took ${receipt.amount} damage, ${receipt.currentHealth} of ${receipt.maximumHealth} Health remaining.`,
-    );
+    this.announce(`${receipt.characterName}. ${receiptAnnouncement}`);
   }
 
   private playerAction(side: Side, actionId: string): void {
@@ -5486,7 +5493,10 @@ export class App {
         const target = this.characterNameFromInstance(event.targetId);
         message = `${target} recovered ${event.amount ?? 0} Health.`;
       }
-      if (event.type === "characterDodged") {
+      if (
+        event.type === "characterDodged" &&
+        !teamTargetIds.has(event.targetId ?? "")
+      ) {
         message = `${this.characterNameFromInstance(event.targetId)} dodged clean.`;
       }
       if (event.type === "criticalHit") {
@@ -5536,8 +5546,12 @@ export class App {
     }
     if (teamReceipts.length > 0) {
       this.#eventLog.unshift(
-        `Team hit: ${teamReceipts
-          .map((receipt) => `${receipt.characterName} −${receipt.amount}`)
+        `Team attack: ${teamReceipts
+          .map((receipt) =>
+            receipt.outcome === "dodge"
+              ? `${receipt.characterName} DODGE`
+              : `${receipt.characterName} −${receipt.amount}`,
+          )
           .join(" · ")}.`,
       );
     }
@@ -5788,6 +5802,11 @@ export class App {
         const damageReceipt = this.#teamDamageReceipts.get(
           combatant.instanceId,
         );
+        const receiptOutcomeClass = damageReceipt
+          ? damageReceipt.outcome === "dodge"
+            ? "is-team-dodge"
+            : "is-team-hit"
+          : "";
         const body = `
           <span class="bench-art is-${character.typeId}">
             <img
@@ -5817,7 +5836,7 @@ export class App {
           ><span style="--meter-scale:${healthScale}"></span></span>
           ${
             damageReceipt
-              ? `<span class="bench-damage-receipt" aria-hidden="true">−${damageReceipt.amount}</span>`
+              ? `<span class="bench-damage-receipt" data-receipt-outcome="${damageReceipt.outcome}" aria-hidden="true">${damageReceipt.outcome === "dodge" ? "DODGE" : `−${damageReceipt.amount}`}</span>`
               : ""
           }
         `;
@@ -5830,7 +5849,7 @@ export class App {
           return `
             <article class="bench-slot">
               <button
-                class="bench-ticket ${active ? "is-active" : ""} ${damageReceipt ? "has-team-damage-receipt" : ""}"
+                class="bench-ticket ${active ? "is-active" : ""} ${damageReceipt ? "has-team-damage-receipt" : ""} ${receiptOutcomeClass}"
                 data-instance-id="${escapeHtml(combatant.instanceId)}"
                 data-command="battle-switch"
                 data-side="${side}"
@@ -5843,7 +5862,7 @@ export class App {
                     ? "disabled"
                     : ""
                 }
-                aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${damageReceipt ? `. Took ${damageReceipt.amount} team damage` : ""}${active || !alive ? "" : ". Switch to this fighter"}"
+                aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${damageReceipt ? (damageReceipt.outcome === "dodge" ? ". Dodged the team attack" : `. Took ${damageReceipt.amount} team damage`) : ""}${active || !alive ? "" : ". Switch to this fighter"}"
               >${body}</button>
               ${moveDisclosure}
             </article>
@@ -5852,9 +5871,9 @@ export class App {
         return `
           <article class="bench-slot">
             <div
-              class="bench-ticket ${active ? "is-active" : ""} ${damageReceipt ? "has-team-damage-receipt" : ""}"
+              class="bench-ticket ${active ? "is-active" : ""} ${damageReceipt ? "has-team-damage-receipt" : ""} ${receiptOutcomeClass}"
               data-instance-id="${escapeHtml(combatant.instanceId)}"
-              aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${damageReceipt ? `. Took ${damageReceipt.amount} team damage` : ""}"
+              aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${damageReceipt ? (damageReceipt.outcome === "dodge" ? ". Dodged the team attack" : `. Took ${damageReceipt.amount} team damage`) : ""}"
             >${body}</div>
             ${moveDisclosure}
           </article>
@@ -6241,8 +6260,9 @@ export class App {
     if (detail) {
       detail.textContent = guidance.detail;
     }
-    if (guidance.state === "ready") {
-      this.announce(`${guidance.title}. ${guidance.detail}.`);
+    const announcement = battleDecisionAnnouncement(guidance);
+    if (announcement) {
+      this.announce(announcement);
     }
   }
 

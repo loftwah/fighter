@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  battleDecisionAnnouncement,
   battleDecisionGuidance,
   battlePresentationGuidance,
   opponentDecisionGuidance,
@@ -127,6 +128,30 @@ describe("battle guidance", () => {
       title: "YOUR MOVE",
       detail: "Press 1 or 2 · 2 Moves ready",
     });
+  });
+
+  it("replaces stale readiness announcements at presentation and fight end", () => {
+    expect(
+      battleDecisionAnnouncement({
+        state: "watch",
+        title: "WATCH THE MOVE",
+        detail: "Controls return after the hit",
+      }),
+    ).toBe("WATCH THE MOVE. Controls return after the hit.");
+    expect(
+      battleDecisionAnnouncement({
+        state: "ended",
+        title: "FIGHT OVER",
+        detail: "Review the result",
+      }),
+    ).toBe("FIGHT OVER. Review the result.");
+    expect(
+      battleDecisionAnnouncement({
+        state: "waiting",
+        title: "CHARGING",
+        detail: "Ping ready in 12 Charge",
+      }),
+    ).toBeNull();
   });
 
   it("gives the opponent a matching ready marker", () => {

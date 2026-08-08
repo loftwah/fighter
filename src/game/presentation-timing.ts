@@ -18,6 +18,51 @@ export const REACTION_IMPACT_DELAY_MS = 420;
 export const DAMAGE_STAGGER_MS = 180;
 export const IMPACT_VISUAL_MS = 820;
 
+export function battleEventImpactDelay(
+  events: readonly BattleEvent[],
+  eventIndex: number,
+): number {
+  const event = events[eventIndex];
+  if (!event || event.periodic) return 0;
+  const impactDelay = battlePresentationImpactDelay(events);
+  const followsHitSequence =
+    event.type === "reactionTriggered" || event.type === "characterDefeated";
+  if (
+    event.type !== "damageApplied" &&
+    event.type !== "characterDodged" &&
+    !followsHitSequence
+  ) {
+    return impactDelay;
+  }
+  const precedingHitCount = events
+    .slice(0, eventIndex)
+    .filter(
+      (candidate) =>
+        !candidate.periodic &&
+        (candidate.type === "damageApplied" ||
+          candidate.type === "characterDodged"),
+    ).length;
+  return impactDelay + precedingHitCount * DAMAGE_STAGGER_MS;
+}
+
+function finalHitImpactDelay(events: readonly BattleEvent[]): number {
+  let finalHitIndex = -1;
+  for (let index = events.length - 1; index >= 0; index -= 1) {
+    const event = events[index];
+    if (
+      event &&
+      !event.periodic &&
+      (event.type === "damageApplied" || event.type === "characterDodged")
+    ) {
+      finalHitIndex = index;
+      break;
+    }
+  }
+  return finalHitIndex >= 0
+    ? battleEventImpactDelay(events, finalHitIndex)
+    : battlePresentationImpactDelay(events);
+}
+
 export function holdAiDecisionClock(now: number): number {
   return now;
 }
@@ -38,7 +83,7 @@ export function battlePresentationDuration(events: BattleEvent[]): number {
   }
   const hasStarted = types.has("actionStarted");
   const hasResolved = types.has("actionCharged");
-  const impactDelay = battlePresentationImpactDelay(presentationEvents);
+  const finalHitDelay = finalHitImpactDelay(presentationEvents);
   const damageCount = presentationEvents.filter(
     (event) => event.type === "damageApplied",
   ).length;
@@ -53,21 +98,11 @@ export function battlePresentationDuration(events: BattleEvent[]): number {
     types.has("statusApplied");
 
   if (types.has("battleEnded") || types.has("characterDefeated")) {
-    return Math.max(
-      2_600,
-      impactDelay + damageCount * DAMAGE_STAGGER_MS + 1_200,
-    );
+    return Math.max(2_600, finalHitDelay + DAMAGE_STAGGER_MS + 1_200);
   }
 
   if (hasStarted && hasResolved) {
-    return Math.max(
-      2_100,
-      hasImpact
-        ? impactDelay +
-            Math.max(0, damageCount - 1) * DAMAGE_STAGGER_MS +
-            IMPACT_VISUAL_MS
-        : 0,
-    );
+    return Math.max(2_100, hasImpact ? finalHitDelay + IMPACT_VISUAL_MS : 0);
   }
 
   if (hasStarted) {
@@ -75,12 +110,7 @@ export function battlePresentationDuration(events: BattleEvent[]): number {
   }
 
   if (hasResolved || hasImpact) {
-    return Math.max(
-      1_800,
-      impactDelay +
-        Math.max(0, damageCount - 1) * DAMAGE_STAGGER_MS +
-        IMPACT_VISUAL_MS,
-    );
+    return Math.max(1_800, finalHitDelay + IMPACT_VISUAL_MS);
   }
 
   if (types.has("characterSwitched")) {
@@ -122,7 +152,5 @@ export function battlePresentationStateCommitDelay(
     return 0;
   }
 
-  const impactDelay = battlePresentationImpactDelay(presentationEvents);
-
-  return impactDelay + Math.max(0, damageCount - 1) * DAMAGE_STAGGER_MS;
+  return finalHitImpactDelay(presentationEvents);
 }

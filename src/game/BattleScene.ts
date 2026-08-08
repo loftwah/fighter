@@ -13,8 +13,8 @@ import {
   calculateComicPanelLayout,
 } from "./presentation/framing";
 import {
+  battleEventImpactDelay,
   CHARGED_MOVE_IMPACT_DELAY_MS,
-  DAMAGE_STAGGER_MS,
   IMPACT_VISUAL_MS,
   INSTANT_MOVE_IMPACT_DELAY_MS,
   REACTION_IMPACT_DELAY_MS,
@@ -244,8 +244,7 @@ export class BattleScene extends Phaser.Scene {
       impactDelay = REACTION_IMPACT_DELAY_MS;
     }
 
-    let damageIndex = 0;
-    for (const event of events) {
+    for (const [eventIndex, event] of events.entries()) {
       if (event.periodic) {
         if (event.type === "damageApplied") {
           this.presentFloat(event, `-${event.amount ?? 0}`, "#f2d742");
@@ -256,11 +255,7 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
       if (event.type === "damageApplied") {
-        this.presentDamage(
-          event,
-          impactDelay + damageIndex * DAMAGE_STAGGER_MS,
-        );
-        damageIndex += 1;
+        this.presentDamage(event, battleEventImpactDelay(events, eventIndex));
       }
       if (event.type === "healingApplied") {
         this.presentFloat(
@@ -271,7 +266,7 @@ export class BattleScene extends Phaser.Scene {
         );
       }
       if (event.type === "characterDodged") {
-        this.presentDodge(event, impactDelay);
+        this.presentDodge(event, battleEventImpactDelay(events, eventIndex));
       }
       if (event.type === "criticalHit") {
         this.presentImpactWord("CRITICAL!", "#f2d742", impactDelay);
@@ -283,7 +278,7 @@ export class BattleScene extends Phaser.Scene {
         this.presentImpactWord("NO FLINCH!", "#8de1ff", impactDelay);
       }
       if (event.type === "reactionTriggered") {
-        const reactionDelay = impactDelay + damageIndex * DAMAGE_STAGGER_MS;
+        const reactionDelay = battleEventImpactDelay(events, eventIndex);
         this.presentImpactWord(
           event.reactionKind === "counter" ? "COUNTER!" : "REFLECT!",
           event.reactionKind === "counter" ? "#8de1ff" : "#f2d742",
@@ -306,7 +301,7 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
       if (event.type === "characterDefeated") {
-        this.presentDefeat(event, impactDelay + damageIndex * 105);
+        this.presentDefeat(event, battleEventImpactDelay(events, eventIndex));
       }
     }
 

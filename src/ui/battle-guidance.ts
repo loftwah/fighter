@@ -33,6 +33,16 @@ export interface BattleDecisionGuidance {
   detail: string;
 }
 
+export function battleDecisionAnnouncement(
+  guidance: BattleDecisionGuidance,
+): string | null {
+  return guidance.state === "ready" ||
+    guidance.state === "watch" ||
+    guidance.state === "ended"
+    ? `${guidance.title}. ${guidance.detail}.`
+    : null;
+}
+
 function readableKeyList(keys: number[]): string {
   if (keys.length <= 1) {
     return String(keys[0] ?? "");

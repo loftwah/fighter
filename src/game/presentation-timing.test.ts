@@ -3,6 +3,7 @@ import type { BattleEvent } from "../combat/types";
 import {
   aiDecisionReady,
   BATTLE_COUNTDOWN,
+  battleEventImpactDelay,
   battlePresentationDuration,
   battlePresentationStateCommitDelay,
   holdAiDecisionClock,
@@ -64,6 +65,45 @@ describe("battle presentation timing", () => {
         events("actionCharged", "damageApplied", "damageApplied"),
       ),
     ).toBe(700);
+  });
+
+  it("uses one impact policy for mixed damage and dodge outcomes", () => {
+    const mixed = events(
+      "actionStarted",
+      "actionCharged",
+      "damageApplied",
+      "characterDodged",
+      "damageApplied",
+    );
+    expect(battleEventImpactDelay(mixed, 2)).toBe(850);
+    expect(battleEventImpactDelay(mixed, 3)).toBe(1030);
+    expect(battleEventImpactDelay(mixed, 4)).toBe(1210);
+    expect(battlePresentationStateCommitDelay(mixed)).toBe(1210);
+    expect(battlePresentationDuration(mixed)).toBeGreaterThanOrEqual(2030);
+  });
+
+  it("keeps defeat and dodge reactions after their triggering hit outcomes", () => {
+    const defeatedAfterMixedHits = events(
+      "actionStarted",
+      "actionCharged",
+      "damageApplied",
+      "characterDodged",
+      "characterDodged",
+      "characterDefeated",
+    );
+    expect(battleEventImpactDelay(defeatedAfterMixedHits, 4)).toBe(1210);
+    expect(battleEventImpactDelay(defeatedAfterMixedHits, 5)).toBe(1390);
+
+    const dodgeCounter = events(
+      "actionStarted",
+      "actionCharged",
+      "characterDodged",
+      "reactionTriggered",
+      "damageApplied",
+    );
+    expect(battleEventImpactDelay(dodgeCounter, 2)).toBe(850);
+    expect(battleEventImpactDelay(dodgeCounter, 3)).toBe(1030);
+    expect(battleEventImpactDelay(dodgeCounter, 4)).toBe(1030);
   });
 
   it("does not defer state when there is no blocking impact", () => {

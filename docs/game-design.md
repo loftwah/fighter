@@ -553,11 +553,14 @@ validate → lock target → spend Charge → start/charge → resolve hits
   healing, status, or defeat outcome remains as a compact visible receipt after
   the cut-in clears.
 - A whole-Lineup attack gives every affected edge ticket its own impact-beat
-  reaction, exact previous-to-current Health meter change and compact damage
-  receipt. Reduced motion retains a static impact outline and the same receipt.
-  A benched target never makes the active arena fighter recoil. The general
-  two-entry Fight Feed groups the complete team result into one entry so a
-  three-member result cannot be truncated.
+  reaction and compact outcome receipt. Damage shows the exact
+  previous-to-current Health meter change and amount; a target that avoids the
+  complete pool shows `DODGE` with unchanged semantic Health. An aggregate
+  multi-hit amount lands on that target's final hit beat. Reduced motion retains
+  a static outcome-coloured impact outline and the same receipt. A benched
+  target never makes the active arena fighter recoil. The general two-entry
+  Fight Feed groups the complete team result, including dodges, into one entry
+  so a three-member result cannot be truncated.
 - Each active Character's Health and its team's Charge Strip form one combat
   console: opponent information is grouped across the upper field and player
   information is grouped across the lower Move-and-Charge field. The player

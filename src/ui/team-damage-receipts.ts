@@ -6,8 +6,7 @@ import type {
 } from "../combat/types";
 
 export interface TeamDamageReceiptTiming {
-  firstImpactDelayMs: number;
-  damageStaggerMs: number;
+  impactDelayForEvent(eventIndex: number): number;
 }
 
 export interface TeamDamageReceipt {
@@ -16,6 +15,7 @@ export interface TeamDamageReceipt {
   characterName: string;
   characterTypeId: string;
   wasActiveBefore: boolean;
+  outcome: "damage" | "dodge";
   amount: number;
   previousHealth: number;
   currentHealth: number;
@@ -37,13 +37,13 @@ export function teamDamageReceipts(
   timing: TeamDamageReceiptTiming,
 ): TeamDamageReceipt[] {
   if (!before) return [];
-  const damageEvents = events.filter((event) => {
+  const targetEvents = events.filter((event) => {
     if (
-      event.type !== "damageApplied" ||
+      (event.type !== "damageApplied" && event.type !== "characterDodged") ||
       !event.targetId ||
       !event.actionId ||
-      event.message === "healthCost" ||
-      event.reactionKind
+      (event.type === "damageApplied" &&
+        (event.message === "healthCost" || event.reactionKind))
     ) {
       return false;
     }
@@ -55,13 +55,20 @@ export function teamDamageReceipts(
   });
   const grouped = new Map<
     string,
-    { amount: number; firstDamageIndex: number }
+    {
+      amount: number;
+      hasDamage: boolean;
+      finalOutcomeEventIndex: number;
+    }
   >();
-  for (const [damageIndex, event] of damageEvents.entries()) {
+  for (const event of targetEvents) {
     const existing = grouped.get(event.targetId!);
+    const eventIndex = events.indexOf(event);
+    const isDamage = event.type === "damageApplied";
     grouped.set(event.targetId!, {
       amount: (existing?.amount ?? 0) + (event.amount ?? 0),
-      firstDamageIndex: existing?.firstDamageIndex ?? damageIndex,
+      hasDamage: (existing?.hasDamage ?? false) || isDamage,
+      finalOutcomeEventIndex: eventIndex,
     });
   }
   return [...grouped.entries()].flatMap(([targetId, damage]) => {
@@ -79,14 +86,14 @@ export function teamDamageReceipts(
         wasActiveBefore:
           before[previous.side].squad[before[previous.side].activeIndex]
             ?.instanceId === previous.instanceId,
+        outcome: damage.hasDamage ? "damage" : "dodge",
         amount: damage.amount,
         previousHealth: previous.currentHealth,
         currentHealth: current.currentHealth,
         maximumHealth: current.maxHealth,
-        impactDelayMs: damageEvents[damage.firstDamageIndex]?.periodic
-          ? 0
-          : timing.firstImpactDelayMs +
-            damage.firstDamageIndex * timing.damageStaggerMs,
+        impactDelayMs: timing.impactDelayForEvent(
+          damage.finalOutcomeEventIndex,
+        ),
       },
     ];
   });
