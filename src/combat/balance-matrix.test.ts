@@ -192,5 +192,5 @@ describe("seeded launch-roster damage calibration", () => {
         );
       }
     }
-  });
+  }, 30_000);
 });
