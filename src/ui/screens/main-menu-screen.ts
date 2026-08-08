@@ -1,5 +1,6 @@
 import type { SaveData } from "../../persistence/save";
 import { escapeHtml } from "../format";
+import { ICONS } from "../icons";
 
 export interface MainMenuScreenModel {
   save: SaveData;
@@ -50,7 +51,7 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
                     ? "Continue Story Mode"
                     : "Start New Story"
               }
-              <span aria-hidden="true">→</span>
+              ${ICONS.arrowRight}
             </button>
           </div>
         </article>
@@ -64,7 +65,7 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
               </p>
               <button class="secondary-action" data-command="enter-quick">
                 ${storyComplete ? "Open end-game sandbox" : "Set up Quick Fight"}
-                <span aria-hidden="true">→</span>
+                ${ICONS.arrowRight}
               </button>
             </div>
           </article>
@@ -82,7 +83,7 @@ export function renderMainMenuScreen(model: MainMenuScreenModel): string {
                     ? `Resume Round ${standaloneRun.roundIndex + 1}`
                     : "Start Tournament"
                 }
-                <span aria-hidden="true">→</span>
+                ${ICONS.arrowRight}
               </button>
             </div>
           </article>

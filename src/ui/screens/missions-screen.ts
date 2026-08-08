@@ -1,6 +1,7 @@
 import { missions } from "../../content/initial-content";
 import type { SaveData } from "../../persistence/save";
 import { renderLockedFeature } from "../components/locked-feature";
+import { ICONS } from "../icons";
 
 export function renderMissionsScreen(save: SaveData, locked: boolean): string {
   if (locked) {
@@ -22,7 +23,7 @@ export function renderMissionsScreen(save: SaveData, locked: boolean): string {
                 <p>Progress is semantic: losses can count actions, but win objectives still require a win.</p>
               </div>
               <button class="primary-action" data-command="advance-story-node">
-                Set the Qualifier Lineup <span aria-hidden="true">→</span>
+                Set the Qualifier Lineup ${ICONS.arrowRight}
               </button>
             </aside>
           `
@@ -46,7 +47,7 @@ export function renderMissionsScreen(save: SaveData, locked: boolean): string {
             return `
               <article class="mission-slip ${complete ? "is-complete" : ""}">
                 <span class="mission-check" aria-hidden="true">${
-                  complete ? "✓" : "×"
+                  complete ? ICONS.check : ICONS.remove
                 }</span>
                 <div>
                   <h2>${mission.name}</h2>

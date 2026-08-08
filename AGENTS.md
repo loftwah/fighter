@@ -5,6 +5,9 @@
 - `docs/v2-release-spec.md` is the V2 release scope, acceptance, and freeze
   source of truth.
 - `docs/release-roadmap.md` is the post-V2 milestone scope source of truth.
+- `docs/platform-direction.md` preserves the long-term AI-operated product-line
+  direction. It is strategic context, not permission to change an accepted
+  release or manufacture speculative architecture.
 - `docs/game-design.md` is the product and rules source of truth.
 - `docs/technical-design.md` is the architecture source of truth.
 - `docs/brand-and-site.md` is the public naming, domain, landing-page, and
@@ -19,6 +22,9 @@
   documents, but do consult the ledger before discarding or re-asking it.
 - When a rule changes, update the authoritative document, its tests, and relevant content schema in the same change.
 - Use Australian English in player-facing copy and project documentation.
+- Keep public project history free of former-employer, client, colleague, and
+  other private provenance. Describe transferable engineering practices
+  generically.
 
 ## Runtime and commands
 
@@ -29,12 +35,15 @@
 
 ## Architecture
 
-- Domain/gameplay modules under `src/combat`, `src/economy`, `src/progression`, `src/missions`, `src/store`, `src/stories`, and `src/tournaments` must not import Phaser.
+- Domain/gameplay modules under `src/combat`, `src/economy`, `src/progression`, `src/missions`, `src/store`, `src/story`, and `src/tournaments` must not import Phaser.
 - Phaser belongs under `src/game` and consumes semantic domain events.
 - Content is data. Adding a character, action, story, mission, store entry, or tournament should not require a new renderer or bespoke domain branch.
 - Random behaviour must use an explicit seed.
 - Stable logical asset IDs must be resolved through registries; content must not depend on fragile filenames.
 - Preserve local-first save compatibility. If a persisted shape changes, add an explicit migration or bump the development schema and document the reset.
+- Do not introduce a product fleet, universal brief schema, repository split,
+  plugin system, remote CMS, or second gameplay abstraction until a bounded
+  roadmap proof and concrete product require it.
 
 ## Product guardrails
 

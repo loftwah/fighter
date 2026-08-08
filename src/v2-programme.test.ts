@@ -34,18 +34,21 @@ describe("ratified V2 programme contract", () => {
     expect(releaseSpec).toContain("waits 1.5 seconds");
   });
 
-  it("keeps the game-first Battle candidate and unapproved app layouts behind explicit owner gates", () => {
+  it("holds the accepted Battle while the surrounding app moves through explicit view gates", () => {
     expect(design).toContain(
       "production compositions are not blanket approvals",
     );
     expect(design).toContain(
-      "game-first playtest candidate derived from the owner's Teeny",
+      "game-first hold candidate derived from the owner's Teeny",
     );
     expect(design).toMatch(
-      /Main\s+Menu and global\/Story navigation still require their own/,
+      /Shared Lineup is that first batch because every\s+player-controlled fight depends on it/,
+    );
+    expect(design).toMatch(
+      /website-like header is an approved\s+production shell/,
     );
     expect(inTray).toContain("### IN-012 — Choose the Battle UI spatial model");
-    expect(inTray).toContain("**Status:** IN PROGRESS");
+    expect(inTray).toContain("**Status:** DONE 2026-08-07");
     expect(inTray).toContain("**Kinetic Print** and **Comic Cutaways**");
   });
 });

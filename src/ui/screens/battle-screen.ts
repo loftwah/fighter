@@ -176,7 +176,7 @@ export function renderBattleScreen(model: BattleScreenModel): string {
             aria-label="Available battle pickups"
             aria-live="polite"
           ></div>
-          <div class="battle-loading" data-battle-loading role="status">
+          <div class="battle-loading" data-battle-loading role="status" hidden>
             <div class="waiting-spinner" aria-hidden="true">
               <span></span><span></span><span></span>
             </div>
@@ -186,7 +186,6 @@ export function renderBattleScreen(model: BattleScreenModel): string {
             class="battle-versus-intro"
             data-battle-versus-intro
             aria-label="Matchup"
-            hidden
           >
             <article data-matchup-player></article>
             <strong aria-hidden="true">VS</strong>

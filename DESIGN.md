@@ -145,6 +145,17 @@ loftwah/fighter feels like a pulled-open collector drawer full of underground fi
 
 The visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. The player enters through an explicit three-mode launcher, then sees navigation scoped to the chosen game context. Static opaque character frames become kinetic through metadata-aware cover crops, fixed panel masks, two-layer crossfades, internal pans and zooms, sliding cut-ins, hit-stop, shake, flashes, and stamped feedback. Story's durable interaction loop is story node → Lineup → Charge Strip → Stamps → next print.
 
+Quick Fight expresses that system as the implemented **Saturday-Night Match
+Cabinet**: the Main Menu opens directly into a full-viewport Fighter Select,
+then a bounded Quick Fight Settings workbench, one shared read-only Review
+Fight contract, and Battle. A compact native preset select applies Full Power,
+Hot Start, or the derived Custom state in place; it is not a destination of its
+own. Square registered Fighter and Accessory artwork sits in physical
+cartridge wells on the Lineup surface, while rules and build facts form
+attached rails or work orders rather than floating dashboard cards. The result
+feels like loading toys into a battered imaginary arcade machine while
+remaining semantic, legible, and playable with touch, mouse, or keyboard.
+
 **Key Characteristics:**
 
 - Pulled-open drawer composition with compact rails and strict trays.
@@ -155,6 +166,10 @@ The visual world uses a constrained risograph palette, blunt display type, torn 
 - Square, bordered controls with torn or clipped paper edges; circles are reserved for holes and stamps.
 - Large condensed uppercase display type paired with highly legible body copy.
 - Short, forceful motion that always has a reduced-motion equivalent.
+- No-scroll Quick Fight stages that keep the next meaningful action inside the
+  1920×1080 and 390×844 Tier 1 viewports.
+- Square registered Character, Accessory, and Modification wells attached to
+  cabinet rails rather than decorative card chrome.
 
 ### Production Bitmap Layer
 
@@ -239,6 +254,13 @@ The palette behaves like a two-ink risograph job printed over indigo board and w
 - **Body** (regular, 1rem, 1.55 line-height): Descriptions and instructions, capped at roughly 70 characters.
 - **Label** (bold, 0.72rem, 0.08em tracking): Class marks, node types, meter captions, status labels, and provenance; uppercase.
 
+The bounded Match Settings workbench adds a compact control-density ramp for
+the 390×844 no-scroll target: 0.58–0.68rem micro evidence, 0.78–0.9rem compact
+control copy, 1.2–1.8rem control headings/values, and 2–2.65rem compact display.
+These sizes are reserved for short labels inside the workbench; prose
+continues to use the Body step and touch targets do not shrink with their
+labels.
+
 ### Named Rules
 
 **The Shout-and-Explain Rule.** League Gothic names the thing; Atkinson Hyperlegible explains what it does.
@@ -250,21 +272,43 @@ The palette behaves like a two-ink risograph job printed over indigo board and w
 ### Spatial approval status
 
 The visual language and view requirements below are authoritative; the current
-production compositions are not blanket approvals. Battle and Shared Fight
-Setup now have a game-first playtest candidate derived from the owner's Teeny
-Titans 2 screenshots: character art owns the viewport, permanent HUD is thin,
-and matchup, countdown, Move resolution, and result are dedicated states rather
-than more dashboard panels. It is not locked until the owner playtests it. Main
-Menu and global/Story navigation still require their own real-application,
-screenshot-led mock-up and implementation batch.
+production compositions are not blanket approvals. Battle has an accepted
+game-first hold candidate derived from the owner's Teeny Titans 2 screenshots:
+character art owns the viewport, permanent HUD is thin, and matchup, countdown,
+Move resolution, and result are dedicated states rather than more dashboard
+panels. Foundation Packet F00 corrects the ownership and match-entry contracts
+before the next visual batch. Shared Lineup is that first batch because every
+player-controlled fight depends on it. Main Menu and global/Story navigation
+follow in their own real-application, screenshot-led batches. The one-at-a-time
+delivery order lives in `docs/view-mockup-programme.md`; neither the current
+Story-dominant composition nor its website-like header is an approved
+production shell.
 
-The application opens on a deliberate launcher, never inside a game session. On desktop, Story Mode is the dominant image-and-copy bill while Quick Fight and Tournament form a smaller side stack; each card explains persistence and reward consequences before its explicit start or resume action. The global top rail contains Main Menu, Profile, and Settings. Once Story Mode is active, that rail switches to Story, Lineup, Collection, Store, and Missions, with a separate Exit game action back to the launcher.
+The application opens on a deliberate Main Menu, never inside a game session.
+Desktop and mobile keep Story, Quick Fight, and Tournament plus their primary
+actions inside the Tier 1 first viewport without deliberate page scrolling.
+The three modes receive comparable default weight; Story may gain contextual
+prominence when a Story is available to continue. No persistent website header
+is assumed. Game chrome must keep Main Menu, Profile, and Settings reachable
+while preserving secondary global access to Achievements. Once Story Mode is
+active, its contextual navigation exposes Story, Squad, Collection, Store, and
+Missions, with a separate Exit Story action back to the Main Menu.
 
 General screens alternate between image-plus-copy splits and strict card grids; primary content receives fluid section padding. Battle is the signature spatial model: Phaser owns the full viewport while a small pause control, timer, one opponent Health-and-Charge strip, edge Lineup portraits, and the player's Move-and-Charge field sit above it. Player Health belongs to the persistent active Lineup ticket; that ticket may extend one attached Health strip into the lower console instead of repeating the value on its square face. Secondary configuration, trait detail, readiness prose, difficulty, music, and the event feed move to setup, pause, focus help, or post-fight evidence instead of occupying the live arena.
 
+Fighter Select, Quick Fight Settings, and Review Fight each own one `100dvh`
+stage. Their header, work area, tabs or rails, and footer action divide that
+fixed viewport with `minmax(0, 1fr)` so the central decision surface compresses
+before controls disappear. At 390×844, Fighter Select pages six catalogue
+entries and exposes a bounded visual Accessory tray, Match Settings swaps
+between Rules and Builds, and Review Fight becomes a vertical duel. Ordinary
+use does not require document scrolling; exceptional zoom, localisation,
+virtual-keyboard, and recovery content remains reachable rather than being
+permanently clipped.
+
 Spacing follows a tight print-production rhythm: micro gaps for meter and status internals, compact gaps inside tickets, base gaps between related controls, grouped gaps between modules, and fluid section insets for large surfaces. Thick solid borders establish objects; dashed rules imply perforation, receipts, or separable sections.
 
-At 1180px, navigation and labels compress before structure changes. At 860px, desktop navigation moves to a fixed bottom rail: three destinations globally or six in Story. Battle itself has no application navigation. At 620px, Shared Fight Setup becomes a two-up character stage with compact native selectors and one clear start action. Battle keeps the arena full-screen, reduces the opponent strip, hides the redundant enemy portrait rail, stacks the player Lineup at lower left, and retains all three touch-sized rectangular Move controls with visible names. Short landscape uses the same edge HUD grammar.
+At 1180px, navigation and labels compress before structure changes. At 860px, desktop navigation moves to a fixed bottom rail: three destinations globally or six in Story. Battle itself has no application navigation. At 620px, Fighter Select becomes a paginated portrait grid with a fixed selected-Lineup dock, while Review Fight becomes a compact vertical match card with both resolved Lineups and one clear start action. Neither uses native Character or Accessory selectors. Battle keeps the arena full-screen, reduces the opponent strip, hides the redundant enemy portrait rail, stacks the player Lineup at lower left, and retains all three touch-sized rectangular Move controls with visible names. Short landscape uses the same edge HUD grammar.
 
 **The Arena-First Rule.** Compress labels and secondary metadata before reducing the central art stage below a usable decision surface.
 
@@ -275,6 +319,18 @@ At 1180px, navigation and labels compress before structure changes. At 860px, de
 **The Explicit Launch Rule.** Story, Quick Fight, and Tournament begin or resume only from a deliberate launcher action.
 
 **The Context Rail Rule.** Global navigation and Story navigation are separate; Store and Missions never leak into global, Quick Fight, or standalone Tournament context.
+
+**The Bounded Match Workflow Rule.** Fighter Select, Quick Fight Settings, and
+Review Fight each complete their normal task inside the Tier 1 viewport;
+compress evidence and paginate catalogues before introducing document scroll.
+
+**The Lineup Ownership Rule.** Fighters, order, starter, and Accessories belong
+to the Lineup draft. Match Settings may describe their resolved builds but
+never owns or edits an Accessory.
+
+**The Escape Route Rule.** Every full-screen workflow surface exposes both its
+immediate Parent and Main Menu. Battle pause and result sheets offer the same
+two destinations without placing application navigation over the arena.
 
 **The Charge-First Rule.** The player reads one large Charge Strip and three rectangular Move controls as a single control field. Exact costs remain printed on the Moves; fuller forecasts stay available on focus without crowding the arena.
 
@@ -316,11 +372,25 @@ Depth is structural rather than atmospheric. Paper tickets lift from indigo boar
 
 The base form is square and hard-edged. Cards use thick registration borders, occasional clipped lower corners, torn vertical seams, punched circular holes, ticket notches, pull-tabs, and barcode-like marks. Slight rotations create press-room variation without disturbing layout.
 
-Circles are exceptional and semantic: completion stamps, mission checks, punched hardware, and ticket notches. They are not a general-purpose container shape. Icons use square line caps and mitred joins to preserve the mechanical print character.
+Character, Accessory, and Modification imagery uses opaque square registered
+wells with a hard ink keyline and a dark image bed. The well remains square at
+desktop and iPhone sizes; adjacent copy compresses or truncates before the art
+is stretched into a banner. Fighter selectors use the same physical cartridge
+construction so roster identity is recognisable across the workflow.
+
+Circles are exceptional and semantic: completion stamps, mission checks,
+punched hardware, and ticket notches. They are not a general-purpose container
+shape. Ordinary interface icons come from the centrally registered official
+Lucide library and retain its recognisable stroke construction. Bespoke
+pictorial identity belongs in the registered bitmap asset system, not private
+inline SVG constants.
 
 **The Square-First Rule.** Start every surface at zero radius; earn a circle only when it represents a physical punch, stamp, or control.
 
 **The Controlled-Crooked Rule.** Rotation stays subtle on cards and forceful only on explicit stamps; content alignment remains readable.
+
+**The Icon Provenance Rule.** Use a named icon from the central Lucide registry
+for ordinary controls. Do not improvise one-off SVG paths inside screens.
 
 ## Components
 
@@ -348,7 +418,14 @@ Status and provenance chips are tiny stamped labels: uppercase, bold, and outlin
 
 ### Game Mode Bills
 
-The Main Menu presents exactly three explicit session objects: Story Mode, Quick Fight, and Tournament. Story receives the largest desktop bill because it owns progression; Quick Fight and Tournament remain visibly separate alternatives with plain-language persistence and reward consequences. On compact mobile, all three become equally direct text-first bills, keep one full-width action each, and omit large decorative art before removing explanation text.
+The Main Menu presents exactly three explicit session objects: Story Mode,
+Quick Fight, and Tournament. Each exposes one short purpose, its relevant
+start/resume state, and one clear action. Story prominence is driven by a real
+continue state rather than a permanent oversized bill. Quick Fight always
+enters Fighter Select before Quick Fight Settings and Review Fight. On compact
+mobile, all three remain direct
+text-first bills with one full-width action each; large decorative art is
+removed before explanation text or touch size is reduced.
 
 ### Inputs / Fields
 
@@ -382,28 +459,130 @@ turn yellow and gain a hard print shadow; defeated tickets remain visible in
 greyscale. The counter above the grid always states how many of the allowed
 three are deployed.
 
-### Fight Setup
+### Review Fight
 
-Every player-facing fight stops at the same labelled match-contract surface
-before the arena is built. The hierarchy is fixed across Quick Fight, Story and
-Tournament: encounter title and rules, two visible Lineups, starter and bench
-state, Accessory and Trait evidence, mode-specific preparation, then one
-confirmation rail. The mode changes the content and available controls, never
-the visual order.
+The pre-fight workflow is a sequence, not one overloaded form. Its shared final
+Review Fight surface is a read-only match contract rendered after
+Fighter Select and Match Settings. It always shows real encounter
+identity, both resolved Lineups, starter and bench order, relevant build or
+customisation evidence, Lineup Accessories, Trait evidence, current difficulty,
+and one `Start Fight` action. Rules and consequences appear only when they
+change the player's decision. `Change Fighters` and an optional `Match
+Settings` action return to the owning draft without constructing Battle.
 
-Quick Fight is the fullest editable version. Its native Character selector is
-embedded in each visible portrait slot rather than repeated in a detached form;
-selected Characters cannot be duplicated within one Lineup. Story uses the
-same portrait stage for owned, loaned or forced builds. Tournament places its
-event, Trophy and bracket evidence above that stage, then keeps carried Health,
-deployment and starter controls below it. Primary actions consistently say
-`Confirm Lineup` or `Confirm Lineups` before naming the mode-specific
-consequence. Standard fight rules use plain language: Level 10, nine equal stat
-points, Stock Moves, no Modifications, and no Story rewards.
+The implemented Review Fight composition is one split fight bill rather than
+two equal dashboard cards. `Review Fight` names the task and the real encounter
+identity sits beneath it; a Quick preset name or summary never becomes the
+screen title. Registered starter art dominates the blue and tomato halves,
+bench fighters remain visibly subordinate, and each Lineup's Accessory and
+Traits form an attached evidence rail. Match facts and the torn yellow `Start
+Fight` ticket make one shallow launch deck at the bottom of the viewport.
+
+Fighter Select is a Mortal Kombat-style paginated portrait grid rather than a
+set of native dropdowns. Quick Fight selects both sandbox sides and permits
+exact duplicate Characters through distinct temporary instance IDs. Story
+offers only eligible active Squad members and any authored loans or forced
+composition. Tournament offers only living members of the locked Roster and
+shows carried Health. A standalone Tournament Roster uses the same visual grid
+language with a six-instance limit, but is a separate commitment from per-fight
+deployment.
+
+On desktop, both Lineups flank the catalogue and remain directly targetable;
+there is no separate side-switch tab. A catalogue fighter can be clicked into
+the active Lineup or dragged onto a specific slot. Selected fighters can be
+dragged or moved earlier/later, and slot one is always the starter. Touch and
+keyboard users receive the same reorder and remove actions after targeting a
+slot. Pagination is absent when all eligible fighters fit; larger catalogues
+use icon controls, a compact `current/total` marker, and direct page dots rather
+than range-reporting copy such as `1–6 of 300 fighters`.
+
+Each Lineup also owns its Accessory. Fighter Select presents registered square
+Accessory art as a bounded visual choice, including an explicit no-Accessory
+option; it never uses a native select and never moves Accessory ownership into
+Match Settings.
+
+Match Settings owns only editable sandbox rules and builds.
+Global Settings supplies the preferred difficulty for a new draft; Quick Match
+Settings may change the effective difficulty for that fight using four direct
+buttons rather than a dropdown. Presets are the deliberate exception: one
+compact native select at the top of Rules applies `Full Power` or `Hot Start`,
+and the visible values update in place. `Full Power` is the default and puts
+every fighter at their best with maximum level, maximum stat allocation, and
+platinum Moves. `Hot Start` keeps those full-power builds and raises opening
+Charge so big Moves arrive almost immediately. Editing a covered value derives
+`Custom`; Custom is not a separate preset screen or oversized choice. Internal
+terms such as `Standard Build`, `Progression`, equal stat-point counts, Stock
+Moves, absent Modifications, and reward exclusions are not default first-view
+labels. Standard details belong in help; Custom deviations, authored
+objectives, carried Tournament state, and real commitment consequences appear
+only when they matter.
+
+Quick Fight follows one fixed route: Main Menu → Fighter Select → Quick
+Fight Settings → Review Fight → Battle. The Match Settings workbench is
+divided into Rules and Builds. Custom builds are instance-keyed; exact
+duplicate Characters never share edits accidentally.
+
+Rules render as one compact bordered work-order ledger: Difficulty, Fight
+Clock, both Opening Charge values, and Match Pattern form perforated horizontal
+rows with direct semantic buttons beneath the native preset select. They are
+not five equal dashboard panels. Builds use the same square cartridge well for
+each selected fighter, then attach Stats, Moves, and Modification work orders
+to one editor body.
+
+Build labels use the player vocabulary `Vitality`, `Power`, `Evasion`,
+`Fortune`, and `Tempo`; `health` remains an internal data key only.
+Modification choices stay visible but semantically disabled below Level 5 with
+the explanation `Unlocks at Level 5`. Move reordering and tier-upgrade controls
+stay visible but disabled below Level 10 with the explanation `Reordering and
+tier upgrades unlock at Level 10`. Disabled controls reference their visible
+gate explanation and never disappear merely because the current level is too
+low.
+
+The selected desktop direction is **Saturday-Night Match Cabinet**: an indigo
+physical match console with one starter-led bay per side, two subordinate bench
+cartridges, a narrow battered `VS` bridge, shallow loadout rails, and a fixed
+confirmation deck. iPhone uses the same hierarchy as a vertical duel. The
+normal Fighter Select and Review Fight states fit the Tier 1 viewport without
+deliberate document scrolling; exceptional zoom, localisation, or virtual
+keyboard overflow remains recoverable rather than clipped.
+
+Fighter Select commits to the game fantasy rather than presenting paper forms:
+the registered arena establishing art sits behind a near-black selection board,
+the full-bleed Character plates own the central grid, and blue-indigo player and
+tomato opponent bays frame the active matchup. Yellow is reserved for selection,
+starter order and the single Continue lever. Deep image wells, clipped team
+headers, inset cabinet seams and printed status labels provide depth without
+glass, glow or invented game data.
+
+The implemented Full Power Quick path now uses this family end to end. Fighter
+Select exposes one catalogue tile per Character while allocating up to three
+distinct sandbox instances behind repeated selection, so exact duplicates stay
+clear without filling the catalogue with copy-number cards. Both selected
+Lineups remain visible, order determines the starter, and desktop/iPhone
+catalogues show at most eight/six entries per page. Final Review Fight is a
+separate read-only surface, suppresses the global website-style header, and
+uses the actual Character and Accessory assets. Story and Tournament reuse
+these contracts next; custom values must not fork another selector or
+confirmation layout.
+
+The shared confirmation is review, not another editor: it contains no fighter
+dropdowns, selection counters, empty-slot add buttons, or mutable build
+controls. It presents resolved starter-led Lineups, subordinate bench
+cartridges, attached Accessory and Trait evidence, a minimal match-facts table,
+and one dominant `Start Fight` action. `Change Fighters` and `Match Settings`
+are explicit backward routes into the same draft, not competing launch actions.
 
 ### Navigation
 
-Desktop navigation is a chalk top rail with equal-width tabs, dashed dividers, and indigo labels. Hover and active states fill with acid yellow; the active tab also receives a thick tomato underline. The loftwah/fighter wordmark always returns to the Main Menu. Global context exposes Main Menu, Profile, and Settings; Story context exposes Story, Lineup, Collection, Store, and Missions plus an explicit Exit game control. Compact layouts move the current context to a fixed bottom rail with icon and visible text: three columns globally, six inside Story.
+Navigation is game chrome, not a required website header. The exact LOFTWAH
+FIGHTER wordmark returns to the Main Menu wherever it appears. Global context
+keeps Main Menu, Profile, and Settings reachable; Achievements remains globally
+reachable without demanding permanent prime-width space. Story context exposes
+Story, Squad, Collection, Store, and Missions plus an explicit Exit Story
+control. Every full-screen workflow surface exposes both its immediate Parent
+and Main Menu. Battle shows only gameplay controls and pause; its blocking pause
+and result sheets provide separate exits to Parent and Main Menu so application
+navigation never competes with the arena.
 
 ### Audio Control
 
@@ -447,7 +626,9 @@ coloured stamp on every Move: it pairs the full role name with a compact inked
 marker such as `HIT`, `STN`, `AID`, `BAR`, or `FX`. Upgrade tier remains a
 smaller, differently shaped secondary stamp. Desktop stamps are explicitly
 prefixed `Role` and `Tier`; compact stamps retain the marker, full role value,
-shape and colour when those prefixes no longer fit. Predicted hit/effect detail,
+shape and colour when those prefixes no longer fit. The central seal repeats
+that marker as a subordinate print inside a registration-ticked tactical dial;
+the exact output remains the dominant centre reading. Predicted hit/effect detail,
 the authored description and charge timing remain in the semantic label and
 focus disclosure rather than competing with the fighters. Unavailable Moves remain focusable and
 explanatory through `aria-disabled`; they state how much more Charge is needed
@@ -542,7 +723,10 @@ Health and Charge Strips are bordered tracks paired with numeric labels where
 space permits. The lower resource is visibly named `Team Charge` because it is
 shared by the active Lineup; its current value remains an explicit `x / 100`.
 Health uses tomato; Team Charge uses battle-only charge green with a yellow
-leading edge, printed texture and interval marks over an indigo track. The opponent's identity and Health form one compact upper
+leading edge, printed texture and interval marks over an indigo track. Health
+uses tomato shading, halftone wear, interval cuts and a dark torn leading edge;
+compact Lineup Health tracks remain tomato rather than borrowing the green
+Charge signal. The opponent's identity and Health form one compact upper
 strip with a thinner independent Charge track directly beneath it. The active
 player Lineup ticket may extend its single Health readout into the lower combat
 console, while the dominant player Charge Strip stays attached to the three
@@ -616,6 +800,11 @@ panels stack and raw state is height-capped so primary actions are never buried.
 - **Do** preserve visible keyboard focus, touch-sized controls, and the reduced-motion override.
 - **Do** preserve the player's music on/off intent across navigation, reloads, and Collector profiles.
 - **Do** use stable logical asset IDs and the approved fallback chain when adding new art.
+- **Do** keep Fighter Select, Quick Fight Settings, and Review Fight usable without deliberate document scrolling at 1920×1080 and 390×844.
+- **Do** keep registered Character, Accessory, and Modification art square and recognisable while adjacent copy absorbs responsive compression.
+- **Do** show level-gated build controls in place with their Level 5 or Level 10 explanation and semantic disabled state.
+- **Do** expose both Parent and Main Menu on every full-screen workflow surface and on Battle pause/result sheets.
+- **Do** source ordinary control icons from the central Lucide registry and keep their visible text or accessible name.
 
 ### Don't:
 
@@ -630,3 +819,8 @@ panels stack and raw state is height-capped so primary actions are never buried.
 - **Don't** duplicate active Health, Charge, readiness, traits, statuses and event prose across multiple permanent panels.
 - **Don't** rely on colour alone for class, status, availability, health, or outcome.
 - **Don't** add decorative motion without a short purpose and a reduced-motion equivalent.
+- **Don't** repeat Fighter Select inside Review Fight; confirmation is a read-only match contract with one `Start Fight` action.
+- **Don't** turn Match Settings Rules or Builds into oversized, independent dashboard panels when a perforated ledger or attached work order expresses the relationship.
+- **Don't** put Accessory selection in Match Settings; Accessories belong to Lineups and use visual registered-art choices on Fighter Select.
+- **Don't** turn Quick Fight presets into cards, bills, tabs, or a separate screen; use one compact native select inside Rules and update the visible settings in place.
+- **Don't** hand-author private SVG paths for ordinary interface icons.

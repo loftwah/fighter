@@ -1,6 +1,7 @@
 # ADR 0004: Multiplayer is the final planned feature milestone
 
-Status: accepted on 2026-07-31
+Status: superseded on 2026-08-07 by
+[ADR 0005](0005-multiplayer-uncommitted.md)
 
 ## Context
 

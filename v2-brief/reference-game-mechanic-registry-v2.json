@@ -2498,9 +2498,9 @@
       "evidence": "VERIFIED_UPDATE",
       "projectStatus": "POST_MVP",
       "disposition": "DEFER",
-      "targetMilestone": "V2.4",
+      "targetMilestone": "Unscheduled",
       "implementationState": "deferred",
-      "rationale": "Defer online play to V2.4; it must not delay the local-first releases.",
+      "rationale": "Leave online play unscheduled; it is outside the committed local-first V2–V2.3 programme.",
       "internalRequirement": "Random, friend, CPU and ranked architecture"
     },
     {

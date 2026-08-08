@@ -12,3 +12,8 @@
 @import "./ui/styles/95-battle-game-first.css";
 @import "./ui/styles/96-fight-setup.css";
 @import "./ui/styles/97-battle-showcase.css";
+@import "./ui/styles/98-fighter-select.css";
+@import "./ui/styles/99-fight-confirmation.css";
+@import "./ui/styles/100-match-workflow.css";
+@import "./ui/styles/101-battle-result.css";
+@import "./ui/styles/102-tournament-workflow.css";

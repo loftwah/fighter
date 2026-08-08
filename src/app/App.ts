@@ -5,6 +5,58 @@ import {
   type Route,
   type SessionMode,
 } from "./routes";
+import {
+  validateBattleLaunchRequest,
+  type BattleLaunchRequest,
+  type LineupConfirmation,
+} from "./match-entry";
+import {
+  addFightWorkflowFighter,
+  advanceFightWorkflow,
+  removeFightWorkflowFighter,
+  reorderFightWorkflowFighter,
+  retreatFightWorkflow,
+  openFightWorkflowSettings,
+  setFightWorkflowLineupAccessory,
+  setFightWorkflowRule,
+  validateFightWorkflowDraft,
+  type FightWorkflowDraft,
+  type FightWorkflowSide,
+} from "./fight-workflow";
+import {
+  adjustQuickFightBuildLevel,
+  adjustQuickFightBuildStat,
+  applyQuickFightPreset,
+  cycleQuickFightBuildTier,
+  createQuickFightWorkflow,
+  launchQuickFightWorkflow,
+  markQuickFightCustom,
+  resolveQuickFightWorkflow,
+  moveQuickFightBuildAction,
+  quickFightPreset,
+  setQuickFightBuildPatch,
+  type QuickFightPresetId,
+} from "./quick-fight-workflow";
+import {
+  adjustTournamentBuildStat,
+  createTournamentWorkflow,
+  cycleTournamentBuildTier,
+  enterTournamentStage,
+  lockedTournamentRoster,
+  moveTournamentBuildAction,
+  setTournamentBuildPatch,
+  setTournamentBuildLevel,
+  setTournamentDefault,
+  setTournamentFightOverride,
+  toggleTournamentRosterInstance,
+  type TournamentWorkflowDraft,
+} from "./tournament-workflow";
+import {
+  battleInputForMatch,
+  createResolvedMatchConfiguration,
+  type ResolvedMatchConfiguration,
+  type ResolvedMatchFighter,
+} from "./match-configuration";
 import { AudioManager } from "../audio/manager";
 import { findMusic } from "../audio/registry";
 import {
@@ -36,6 +88,7 @@ import {
   POSITION_RULES,
   teamChargePerSecond,
   TIER_MULTIPLIERS,
+  traitSynergy,
   typeMultiplier,
 } from "../combat/rules";
 import type {
@@ -43,6 +96,7 @@ import type {
   BattleCommand,
   BattleEvent,
   BattleState,
+  CombatType,
   CombatantBuild,
   Difficulty,
   Side,
@@ -51,7 +105,6 @@ import type {
   Transition,
 } from "../combat/types";
 import { createStandardBuild } from "../combat/standard-build";
-import { quickFightSeed } from "../combat/quick-fight-seed";
 import {
   appendBattleTick,
   appendBattleTransition,
@@ -93,6 +146,7 @@ import {
   savePreferences,
   saveActiveSaveSlot,
   saveSlot,
+  saveTournamentVictory,
   type Preferences,
   type SaveData,
   type TournamentCaseBuild,
@@ -124,19 +178,29 @@ import {
 } from "../story/first-run";
 import { loadFirstRunSave } from "../story/save";
 import {
-  applyCheapSeatsDrop,
-  cheapSeatsEncounter,
   cheapSeatsPlayerIds,
-  createCheapSeatsRun,
-  exhaustTournamentAccessoriesFromEvents,
   lockCheapSeatsCase,
-  normaliseCheapSeatsRun,
-  recordCheapSeatsResult,
-  restoreCaseHealth,
-  selectCheapSeatsDeployment,
-  type CheapSeatsDrop,
 } from "../tournaments/cheap-seats";
-import { awardTournamentTrophy } from "../tournaments/catalog";
+import {
+  createTournamentRun,
+  exhaustTournamentAccessoriesFromEvents,
+  normaliseTournamentRun,
+  recordTournamentBattleResult,
+  restartTournamentRun,
+  resolveTournamentInterlude,
+  selectTournamentDeployment,
+} from "../tournaments/runner";
+import {
+  applyTournamentMatchInitialState,
+  resolveTournamentMatch,
+} from "../tournaments/match";
+import {
+  awardTournamentDefinitionTrophy,
+  createTournamentVariant,
+  resolveTournamentRunDefinition,
+  tournamentDefinition,
+  tournamentFightDefinition,
+} from "../tournaments/catalog";
 import {
   applyDevScenarioState,
   defaultDevScenario,
@@ -164,7 +228,17 @@ import {
   type StartupStage,
 } from "../ui/screens/startup-screen";
 import { renderAchievementsScreen } from "../ui/screens/achievements-screen";
-import { renderQuickFightScreen } from "../ui/screens/quick-fight-screen";
+import {
+  renderFighterSelectScreen,
+  type FighterSelectInstance,
+  type FighterSelectLineup,
+  type FighterSelectSlotId,
+} from "../ui/screens/fighter-select-screen";
+import {
+  renderFightConfirmationScreen,
+  type FightConfirmationLineup,
+  type FightConfirmationTrait,
+} from "../ui/screens/fight-confirmation-screen";
 import { renderProfileScreen } from "../ui/screens/profile-screen";
 import { renderSettingsScreen } from "../ui/screens/settings-screen";
 import { renderMainMenuScreen } from "../ui/screens/main-menu-screen";
@@ -174,14 +248,29 @@ import { renderCollectionScreen } from "../ui/screens/collection-screen";
 import { renderStoreScreen } from "../ui/screens/store-screen";
 import { renderMissionsScreen } from "../ui/screens/missions-screen";
 import { renderTournamentScreen } from "../ui/screens/tournament-screen";
+import {
+  renderTournamentChoiceScreen,
+  renderTournamentRosterScreen,
+  renderTournamentSettingsScreen,
+} from "../ui/screens/tournament-workflow-screen";
 import { renderDevLabScreen } from "../ui/screens/dev-lab-screen";
+import {
+  renderMatchSettingsScreen,
+  type MatchBuildSection,
+  type MatchSettingsSection,
+} from "../ui/screens/match-settings-screen";
 import {
   renderBattleScreen,
   type BattleScreenModel,
 } from "../ui/screens/battle-screen";
 import { pauseKeyCommand } from "./pause-input";
 import { renderDifficultyOptions } from "../ui/components/difficulty-options";
-import { renderBattleResultExplanation } from "../ui/battle-result-explanation";
+import { explainBattleResult } from "../ui/battle-result-explanation";
+import {
+  renderBattleResultScreen,
+  type BattleResultMode,
+  type BattleResultReward,
+} from "../ui/screens/battle-result-screen";
 import { traitBonusLabel } from "../ui/components/trait-synergy";
 import {
   renderAppHeader,
@@ -215,6 +304,16 @@ interface BattleRewardView {
   xpRecipients: number;
   firstClearBonus: number;
   cupCompletionBonus: number;
+}
+
+type PendingBattleLaunchRequest = Extract<
+  BattleLaunchRequest,
+  { kind: "story" | "tournament" }
+>;
+
+interface PendingFightSetup {
+  request: PendingBattleLaunchRequest;
+  returnRoute: "lineup" | "tournament";
 }
 
 const CUP_COMPLETION_BONUS = 240;
@@ -272,8 +371,21 @@ export class App {
   #isDevFight = false;
   #quickPlayerIds: string[] = [...quickFightDefaults.playerIds];
   #quickEnemyIds: string[] = [...quickFightDefaults.enemyIds];
-  #quickPlayerAccessoryId: string = quickFightDefaults.playerAccessoryId;
-  #quickEnemyAccessoryId: string = quickFightDefaults.enemyAccessoryId;
+  #quickWorkflow: FightWorkflowDraft = createQuickFightWorkflow();
+  #quickSettingsSection: MatchSettingsSection = "rules";
+  #quickBuildInstanceId: string | null = null;
+  #quickBuildSection: MatchBuildSection = "stats";
+  #quickSelectSide: FightWorkflowSide = "player";
+  #quickFighterPage = 1;
+  #quickFighterSearch = "";
+  #quickFighterFilter: CombatType | null = null;
+  #quickTargetSlot: {
+    side: FightWorkflowSide;
+    slotId: FighterSelectSlotId;
+    index: number;
+  } | null = null;
+  #quickAccessorySide: FightWorkflowSide | null = null;
+  #pendingFocusSelector: string | null = null;
   #devScenario: DevBattleScenario | null = null;
   #devDraft: DevBattleScenario = structuredClone(defaultDevScenario);
   #battleControllers: Record<Side, BattleControllerKind> = {
@@ -298,7 +410,17 @@ export class App {
   #recentBattleReports: BattleReport[] = [];
   #tournamentDraftDeploymentIds: string[] = [];
   #tournamentDraftStarterId: string | null = null;
-  #tournamentRoundIndex: 0 | 1 | 2 = 0;
+  #tournamentDraftAccessoryId: string | null = "accessory.press-pass";
+  #tournamentWorkflow: TournamentWorkflowDraft =
+    createTournamentWorkflow("normal");
+  #tournamentRosterPage = 1;
+  #tournamentBuildInstanceId: string | null = null;
+  #tournamentRoundIndex = 0;
+  #tournamentFightTitle = "Tournament Fight";
+  #tournamentName = "Tournament";
+  #terminalTournamentRun: TournamentRunData | null = null;
+  #tournamentChoiceResult: { title: string; message: string } | null = null;
+  #pendingFightSetup: PendingFightSetup | null = null;
   #cupCompletedThisBattle = false;
   #storyBattleNodeId: FirstRunBattleNodeId = "story.first-run.02";
   #battleReport: BattleReport | null = null;
@@ -322,6 +444,13 @@ export class App {
       this.setCssImageWithFallback(property, assetId);
     }
     this.#preferences = loadPreferences(localStorage);
+    this.#quickWorkflow = createQuickFightWorkflow(
+      "quick.full-power",
+      this.#preferences.difficulty,
+    );
+    this.#tournamentWorkflow = createTournamentWorkflow(
+      this.#preferences.difficulty,
+    );
     this.#devExperiments = loadDevExperiments(
       localStorage,
       DEV_TOOLS_ENABLED ? window.location.search : "",
@@ -335,6 +464,11 @@ export class App {
     this.#audio = new AudioManager(this.#preferences);
     this.#root.addEventListener("click", this.onClick);
     this.#root.addEventListener("change", this.onChange);
+    this.#root.addEventListener("submit", this.onSubmit);
+    this.#root.addEventListener("dragstart", this.onFighterDragStart);
+    this.#root.addEventListener("dragover", this.onFighterDragOver);
+    this.#root.addEventListener("drop", this.onFighterDrop);
+    this.#root.addEventListener("dragend", this.onFighterDragEnd);
     this.#root.addEventListener("focusin", this.onBattleHudFocusChange);
     this.#root.addEventListener("focusout", this.onBattleHudFocusChange);
     this.#root.addEventListener("input", this.onInput);
@@ -363,6 +497,11 @@ export class App {
     this.#audio.destroy();
     this.#root.removeEventListener("click", this.onClick);
     this.#root.removeEventListener("change", this.onChange);
+    this.#root.removeEventListener("submit", this.onSubmit);
+    this.#root.removeEventListener("dragstart", this.onFighterDragStart);
+    this.#root.removeEventListener("dragover", this.onFighterDragOver);
+    this.#root.removeEventListener("drop", this.onFighterDrop);
+    this.#root.removeEventListener("dragend", this.onFighterDragEnd);
     this.#root.removeEventListener("focusin", this.onBattleHudFocusChange);
     this.#root.removeEventListener("focusout", this.onBattleHudFocusChange);
     this.#root.removeEventListener("input", this.onInput);
@@ -591,6 +730,37 @@ export class App {
   }
 
   private onKeyDown = (event: KeyboardEvent): void => {
+    if (this.#route === "quick" && this.#quickAccessorySide) {
+      const tray = this.#root.querySelector<HTMLElement>(
+        `[data-accessory-tray][data-side="${this.#quickAccessorySide}"]`,
+      );
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.#pendingFocusSelector = `[data-command="open-lineup-accessories"][data-side="${this.#quickAccessorySide}"]`;
+        this.#quickAccessorySide = null;
+        this.render();
+        return;
+      }
+      if (event.key === "Tab" && tray) {
+        const controls = Array.from(
+          tray.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])',
+          ),
+        );
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (
+          first &&
+          last &&
+          ((event.shiftKey && document.activeElement === first) ||
+            (!event.shiftKey && document.activeElement === last))
+        ) {
+          event.preventDefault();
+          (event.shiftKey ? last : first).focus();
+        }
+        return;
+      }
+    }
     if (this.#route !== "battle" || !this.#battle) {
       return;
     }
@@ -737,10 +907,26 @@ export class App {
         break;
       case "enter-quick":
         this.#sessionMode = "quick";
+        while (this.#quickWorkflow.step !== "fighters") {
+          this.#quickWorkflow = retreatFightWorkflow(this.#quickWorkflow).draft;
+        }
+        this.#quickSelectSide = "player";
+        this.#quickTargetSlot = null;
+        this.#quickAccessorySide = null;
+        this.#quickFighterPage = 1;
+        this.#quickFighterSearch = "";
+        this.#quickFighterFilter = null;
+        this.#quickSettingsSection = "rules";
+        this.#quickBuildInstanceId =
+          this.#quickWorkflow.selections.player.starterInstanceId;
         this.navigate("quick");
         break;
       case "enter-tournament":
         this.#sessionMode = "tournament";
+        this.#tournamentWorkflow = enterTournamentStage(
+          this.#tournamentWorkflow,
+          "choice",
+        );
         this.navigate("tournament");
         break;
       case "enter-dev":
@@ -759,13 +945,420 @@ export class App {
         this.advanceStoryNode();
         break;
       case "start-battle":
-        this.startBattle(false);
+        this.startStoryBattle();
         break;
+      case "confirm-story-fight":
+      case "confirm-tournament-fight":
+        this.confirmPendingFightSetup();
+        break;
+      case "change-story-fighters":
+      case "change-tournament-fighters": {
+        const returnRoute = this.#pendingFightSetup?.returnRoute;
+        this.#pendingFightSetup = null;
+        if (returnRoute) this.#route = returnRoute;
+        this.render();
+        break;
+      }
       case "start-quick-battle":
         this.startQuickBattle();
         break;
+      case "target-fighter-side":
+        if (
+          command.dataset.side === "player" ||
+          command.dataset.side === "opponent"
+        ) {
+          this.#quickSelectSide = command.dataset.side;
+          this.#quickTargetSlot = null;
+          this.#quickFighterPage = 1;
+          this.render();
+        }
+        break;
+      case "target-fighter-slot": {
+        const side =
+          command.dataset.side === "opponent" ? "opponent" : "player";
+        const slotId = command.dataset.slot as FighterSelectSlotId | undefined;
+        const index = Number(command.dataset.slotIndex);
+        if (
+          (slotId === "starter" ||
+            slotId === "bench-1" ||
+            slotId === "bench-2") &&
+          Number.isInteger(index)
+        ) {
+          this.#quickSelectSide = side;
+          this.#quickTargetSlot = { side, slotId, index };
+          this.#quickFighterPage = 1;
+          this.render();
+        }
+        break;
+      }
+      case "select-fighter":
+        if (command.dataset.instanceId) {
+          this.placeQuickFighter(
+            command.dataset.instanceId,
+            this.#quickSelectSide,
+            this.#quickTargetSlot?.index ?? null,
+          );
+        }
+        break;
+      case "remove-fighter": {
+        const instanceId = command.dataset.instanceId;
+        const side =
+          command.dataset.side === "opponent" ? "opponent" : "player";
+        if (instanceId) {
+          const slot = command.dataset.slot;
+          const slotIndex = slot === "starter" ? 0 : slot === "bench-1" ? 1 : 2;
+          this.#pendingFocusSelector = `[data-command="target-fighter-slot"][data-side="${side}"][data-slot="${slot ?? "bench-2"}"][data-slot-index="${slotIndex}"]`;
+          if (
+            this.#quickTargetSlot?.side === side &&
+            this.quickOrderedSelection(side)[this.#quickTargetSlot.index] ===
+              instanceId
+          ) {
+            this.#quickTargetSlot = null;
+          }
+          this.applyQuickWorkflowTransition(
+            removeFightWorkflowFighter(this.#quickWorkflow, side, instanceId),
+          );
+        }
+        break;
+      }
+      case "move-fighter": {
+        const instanceId = command.dataset.instanceId;
+        const side =
+          command.dataset.side === "opponent" ? "opponent" : "player";
+        const direction = Number(command.dataset.direction);
+        const currentIndex = instanceId
+          ? this.quickOrderedSelection(side).indexOf(instanceId)
+          : -1;
+        if (instanceId && currentIndex >= 0 && Math.abs(direction) === 1) {
+          this.moveQuickFighter(side, instanceId, currentIndex + direction);
+        }
+        break;
+      }
+      case "continue-quick-fighters":
+        this.#quickAccessorySide = null;
+        this.applyQuickWorkflowTransition(
+          advanceFightWorkflow(this.#quickWorkflow),
+        );
+        break;
+      case "change-quick-fighters":
+        {
+          const first = retreatFightWorkflow(this.#quickWorkflow);
+          this.applyQuickWorkflowTransition(
+            first.draft.step === "settings"
+              ? retreatFightWorkflow(first.draft)
+              : first,
+          );
+        }
+        break;
+      case "open-quick-match-settings": {
+        this.applyQuickWorkflowTransition(
+          openFightWorkflowSettings(this.#quickWorkflow),
+        );
+        break;
+      }
+      case "back-from-match-settings":
+        this.applyQuickWorkflowTransition(
+          retreatFightWorkflow(this.#quickWorkflow),
+        );
+        break;
+      case "review-quick-fight":
+        this.applyQuickWorkflowTransition(
+          advanceFightWorkflow(this.#quickWorkflow),
+        );
+        break;
+      case "show-match-settings-section":
+        if (
+          command.dataset.section === "rules" ||
+          command.dataset.section === "builds"
+        ) {
+          this.#quickSettingsSection = command.dataset.section;
+          this.render();
+        }
+        break;
+      case "show-match-build-section":
+        if (
+          command.dataset.section === "stats" ||
+          command.dataset.section === "moves" ||
+          command.dataset.section === "modification"
+        ) {
+          this.#quickBuildSection = command.dataset.section;
+          this.render();
+        }
+        break;
+      case "set-match-difficulty":
+        if (command.dataset.value) {
+          this.applyQuickCustomTransition(
+            setFightWorkflowRule(
+              this.#quickWorkflow,
+              "difficulty",
+              command.dataset.value as Difficulty,
+            ),
+          );
+        }
+        break;
+      case "set-match-time":
+        this.applyQuickNumberSetting(command, "timeLimitMs");
+        break;
+      case "set-match-charge":
+        this.applyQuickNumberSetting(
+          command,
+          command.dataset.side === "opponent"
+            ? "opponentStartingCharge"
+            : "playerStartingCharge",
+        );
+        break;
+      case "reroll-match-seed":
+        this.applyQuickCustomTransition(
+          setFightWorkflowRule(
+            this.#quickWorkflow,
+            "seed",
+            crypto.getRandomValues(new Uint32Array(1))[0]!,
+          ),
+        );
+        break;
+      case "open-lineup-accessories":
+        if (
+          command.dataset.side === "player" ||
+          command.dataset.side === "opponent"
+        ) {
+          this.#quickAccessorySide = command.dataset.side;
+          this.#pendingFocusSelector = `[data-command="close-lineup-accessories"][data-side="${command.dataset.side}"]`;
+          this.render();
+        }
+        break;
+      case "close-lineup-accessories":
+        this.#pendingFocusSelector = `[data-command="open-lineup-accessories"][data-side="${command.dataset.side === "opponent" ? "opponent" : "player"}"]`;
+        this.#quickAccessorySide = null;
+        this.render();
+        break;
+      case "set-lineup-accessory": {
+        const side =
+          command.dataset.side === "opponent" ? "opponent" : "player";
+        this.#pendingFocusSelector = `[data-command="open-lineup-accessories"][data-side="${side}"]`;
+        this.#quickAccessorySide = null;
+        this.applyQuickWorkflowTransition(
+          setFightWorkflowLineupAccessory(
+            this.#quickWorkflow,
+            side,
+            command.dataset.accessoryId || null,
+          ),
+        );
+        break;
+      }
+      case "select-match-build":
+        this.#quickBuildInstanceId = command.dataset.instanceId ?? null;
+        this.render();
+        break;
+      case "adjust-match-level":
+        this.updateQuickBuild(command, "level");
+        break;
+      case "adjust-match-stat":
+        this.updateQuickBuild(command, "stat");
+        break;
+      case "move-match-action":
+        this.updateQuickBuild(command, "action");
+        break;
+      case "cycle-match-tier":
+        this.updateQuickBuild(command, "tier");
+        break;
+      case "set-match-patch":
+        this.updateQuickBuild(command, "patch");
+        break;
+      case "previous-fighter-page":
+        this.#quickFighterPage = Math.max(1, this.#quickFighterPage - 1);
+        this.render();
+        break;
+      case "next-fighter-page":
+        this.#quickFighterPage += 1;
+        this.render();
+        break;
+      case "go-to-fighter-page": {
+        const page = Number(command.dataset.page);
+        if (Number.isInteger(page) && page > 0) {
+          this.#quickFighterPage = page;
+          this.render();
+        }
+        break;
+      }
+      case "search-fighters": {
+        event.preventDefault();
+        const input = this.#root.querySelector<HTMLInputElement>(
+          'input[name="fighterSearch"]',
+        );
+        this.#quickFighterSearch = input?.value.trim() ?? "";
+        this.#quickFighterPage = 1;
+        this.render();
+        break;
+      }
+      case "open-fighter-filters":
+        this.cycleQuickFighterFilter();
+        break;
       case "start-tournament":
         this.startTournamentBattle();
+        break;
+      case "new-tournament":
+        this.beginNewStandaloneTournament();
+        break;
+      case "resume-tournament":
+        this.#tournamentChoiceResult = null;
+        this.#tournamentDraftAccessoryId =
+          this.activeTournamentRun()?.deploymentAccessoryId ?? null;
+        this.#tournamentWorkflow = enterTournamentStage(
+          this.#tournamentWorkflow,
+          "deployment",
+        );
+        this.render();
+        break;
+      case "back-to-tournament-choice":
+        this.#tournamentWorkflow = enterTournamentStage(
+          this.#tournamentWorkflow,
+          "choice",
+        );
+        this.render();
+        break;
+      case "back-to-tournament-roster":
+        this.#tournamentWorkflow = enterTournamentStage(
+          this.#tournamentWorkflow,
+          "roster",
+        );
+        this.render();
+        break;
+      case "toggle-tournament-roster":
+        if (command.dataset.instanceId) {
+          this.updateTournamentRoster(command.dataset.instanceId);
+        }
+        break;
+      case "configure-tournament-build":
+        this.#tournamentBuildInstanceId = command.dataset.instanceId ?? null;
+        this.render();
+        break;
+      case "adjust-tournament-build-level":
+        if (command.dataset.instanceId) {
+          const current =
+            this.#tournamentWorkflow.builds[command.dataset.instanceId];
+          const delta = Number(command.dataset.delta);
+          if (current && Number.isFinite(delta)) {
+            this.#tournamentWorkflow = setTournamentBuildLevel(
+              this.#tournamentWorkflow,
+              command.dataset.instanceId,
+              current.level + delta,
+            );
+            this.render();
+          }
+        }
+        break;
+      case "adjust-tournament-build-stat":
+        this.updateTournamentBuild(command, "stat");
+        break;
+      case "move-tournament-build-action":
+        this.updateTournamentBuild(command, "action");
+        break;
+      case "cycle-tournament-build-tier":
+        this.updateTournamentBuild(command, "tier");
+        break;
+      case "set-tournament-build-patch":
+        this.updateTournamentBuild(command, "patch");
+        break;
+      case "previous-tournament-roster-page":
+        this.#tournamentRosterPage = Math.max(
+          1,
+          this.#tournamentRosterPage - 1,
+        );
+        this.render();
+        break;
+      case "next-tournament-roster-page":
+        this.#tournamentRosterPage += 1;
+        this.render();
+        break;
+      case "continue-tournament-settings":
+        try {
+          this.#tournamentWorkflow = enterTournamentStage(
+            this.#tournamentWorkflow,
+            "settings",
+          );
+          this.render();
+        } catch (error) {
+          this.announce(
+            error instanceof Error
+              ? error.message
+              : "Choose a Tournament Roster.",
+          );
+        }
+        break;
+      case "set-tournament-difficulty":
+        if (
+          command.dataset.value === "easy" ||
+          command.dataset.value === "normal" ||
+          command.dataset.value === "hard" ||
+          command.dataset.value === "brutal"
+        ) {
+          this.#tournamentWorkflow = setTournamentDefault(
+            this.#tournamentWorkflow,
+            "difficulty",
+            command.dataset.value,
+          );
+          this.render();
+        }
+        break;
+      case "set-tournament-time":
+        this.updateTournamentNumberSetting(
+          "timeLimitMs",
+          Number(command.dataset.value),
+        );
+        break;
+      case "set-tournament-charge":
+        this.updateTournamentNumberSetting(
+          "playerStartingCharge",
+          Number(command.dataset.value),
+        );
+        break;
+      case "set-tournament-opponent-charge":
+        this.updateTournamentNumberSetting(
+          "opponentStartingCharge",
+          Number(command.dataset.value),
+        );
+        break;
+      case "set-tournament-fight-charge":
+        this.updateTournamentFightOverride(command, "playerStartingCharge");
+        break;
+      case "set-tournament-fight-opponent-charge":
+        this.updateTournamentFightOverride(command, "opponentStartingCharge");
+        break;
+      case "set-tournament-fight-time":
+        this.updateTournamentFightOverride(command, "timeLimitMs");
+        break;
+      case "lock-tournament-roster":
+        this.lockStandaloneTournamentRoster();
+        break;
+      case "select-tournament-accessory":
+        this.#tournamentDraftAccessoryId =
+          command.dataset.accessoryId?.trim() || null;
+        if (this.activeTournamentRun()) {
+          const selection = this.tournamentSelectionModel();
+          this.setActiveTournamentRun(
+            selectTournamentDeployment(
+              selection.run!,
+              selection.deployedInstanceIds,
+              selection.starterInstanceId,
+              this.#tournamentDraftAccessoryId,
+            ),
+          );
+          this.#save = saveSlot(localStorage, this.#save);
+        }
+        this.render();
+        this.announce(
+          this.#tournamentDraftAccessoryId
+            ? "Deployment Accessory selected."
+            : "This deployment will enter without an Accessory.",
+        );
+        break;
+      case "move-tournament-deployment":
+        if (command.dataset.instanceId) {
+          this.moveTournamentDeployment(
+            command.dataset.instanceId,
+            Number(command.dataset.direction),
+          );
+        }
         break;
       case "start-dev-scenario":
         if (command.dataset.scenarioId) {
@@ -786,9 +1379,9 @@ export class App {
           startPaused: command.dataset.paused === "true",
         });
         break;
-      case "cup-drop":
-        if (command.dataset.drop) {
-          this.chooseCupDrop(command.dataset.drop as CheapSeatsDrop);
+      case "tournament-interlude-choice":
+        if (command.dataset.choiceId) {
+          this.chooseTournamentInterlude(command.dataset.choiceId);
         }
         break;
       case "battle-action":
@@ -878,12 +1471,18 @@ export class App {
         if (this.#isDevFight && this.#devScenario) {
           this.startDevBattle(this.#devScenario);
         } else if (this.#isTournamentFight) {
-          this.forfeitActiveTournamentBattle();
+          if (
+            !this.forfeitActiveTournamentBattle(
+              "The fight will restart from the saved Tournament state.",
+            )
+          ) {
+            return;
+          }
           this.startTournamentBattle();
         } else if (this.#isQuickFight) {
-          this.startQuickBattle();
+          this.startQuickBattle(true);
         } else {
-          this.startBattle(false);
+          this.startStoryBattle(true);
         }
         break;
       case "dev-grant-stamps":
@@ -897,32 +1496,24 @@ export class App {
         break;
       case "retry-battle":
         if (this.#isTournamentFight) {
-          this.startTournamentBattle();
+          this.restartTerminalTournament();
         } else if (this.#isDevFight && this.#devScenario) {
           this.startDevBattle(this.#devScenario);
         } else if (this.#isQuickFight) {
-          this.startQuickBattle();
+          this.startQuickBattle(true);
         } else {
-          this.startBattle(false);
+          this.startStoryBattle(true);
         }
         break;
       case "leave-battle":
-        if (this.#isTournamentFight && this.#battle?.outcome === "active") {
-          this.forfeitActiveTournamentBattle();
-        }
-        if (this.#isDevFight) {
-          this.navigate("dev");
-        } else if (this.#isQuickFight) {
-          this.navigate("quick");
-        } else if (this.#isTournamentFight) {
-          this.navigate(
-            this.#sessionMode === "story" && this.#cupCompletedThisBattle
-              ? "story"
-              : "tournament",
-          );
-        } else {
-          this.navigate("story");
-        }
+      case "quit-battle-parent":
+        this.leaveBattleToParent();
+        break;
+      case "quit-battle-main":
+        this.leaveBattleToMainMenu();
+        break;
+      case "forfeit-tournament":
+        this.forfeitActiveTournamentRun();
         break;
       case "toggle-music":
         this.toggleMusicPlayback();
@@ -1098,6 +1689,27 @@ export class App {
     )) {
       return;
     }
+    if (target.name === "quickPreset" && target instanceof HTMLSelectElement) {
+      try {
+        this.#quickWorkflow = applyQuickFightPreset(
+          this.#quickWorkflow,
+          target.value as QuickFightPresetId,
+        );
+        this.#quickBuildInstanceId =
+          this.#quickWorkflow.selections.player.starterInstanceId;
+        this.render();
+        this.announce(
+          `${quickFightPreset(target.value).name} applied to this Quick Fight.`,
+        );
+      } catch (error) {
+        this.announce(
+          error instanceof Error
+            ? error.message
+            : "That preset is unavailable.",
+        );
+      }
+      return;
+    }
     if (target.name === "difficulty") {
       const difficulty = target.value as Difficulty;
       if (this.#battle?.outcome === "active" && this.#battleReport) {
@@ -1135,14 +1747,6 @@ export class App {
       } else {
         this.#quickEnemyIds = compactIds;
       }
-      this.render();
-    }
-    if (target.name === "quickPlayerAccessory") {
-      this.#quickPlayerAccessoryId = target.value;
-      this.render();
-    }
-    if (target.name === "quickEnemyAccessory") {
-      this.#quickEnemyAccessoryId = target.value;
       this.render();
     }
     if (
@@ -1285,6 +1889,118 @@ export class App {
     }
   };
 
+  private onSubmit = (event: SubmitEvent): void => {
+    const form = event.target;
+    if (!(form instanceof HTMLFormElement) || !form.dataset.fighterSearch) {
+      return;
+    }
+    event.preventDefault();
+    const input = form.elements.namedItem("fighterSearch");
+    this.#quickFighterSearch =
+      input instanceof HTMLInputElement ? input.value.trim() : "";
+    this.#quickFighterPage = 1;
+    this.render();
+  };
+
+  private onFighterDragStart = (event: DragEvent): void => {
+    const target = event.target;
+    const draggable =
+      target instanceof Element
+        ? target.closest<HTMLElement>("[data-fighter-drag]")
+        : null;
+    if (!draggable || !event.dataTransfer) {
+      return;
+    }
+    const payload = {
+      kind: draggable.dataset.fighterDrag,
+      instanceId: draggable.dataset.instanceId,
+      characterId: draggable.dataset.characterId,
+      side: draggable.dataset.side,
+    };
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData(
+      "application/x-loftwah-fighter",
+      JSON.stringify(payload),
+    );
+    draggable.classList.add("is-dragging");
+  };
+
+  private onFighterDragOver = (event: DragEvent): void => {
+    const target = event.target;
+    const slot =
+      target instanceof Element
+        ? target.closest<HTMLElement>("[data-fighter-slot-target]")
+        : null;
+    if (!slot) {
+      return;
+    }
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = "move";
+    }
+    this.#root
+      .querySelectorAll(".is-drop-target")
+      .forEach((element) => element.classList.remove("is-drop-target"));
+    slot.classList.add("is-drop-target");
+  };
+
+  private onFighterDrop = (event: DragEvent): void => {
+    const target = event.target;
+    const slot =
+      target instanceof Element
+        ? target.closest<HTMLElement>("[data-fighter-slot-target]")
+        : null;
+    if (!slot || !event.dataTransfer) {
+      return;
+    }
+    event.preventDefault();
+    const side = slot.dataset.side === "opponent" ? "opponent" : "player";
+    const targetIndex = Number(slot.dataset.slotIndex);
+    if (!Number.isInteger(targetIndex)) {
+      return;
+    }
+    try {
+      const payload = JSON.parse(
+        event.dataTransfer.getData("application/x-loftwah-fighter"),
+      ) as {
+        kind?: string;
+        instanceId?: string;
+        characterId?: string;
+        side?: string;
+      };
+      if (payload.kind === "selected" && payload.instanceId) {
+        if (payload.side === side) {
+          this.moveQuickFighter(side, payload.instanceId, targetIndex);
+        }
+      } else if (payload.kind === "catalogue" && payload.characterId) {
+        const instanceId = this.nextQuickFighterInstance(
+          side,
+          payload.characterId,
+        );
+        if (instanceId) {
+          this.#quickSelectSide = side;
+          this.placeQuickFighter(instanceId, side, targetIndex);
+        }
+      }
+    } catch {
+      this.announce("That fighter could not be placed. Try again.");
+    } finally {
+      this.clearQuickFighterDragState();
+    }
+  };
+
+  private onFighterDragEnd = (): void => {
+    this.clearQuickFighterDragState();
+  };
+
+  private clearQuickFighterDragState(): void {
+    this.#root
+      .querySelectorAll(".is-dragging, .is-drop-target")
+      .forEach((element) =>
+        element.classList.remove("is-dragging", "is-drop-target"),
+      );
+  }
+
   private onInput = (event: Event): void => {
     const target = event.target;
     if (!(target instanceof HTMLInputElement) || target.type !== "range") {
@@ -1320,6 +2036,7 @@ export class App {
       this.stopBattle();
     }
     this.#sessionMode = "menu";
+    this.#pendingFightSetup = null;
     this.#route = "menu";
     this.render();
     this.playMusicForCurrentContext();
@@ -1353,6 +2070,7 @@ export class App {
     if (this.#route === "battle" && route !== "battle") {
       this.stopBattle();
     }
+    this.#pendingFightSetup = null;
     this.#route = route;
     this.render();
     this.playMusicForCurrentContext();
@@ -1481,6 +2199,10 @@ export class App {
   }
 
   private render(): void {
+    const focusSelector =
+      this.#pendingFocusSelector ??
+      this.focusSelectorFor(document.activeElement);
+    this.#pendingFocusSelector = null;
     this.persistPreferences();
     if (this.#startupStage !== "ready") {
       this.renderStartup();
@@ -1502,6 +2224,50 @@ export class App {
         <div class="sr-only" aria-live="polite" id="announcer"></div>
       </div>
     `;
+    if (focusSelector) {
+      this.#root
+        .querySelector<HTMLElement>(focusSelector)
+        ?.focus({ preventScroll: true });
+    }
+  }
+
+  private focusSelectorFor(element: Element | null): string | null {
+    if (!(element instanceof HTMLElement) || !this.#root.contains(element)) {
+      return null;
+    }
+    if (
+      (element instanceof HTMLInputElement ||
+        element instanceof HTMLSelectElement) &&
+      element.name
+    ) {
+      return `[name="${CSS.escape(element.name)}"]`;
+    }
+    const command = element.dataset.command;
+    if (!command) return null;
+    const attributes = [
+      "side",
+      "instanceId",
+      "characterId",
+      "slot",
+      "slotIndex",
+      "section",
+      "value",
+      "delta",
+      "stat",
+      "actionId",
+      "direction",
+      "patchId",
+      "accessoryId",
+    ] as const;
+    return attributes.reduce(
+      (selector, key) => {
+        const value = element.dataset[key];
+        return value === undefined
+          ? selector
+          : `${selector}[data-${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)}="${CSS.escape(value)}"]`;
+      },
+      `[data-command="${CSS.escape(command)}"]`,
+    );
   }
 
   private appShellModel(): AppShellModel {
@@ -1681,6 +2447,625 @@ export class App {
     this.announce("First Run views unlocked for development.");
   }
 
+  private applyQuickWorkflowTransition(transition: {
+    draft: FightWorkflowDraft;
+    issues: readonly { message: string }[];
+  }): void {
+    this.#quickWorkflow = transition.draft;
+    if (transition.issues[0]) {
+      this.announce(transition.issues[0].message);
+      return;
+    }
+    this.render();
+  }
+
+  private applyQuickCustomTransition(transition: {
+    draft: FightWorkflowDraft;
+    issues: readonly { message: string }[];
+  }): void {
+    if (transition.issues[0]) {
+      this.announce(transition.issues[0].message);
+      return;
+    }
+    this.#quickWorkflow = markQuickFightCustom(transition.draft);
+    this.render();
+  }
+
+  private applyQuickNumberSetting(
+    command: HTMLElement,
+    field: "timeLimitMs" | "playerStartingCharge" | "opponentStartingCharge",
+  ): void {
+    const value = Number(command.dataset.value);
+    if (!Number.isFinite(value)) return;
+    this.applyQuickCustomTransition(
+      setFightWorkflowRule(this.#quickWorkflow, field, value),
+    );
+  }
+
+  private updateQuickBuild(
+    command: HTMLElement,
+    edit: "level" | "stat" | "action" | "tier" | "patch",
+  ): void {
+    const instanceId = command.dataset.instanceId;
+    if (!instanceId) return;
+    try {
+      if (edit === "level") {
+        const delta = Number(command.dataset.delta);
+        if (delta !== -1 && delta !== 1) return;
+        this.#quickWorkflow = adjustQuickFightBuildLevel(
+          this.#quickWorkflow,
+          instanceId,
+          delta,
+        );
+      } else if (edit === "stat") {
+        const delta = Number(command.dataset.delta);
+        const stat = command.dataset.stat as keyof StatBlock | undefined;
+        if (
+          !stat ||
+          !ALLOCATABLE_STATS.includes(stat) ||
+          (delta !== -1 && delta !== 1)
+        )
+          return;
+        this.#quickWorkflow = adjustQuickFightBuildStat(
+          this.#quickWorkflow,
+          instanceId,
+          stat,
+          delta,
+        );
+      } else if (edit === "action") {
+        const actionId = command.dataset.actionId;
+        const direction = Number(command.dataset.direction);
+        if (!actionId || (direction !== -1 && direction !== 1)) return;
+        this.#quickWorkflow = moveQuickFightBuildAction(
+          this.#quickWorkflow,
+          instanceId,
+          actionId,
+          direction,
+        );
+      } else if (edit === "tier") {
+        if (!command.dataset.actionId) return;
+        this.#quickWorkflow = cycleQuickFightBuildTier(
+          this.#quickWorkflow,
+          instanceId,
+          command.dataset.actionId,
+        );
+      } else {
+        this.#quickWorkflow = setQuickFightBuildPatch(
+          this.#quickWorkflow,
+          instanceId,
+          command.dataset.patchId || null,
+        );
+      }
+      this.render();
+    } catch (error) {
+      this.announce(
+        error instanceof Error ? error.message : "Build update failed.",
+      );
+    }
+  }
+
+  private quickOrderedSelection(side: FightWorkflowSide): string[] {
+    const selection = this.#quickWorkflow.selections[side];
+    return selection.starterInstanceId
+      ? [
+          selection.starterInstanceId,
+          ...selection.instanceIds.filter(
+            (instanceId) => instanceId !== selection.starterInstanceId,
+          ),
+        ]
+      : [...selection.instanceIds];
+  }
+
+  private nextQuickFighterInstance(
+    side: FightWorkflowSide,
+    characterId: string,
+  ): string | null {
+    const selected = this.#quickWorkflow.selections[side].instanceIds;
+    return (
+      this.#quickWorkflow.policy[side].eligibleFighters.find(
+        (fighter) =>
+          fighter.characterId === characterId &&
+          !selected.includes(fighter.instanceId),
+      )?.instanceId ?? null
+    );
+  }
+
+  private placeQuickFighter(
+    instanceId: string,
+    side: FightWorkflowSide,
+    targetIndex: number | null,
+  ): void {
+    let draft = this.#quickWorkflow;
+    if (targetIndex !== null) {
+      const replacedId = this.quickOrderedSelection(side)[targetIndex];
+      if (replacedId) {
+        const removed = removeFightWorkflowFighter(draft, side, replacedId);
+        if (removed.issues[0]) {
+          this.announce(removed.issues[0].message);
+          return;
+        }
+        draft = removed.draft;
+      }
+    }
+    const added = addFightWorkflowFighter(draft, side, instanceId);
+    if (added.issues[0]) {
+      this.announce(added.issues[0].message);
+      return;
+    }
+    draft = added.draft;
+    if (targetIndex !== null) {
+      const reordered = reorderFightWorkflowFighter(
+        draft,
+        side,
+        instanceId,
+        targetIndex,
+      );
+      if (reordered.issues[0]) {
+        this.announce(reordered.issues[0].message);
+        return;
+      }
+      draft = reordered.draft;
+    }
+    this.#quickWorkflow = draft;
+    this.#quickTargetSlot = null;
+    this.render();
+  }
+
+  private moveQuickFighter(
+    side: FightWorkflowSide,
+    instanceId: string,
+    targetIndex: number,
+  ): void {
+    const ordered = this.quickOrderedSelection(side);
+    const boundedIndex = Math.max(0, Math.min(ordered.length - 1, targetIndex));
+    const transition = reorderFightWorkflowFighter(
+      this.#quickWorkflow,
+      side,
+      instanceId,
+      boundedIndex,
+    );
+    if (transition.issues[0]) {
+      this.announce(transition.issues[0].message);
+      return;
+    }
+    const slotIds: readonly FighterSelectSlotId[] = [
+      "starter",
+      "bench-1",
+      "bench-2",
+    ];
+    this.#quickWorkflow = transition.draft;
+    this.#quickSelectSide = side;
+    this.#quickTargetSlot = {
+      side,
+      slotId: slotIds[boundedIndex]!,
+      index: boundedIndex,
+    };
+    this.render();
+  }
+
+  private quickFighterFromInstance(instanceId: string): FighterSelectInstance {
+    const eligible = [
+      ...this.#quickWorkflow.policy.player.eligibleFighters,
+      ...this.#quickWorkflow.policy.opponent.eligibleFighters,
+    ].find((fighter) => fighter.instanceId === instanceId);
+    const character = eligible
+      ? combatContent.characters[eligible.characterId]
+      : undefined;
+    if (!eligible || !character) {
+      throw new Error(`Unknown Quick Fight instance: ${instanceId}`);
+    }
+    return {
+      instanceId,
+      characterId: character.id,
+      name: character.name,
+      portraitAssetId: character.portraitAssetId,
+      typeLabel: formatLabel(character.typeId),
+      traitLabels: character.traitIds.map(formatLabel),
+      availability: "selected",
+    };
+  }
+
+  private quickFighterLineup(
+    side: FightWorkflowSide,
+    label: string,
+  ): FighterSelectLineup {
+    const selection = this.#quickWorkflow.selections[side];
+    const orderedIds = selection.starterInstanceId
+      ? [
+          selection.starterInstanceId,
+          ...selection.instanceIds.filter(
+            (instanceId) => instanceId !== selection.starterInstanceId,
+          ),
+        ]
+      : [...selection.instanceIds];
+    const slotDefinitions = [
+      { id: "starter", label: "Starter" },
+      { id: "bench-1", label: "Bench 1" },
+      { id: "bench-2", label: "Bench 2" },
+    ] as const;
+    return {
+      label,
+      slots: slotDefinitions.map((slot, index) => ({
+        ...slot,
+        fighter: orderedIds[index]
+          ? this.quickFighterFromInstance(orderedIds[index])
+          : undefined,
+      })),
+      accessory: {
+        selectedId: selection.accessoryId,
+        options: Object.values(combatContent.accessories).map((accessory) => ({
+          id: accessory.id,
+          name: accessory.name,
+          description: accessory.description,
+          imageAssetId: accessory.imageAssetId,
+        })),
+      },
+    };
+  }
+
+  private quickFighterCatalogue(): {
+    fighters: FighterSelectInstance[];
+    page: number;
+    pageCount: number;
+    rangeStart: number;
+    rangeEnd: number;
+    total: number;
+  } {
+    const side = this.#quickSelectSide;
+    const selection = this.#quickWorkflow.selections[side];
+    const search = this.#quickFighterSearch.toLocaleLowerCase();
+    const eligible = this.#quickWorkflow.policy[side].eligibleFighters;
+    const allFighters = Object.values(combatContent.characters)
+      .filter((character) => {
+        const matchesSearch =
+          !search ||
+          character.name.toLocaleLowerCase().includes(search) ||
+          formatLabel(character.typeId).toLocaleLowerCase().includes(search) ||
+          character.traitIds.some((trait) =>
+            formatLabel(trait).toLocaleLowerCase().includes(search),
+          );
+        return (
+          matchesSearch &&
+          (!this.#quickFighterFilter ||
+            character.typeId === this.#quickFighterFilter)
+        );
+      })
+      .map((character): FighterSelectInstance => {
+        const copies = eligible.filter(
+          (fighter) => fighter.characterId === character.id,
+        );
+        const selectedCount = copies.filter((fighter) =>
+          selection.instanceIds.includes(fighter.instanceId),
+        ).length;
+        const nextCopy = copies.find(
+          (fighter) => !selection.instanceIds.includes(fighter.instanceId),
+        );
+        return {
+          instanceId:
+            nextCopy?.instanceId ?? copies.at(-1)?.instanceId ?? character.id,
+          characterId: character.id,
+          name: character.name,
+          portraitAssetId: character.portraitAssetId,
+          typeLabel: formatLabel(character.typeId),
+          traitLabels: character.traitIds.map(formatLabel),
+          statusLabels:
+            selectedCount > 0
+              ? [
+                  selectedCount === 1
+                    ? "In Lineup"
+                    : `${selectedCount} in Lineup`,
+                ]
+              : undefined,
+          availability: nextCopy ? "available" : "unavailable",
+          unavailableReason: nextCopy
+            ? undefined
+            : "All three copies are selected",
+        };
+      });
+    const pageSize = window.innerWidth <= 900 ? 6 : 8;
+    const pageCount = Math.max(1, Math.ceil(allFighters.length / pageSize));
+    const page = Math.min(Math.max(1, this.#quickFighterPage), pageCount);
+    this.#quickFighterPage = page;
+    const rangeStart = allFighters.length === 0 ? 0 : (page - 1) * pageSize + 1;
+    const rangeEnd = Math.min(page * pageSize, allFighters.length);
+    return {
+      fighters: allFighters.slice(rangeStart - 1, rangeEnd),
+      page,
+      pageCount,
+      rangeStart,
+      rangeEnd,
+      total: allFighters.length,
+    };
+  }
+
+  private cycleQuickFighterFilter(): void {
+    const types = Array.from(
+      new Set(
+        Object.values(combatContent.characters).map(
+          (character) => character.typeId,
+        ),
+      ),
+    );
+    const currentIndex = this.#quickFighterFilter
+      ? types.indexOf(this.#quickFighterFilter)
+      : -1;
+    this.#quickFighterFilter =
+      currentIndex >= types.length - 1 ? null : types[currentIndex + 1]!;
+    this.#quickFighterPage = 1;
+    this.render();
+  }
+
+  private confirmationTraits(
+    fighters: readonly ResolvedMatchFighter[],
+  ): FightConfirmationTrait[] {
+    const characters = fighters.map(
+      (fighter) => combatContent.characters[fighter.characterId]!,
+    );
+    const synergy = traitSynergy(characters);
+    return CHARACTER_TRAITS.filter((trait) => synergy.scores[trait] > 0).map(
+      (trait) => ({
+        label: `${formatLabel(trait)} · ${synergy.scores[trait]} point${synergy.scores[trait] === 1 ? "" : "s"}`,
+        effect: traitBonusLabel(trait, synergy.bonuses),
+      }),
+    );
+  }
+
+  private resolvedBuildFacts(
+    fighter: ResolvedMatchFighter,
+    detailed: boolean,
+  ): string[] {
+    const character = combatContent.characters[fighter.characterId]!;
+    const build = fighter.build;
+    const patch = findPatch(build.equippedPatchId ?? null);
+    if (!detailed) {
+      const upgradedMoves = Object.values(build.actionTiers ?? {}).filter(
+        (tier) => tier !== "stock",
+      ).length;
+      return [
+        `Level ${build.level ?? character.level}`,
+        ...(patch ? [`Modification: ${patch.name}`] : []),
+        ...(upgradedMoves > 0
+          ? [`${upgradedMoves} enhanced Move${upgradedMoves === 1 ? "" : "s"}`]
+          : []),
+      ];
+    }
+    const stats = build.statBonuses ?? {};
+    const statFact = [
+      ["Vitality", stats.health ?? 0],
+      ["Power", stats.power ?? 0],
+      ["Evasion", stats.evasion ?? 0],
+      ["Fortune", stats.fortune ?? 0],
+      ["Tempo", stats.tempo ?? 0],
+    ]
+      .map(([label, value]) => `${label} +${value}`)
+      .join(" · ");
+    const actionIds = build.actionIds ?? character.actionIds;
+    const movesFact = actionIds
+      .map((actionId) => {
+        const action = combatContent.actions[actionId];
+        const tier = build.actionTiers?.[actionId] ?? "stock";
+        return `${action?.name ?? actionId} (${formatLabel(tier)})`;
+      })
+      .join(" → ");
+    return [
+      `Level ${build.level ?? character.level}`,
+      statFact,
+      `Moves: ${movesFact}`,
+      `Modification: ${patch?.name ?? "None"}`,
+    ];
+  }
+
+  private resolvedConfirmationLineup(
+    match: ResolvedMatchConfiguration,
+    side: FightWorkflowSide,
+    label: string,
+    detailedBuilds = false,
+    statuses?: Readonly<Record<string, readonly string[]>>,
+  ): FightConfirmationLineup {
+    const resolvedSide = side === "player" ? match.player : match.opponent;
+    return {
+      label,
+      members: resolvedSide.fighters.map((fighter, index) => ({
+        instanceId: fighter.instanceId,
+        characterId: fighter.characterId,
+        position: index === 0 ? ("starter" as const) : ("bench" as const),
+        buildFacts: this.resolvedBuildFacts(fighter, detailedBuilds),
+        statuses: statuses?.[fighter.instanceId],
+      })),
+      accessoryId: resolvedSide.accessoryId,
+      traits: this.confirmationTraits(resolvedSide.fighters),
+    };
+  }
+
+  private effectiveOpeningCharge(
+    match: ResolvedMatchConfiguration,
+    side: FightWorkflowSide,
+  ): number {
+    const resolvedSide = side === "player" ? match.player : match.opponent;
+    return resolvedSide.startingCharge;
+  }
+
+  private renderQuickFightWorkflow(): string {
+    if (this.#quickWorkflow.step === "fighters") {
+      const catalogue = this.quickFighterCatalogue();
+      return renderFighterSelectScreen({
+        mode: "quick",
+        title: "Choose Fighters",
+        context:
+          "Choose up to 3 fighters for each side, then arrange the order.",
+        activeSide: this.#quickSelectSide,
+        canEditOpponent: true,
+        player: this.quickFighterLineup("player", "Your Lineup"),
+        opponent: this.quickFighterLineup("opponent", "Opponent Lineup"),
+        catalogue: catalogue.fighters,
+        pagination: catalogue,
+        searchQuery: this.#quickFighterSearch,
+        targetSlot: this.#quickTargetSlot ?? undefined,
+        activeFilterLabel: this.#quickFighterFilter
+          ? formatLabel(this.#quickFighterFilter)
+          : "All Fighters",
+        accessorySide: this.#quickAccessorySide ?? undefined,
+        navigation: {
+          parentLabel: "Main Menu",
+          parentCommand: "main-menu",
+        },
+        continueCommand: "continue-quick-fighters",
+        continueDisabled:
+          validateFightWorkflowDraft(this.#quickWorkflow).length > 0,
+      });
+    }
+    const preset = quickFightPreset(
+      this.#quickWorkflow.settings.presetId ?? "quick.full-power",
+    );
+    if (this.#quickWorkflow.step === "settings") {
+      return renderMatchSettingsScreen({
+        draft: this.#quickWorkflow,
+        preset,
+        section: this.#quickSettingsSection,
+        selectedBuildInstanceId: this.#quickBuildInstanceId,
+        buildSection: this.#quickBuildSection,
+        parentLabel: "Fighters",
+        parentCommand: "back-from-match-settings",
+        mainMenuCommand: "main-menu",
+      });
+    }
+    const quickResolution = resolveQuickFightWorkflow(this.#quickWorkflow);
+    const resolved = quickResolution.resolved;
+    if (!resolved) {
+      throw new Error(
+        quickResolution.issues[0]?.message ??
+          "The Quick Fight could not be resolved for review.",
+      );
+    }
+    const match = resolved.match;
+    const detailedBuilds = preset.kind === "custom";
+    return renderFightConfirmationScreen({
+      mode: "quick",
+      title: preset.name,
+      context: preset.rule,
+      difficulty: match.difficulty,
+      player: this.resolvedConfirmationLineup(
+        match,
+        "player",
+        "Your Lineup",
+        detailedBuilds,
+      ),
+      opponent: this.resolvedConfirmationLineup(
+        match,
+        "opponent",
+        "Opponent Lineup",
+        detailedBuilds,
+      ),
+      matchSettingsAvailable: true,
+      decisionFacts: [
+        {
+          label: "Fight Clock",
+          value: `${match.timeLimitMs / 1000} seconds`,
+        },
+        {
+          label: "Effective Opening Charge",
+          value: `${this.effectiveOpeningCharge(match, "player")} / ${this.effectiveOpeningCharge(match, "opponent")}`,
+        },
+      ],
+      commands: {
+        changeFighters: "change-quick-fighters",
+        matchSettings: "open-quick-match-settings",
+        startFight: "start-quick-battle",
+        parent: "open-quick-match-settings",
+        parentLabel: "Fight Settings",
+        mainMenu: "main-menu",
+      },
+    });
+  }
+
+  private renderPendingFightSetup(): string {
+    const pending = this.#pendingFightSetup;
+    if (!pending) throw new Error("No resolved fight is waiting for review");
+    const { request } = pending;
+    const match = request.match;
+    const statuses: Record<string, readonly string[]> = {};
+    if (request.kind === "tournament") {
+      const run = this.activeTournamentRun();
+      for (const fighter of match.player.fighters) {
+        const ratio = run?.healthRatios[fighter.instanceId] ?? 1;
+        statuses[fighter.instanceId] = [
+          `${Math.round(ratio * 100)}% carried Health`,
+        ];
+      }
+      for (const fighter of match.opponent.fighters) {
+        const ratio = run?.opponentHealthRatios[fighter.instanceId] ?? 1;
+        statuses[fighter.instanceId] = [
+          `${Math.round(ratio * 100)}% current Health`,
+        ];
+      }
+    }
+    const tournamentRun =
+      request.kind === "tournament" ? this.activeTournamentRun() : null;
+    const tournamentDefinitionForRequest = tournamentRun
+      ? resolveTournamentRunDefinition(tournamentRun)
+      : null;
+    const tournamentNode =
+      request.kind === "tournament"
+        ? tournamentDefinitionForRequest?.nodes.find(
+            (node) => node.id === request.nodeId && node.kind === "fight",
+          )
+        : null;
+    const title =
+      request.kind === "story"
+        ? firstRunEncounter(request.encounterId).title
+        : tournamentNode?.kind === "fight"
+          ? tournamentNode.enemySquadName
+          : tournamentFightDefinition(request.tournamentId, request.nodeId).node
+              .enemySquadName;
+    const context =
+      request.kind === "story"
+        ? "First Run"
+        : `${tournamentDefinitionForRequest?.name ?? tournamentDefinition(request.tournamentId).name} · Round ${this.#tournamentRoundIndex + 1}`;
+    return renderFightConfirmationScreen({
+      mode: request.kind,
+      title,
+      context,
+      difficulty: match.difficulty,
+      player: this.resolvedConfirmationLineup(
+        match,
+        "player",
+        "Your Lineup",
+        false,
+        statuses,
+      ),
+      opponent: this.resolvedConfirmationLineup(
+        match,
+        "opponent",
+        request.kind === "tournament" ? "Round Rivals" : "Opponent Lineup",
+        false,
+        statuses,
+      ),
+      decisionFacts: [
+        { label: "Fight Clock", value: `${match.timeLimitMs / 1000} seconds` },
+        {
+          label: "Effective Opening Charge",
+          value: `${this.effectiveOpeningCharge(match, "player")} / ${this.effectiveOpeningCharge(match, "opponent")}`,
+        },
+      ],
+      commands: {
+        changeFighters:
+          request.kind === "story"
+            ? "change-story-fighters"
+            : "change-tournament-fighters",
+        startFight:
+          request.kind === "story"
+            ? "confirm-story-fight"
+            : "confirm-tournament-fight",
+        parent:
+          request.kind === "story"
+            ? "change-story-fighters"
+            : "change-tournament-fighters",
+        parentLabel: request.kind === "story" ? "Story" : "Tournament",
+        mainMenu: "main-menu",
+      },
+    });
+  }
+
   private screenContent(): string {
     switch (this.#route) {
       case "menu":
@@ -1691,10 +3076,12 @@ export class App {
       case "story":
         return renderStoryScreen(this.#save);
       case "lineup":
-        return renderLineupScreen({
-          save: this.#save,
-          difficulty: this.#preferences.difficulty,
-        });
+        return this.#pendingFightSetup?.request.kind === "story"
+          ? this.renderPendingFightSetup()
+          : renderLineupScreen({
+              save: this.#save,
+              difficulty: this.#preferences.difficulty,
+            });
       case "collection":
         return renderCollectionScreen(this.#save);
       case "store":
@@ -1706,16 +3093,65 @@ export class App {
       case "missions":
         return renderMissionsScreen(this.#save, this.routeLocked("missions"));
       case "quick":
-        return renderQuickFightScreen({
-          playerIds: this.#quickPlayerIds,
-          enemyIds: this.#quickEnemyIds,
-          playerAccessoryId: this.#quickPlayerAccessoryId,
-          enemyAccessoryId: this.#quickEnemyAccessoryId,
-          difficultyOptions: renderDifficultyOptions(
-            this.#preferences.difficulty,
-          ),
-        });
+        return this.renderQuickFightWorkflow();
       case "tournament": {
+        if (this.#pendingFightSetup?.request.kind === "tournament") {
+          return this.renderPendingFightSetup();
+        }
+        if (this.#sessionMode === "tournament") {
+          if (this.#tournamentWorkflow.stage === "choice") {
+            return renderTournamentChoiceScreen({
+              tournamentId: this.#tournamentWorkflow.tournamentId,
+              run: this.activeTournamentRun(),
+              trophyCollected: this.#save.tournamentTrophyIds.includes(
+                tournamentDefinition(this.#tournamentWorkflow.tournamentId)
+                  .trophyId,
+              ),
+              result: this.#tournamentChoiceResult,
+            });
+          }
+          if (this.#tournamentWorkflow.stage === "roster") {
+            const pageSize = 6;
+            const pageCount = Math.max(
+              1,
+              Math.ceil(this.#tournamentWorkflow.catalogue.length / pageSize),
+            );
+            this.#tournamentRosterPage = Math.min(
+              Math.max(1, this.#tournamentRosterPage),
+              pageCount,
+            );
+            const catalogue = this.#tournamentWorkflow.catalogue.map(
+              (candidate) => ({
+                ...candidate,
+                ...this.#tournamentWorkflow.builds[candidate.instanceId],
+                portraitAssetId: candidate.portraitAssetId,
+              }),
+            );
+            return renderTournamentRosterScreen({
+              tournamentId: this.#tournamentWorkflow.tournamentId,
+              catalogue: catalogue.slice(
+                (this.#tournamentRosterPage - 1) * pageSize,
+                this.#tournamentRosterPage * pageSize,
+              ),
+              selectedCatalogue: catalogue.filter((candidate) =>
+                this.#tournamentWorkflow.rosterInstanceIds.includes(
+                  candidate.instanceId,
+                ),
+              ),
+              selectedInstanceIds: this.#tournamentWorkflow.rosterInstanceIds,
+              page: this.#tournamentRosterPage,
+              pageCount,
+              buildInstanceId: this.#tournamentBuildInstanceId,
+            });
+          }
+          if (this.#tournamentWorkflow.stage === "settings") {
+            return renderTournamentSettingsScreen({
+              tournamentId: this.#tournamentWorkflow.tournamentId,
+              settings: this.#tournamentWorkflow.settings,
+              customVariant: this.#tournamentWorkflow.customVariant,
+            });
+          }
+        }
         const selection = this.tournamentSelectionModel();
         return renderTournamentScreen({
           save: this.#save,
@@ -1724,6 +3160,9 @@ export class App {
           caseBuilds: selection.caseBuilds,
           deployedInstanceIds: selection.deployedInstanceIds,
           starterInstanceId: selection.starterInstanceId,
+          accessoryId:
+            selection.run?.deploymentAccessoryId ??
+            this.#tournamentDraftAccessoryId,
           locked: this.routeLocked("tournament"),
         });
       }
@@ -1871,7 +3310,18 @@ export class App {
 
   private renderBattle(): void {
     if (!this.#battle) {
-      this.startBattle(false);
+      const safeRoute: Route =
+        this.#sessionMode === "story"
+          ? "lineup"
+          : this.#sessionMode === "quick"
+            ? "quick"
+            : this.#sessionMode === "tournament"
+              ? "tournament"
+              : "dev";
+      this.navigate(safeRoute);
+      this.announce(
+        "Choose and confirm a valid Lineup before starting a fight.",
+      );
       return;
     }
     this.#root.innerHTML = renderBattleScreen(this.battleScreenModel());
@@ -1895,7 +3345,7 @@ export class App {
 
   private battleScreenModel(): BattleScreenModel {
     const roundLabel = this.#isTournamentFight
-      ? `WRONG DOOR CUP · ROUND ${this.#tournamentRoundIndex + 1} · ${cheapSeatsEncounter(this.#tournamentRoundIndex).title.toUpperCase()}`
+      ? `${this.#tournamentName.toUpperCase()} · ROUND ${this.#tournamentRoundIndex + 1} · ${this.#tournamentFightTitle.toUpperCase()}`
       : this.#isDevFight && this.#devScenario
         ? `DEV LAB · ${this.#devScenario.name.toUpperCase()}`
         : this.#isQuickFight
@@ -2006,7 +3456,13 @@ export class App {
       this.#battleCountdownTimer = window.setTimeout(showBeat, beat.durationMs);
     };
 
-    this.#battleCountdownTimer = window.setTimeout(showBeat, 1_600);
+    // Review hands directly to the VS plate while Phaser mounts. Once the
+    // arena is ready, keep only a short authored beat before the countdown so
+    // loading, VS, and countdown read as one continuous entrance.
+    this.#battleCountdownTimer = window.setTimeout(
+      showBeat,
+      this.#preferences.reducedMotion ? 120 : 500,
+    );
   }
 
   private activateBattle(): void {
@@ -2175,19 +3631,256 @@ export class App {
     this.updatePickups();
   }
 
+  private queueFightSetup(
+    request: PendingBattleLaunchRequest,
+    returnRoute: "lineup" | "tournament",
+  ): void {
+    const validated = validateBattleLaunchRequest(request).request;
+    if (validated.kind !== "story" && validated.kind !== "tournament") {
+      throw new Error("Only Story and Tournament fights enter this setup");
+    }
+    if (this.#route === "battle") {
+      this.stopBattle();
+    }
+    this.#pendingFightSetup = { request: validated, returnRoute };
+    this.#route = returnRoute;
+    this.render();
+    window.scrollTo(0, 0);
+  }
+
+  private confirmPendingFightSetup(): void {
+    const pending = this.#pendingFightSetup;
+    if (!pending) {
+      this.announce("Review a resolved fight before starting Battle.");
+      return;
+    }
+    this.#pendingFightSetup = null;
+    this.startBattle(pending.request);
+  }
+
+  private beginNewStandaloneTournament(): void {
+    if (
+      this.activeTournamentRun() &&
+      !window.confirm(
+        "Start a new Tournament run? The unfinished run and its carried Health will be replaced.",
+      )
+    ) {
+      return;
+    }
+    this.setActiveTournamentRun(null);
+    this.#tournamentChoiceResult = null;
+    if (this.#sessionMode === "tournament") {
+      this.#tournamentWorkflow = enterTournamentStage(
+        this.#tournamentWorkflow,
+        "choice",
+      );
+    }
+    this.#tournamentWorkflow = enterTournamentStage(
+      createTournamentWorkflow(
+        this.#preferences.difficulty,
+        this.#tournamentWorkflow.tournamentId,
+      ),
+      "roster",
+    );
+    this.#tournamentRosterPage = 1;
+    this.#tournamentBuildInstanceId = null;
+    this.#tournamentDraftDeploymentIds = [];
+    this.#tournamentDraftStarterId = null;
+    this.#tournamentDraftAccessoryId = "accessory.press-pass";
+    this.#save = saveSlot(localStorage, this.#save);
+    this.render();
+  }
+
+  private updateTournamentRoster(instanceId: string): void {
+    try {
+      this.#tournamentWorkflow = toggleTournamentRosterInstance(
+        this.#tournamentWorkflow,
+        instanceId,
+      );
+      if (
+        !this.#tournamentWorkflow.rosterInstanceIds.includes(
+          this.#tournamentBuildInstanceId ?? "",
+        )
+      ) {
+        this.#tournamentBuildInstanceId =
+          this.#tournamentWorkflow.rosterInstanceIds.at(-1) ?? null;
+      }
+      this.render();
+      this.announce(
+        `${this.#tournamentWorkflow.rosterInstanceIds.length} of 6 Tournament Roster places filled.`,
+      );
+    } catch (error) {
+      this.announce(
+        error instanceof Error
+          ? error.message
+          : "Tournament Roster could not be changed.",
+      );
+    }
+  }
+
+  private updateTournamentNumberSetting(
+    field: "timeLimitMs" | "playerStartingCharge" | "opponentStartingCharge",
+    value: number,
+  ): void {
+    if (!Number.isFinite(value)) return;
+    this.#tournamentWorkflow = setTournamentDefault(
+      this.#tournamentWorkflow,
+      field,
+      value,
+    );
+    this.render();
+  }
+
+  private updateTournamentFightOverride(
+    command: HTMLElement,
+    field: "timeLimitMs" | "playerStartingCharge" | "opponentStartingCharge",
+  ): void {
+    const nodeId = command.dataset.nodeId;
+    if (!nodeId) return;
+    const value = command.dataset.value ? Number(command.dataset.value) : null;
+    this.#tournamentWorkflow = setTournamentFightOverride(
+      this.#tournamentWorkflow,
+      nodeId,
+      field,
+      value,
+    );
+    this.render();
+  }
+
+  private updateTournamentBuild(
+    command: HTMLElement,
+    edit: "stat" | "action" | "tier" | "patch",
+  ): void {
+    const instanceId = command.dataset.instanceId;
+    if (!instanceId) return;
+    try {
+      if (edit === "stat") {
+        const stat = command.dataset.stat as keyof StatBlock | undefined;
+        const delta = Number(command.dataset.delta);
+        if (!stat || (delta !== -1 && delta !== 1)) return;
+        this.#tournamentWorkflow = adjustTournamentBuildStat(
+          this.#tournamentWorkflow,
+          instanceId,
+          stat,
+          delta,
+        );
+      } else if (edit === "action") {
+        const actionId = command.dataset.actionId;
+        const direction = Number(command.dataset.direction);
+        if (!actionId || (direction !== -1 && direction !== 1)) return;
+        this.#tournamentWorkflow = moveTournamentBuildAction(
+          this.#tournamentWorkflow,
+          instanceId,
+          actionId,
+          direction,
+        );
+      } else if (edit === "tier") {
+        if (!command.dataset.actionId) return;
+        this.#tournamentWorkflow = cycleTournamentBuildTier(
+          this.#tournamentWorkflow,
+          instanceId,
+          command.dataset.actionId,
+        );
+      } else {
+        this.#tournamentWorkflow = setTournamentBuildPatch(
+          this.#tournamentWorkflow,
+          instanceId,
+          command.dataset.patchId || null,
+        );
+      }
+      this.render();
+    } catch (error) {
+      this.announce(
+        error instanceof Error
+          ? error.message
+          : "Tournament build update failed.",
+      );
+    }
+  }
+
+  private lockStandaloneTournamentRoster(): void {
+    try {
+      const roster = lockedTournamentRoster(this.#tournamentWorkflow);
+      const deployed = roster.slice(0, 3).map((build) => build.instanceId);
+      const preset = tournamentDefinition(
+        this.#tournamentWorkflow.tournamentId,
+      );
+      const definition = this.#tournamentWorkflow.customVariant
+        ? createTournamentVariant(preset.id, {
+            id: `${preset.id}.variant.${Date.now()}`,
+            matchDefaults: {
+              difficulty: this.#tournamentWorkflow.settings.difficulty,
+              timeLimitMs: this.#tournamentWorkflow.settings.timeLimitMs,
+              playerStartingCharge:
+                this.#tournamentWorkflow.settings.playerStartingCharge,
+              opponentStartingCharge:
+                this.#tournamentWorkflow.settings.opponentStartingCharge,
+            },
+            fightOverrides: this.#tournamentWorkflow.settings.fightOverrides,
+          })
+        : preset;
+      let run = createTournamentRun({
+        definition,
+        roster,
+        origin: "standalone",
+        deployedInstanceIds: deployed,
+        starterInstanceId: deployed[0] ?? null,
+        deploymentAccessoryId: this.#tournamentDraftAccessoryId,
+        defaults: {
+          difficulty: this.#tournamentWorkflow.settings.difficulty,
+          timeLimitMs: this.#tournamentWorkflow.settings.timeLimitMs,
+          playerStartingCharge:
+            this.#tournamentWorkflow.settings.playerStartingCharge,
+          opponentStartingCharge:
+            this.#tournamentWorkflow.settings.opponentStartingCharge,
+        },
+        fightOverrides: this.#tournamentWorkflow.settings.fightOverrides,
+      });
+      run = selectTournamentDeployment(
+        run,
+        deployed,
+        deployed[0] ?? null,
+        this.#tournamentDraftAccessoryId,
+      );
+      this.setActiveTournamentRun(run);
+      this.#tournamentDraftDeploymentIds = [...deployed];
+      this.#tournamentDraftStarterId = deployed[0] ?? null;
+      this.#tournamentWorkflow = enterTournamentStage(
+        this.#tournamentWorkflow,
+        "deployment",
+      );
+      this.#save = saveSlot(localStorage, this.#save);
+      this.render();
+      this.announce("Tournament Roster locked. Prepare the first deployment.");
+    } catch (error) {
+      this.announce(
+        error instanceof Error
+          ? error.message
+          : "Tournament Roster could not be locked.",
+      );
+    }
+  }
+
   private startTournamentBattle(): void {
     let run = this.activeTournamentRun();
     if (!run) {
       const selection = this.tournamentSelectionModel();
-      run = createCheapSeatsRun(
-        selection.caseBuilds,
-        this.#sessionMode === "story" ? "story" : "standalone",
-        selection.deployedInstanceIds,
+      const definition = tournamentDefinition(
+        this.#tournamentWorkflow.tournamentId,
       );
-      run = selectCheapSeatsDeployment(
+      run = createTournamentRun({
+        definition,
+        roster: selection.caseBuilds,
+        origin: this.#sessionMode === "story" ? "story" : "standalone",
+        deployedInstanceIds: selection.deployedInstanceIds,
+        starterInstanceId: selection.starterInstanceId,
+        deploymentAccessoryId: this.#tournamentDraftAccessoryId,
+      });
+      run = selectTournamentDeployment(
         run,
         selection.deployedInstanceIds,
         selection.starterInstanceId,
+        this.#tournamentDraftAccessoryId,
       );
       this.setActiveTournamentRun(run);
       this.#save = saveSlot(localStorage, this.#save);
@@ -2195,7 +3888,7 @@ export class App {
       run =
         run.caseBuilds.length === 0
           ? lockCheapSeatsCase(run, this.tournamentCaseBuilds())
-          : normaliseCheapSeatsRun(run);
+          : normaliseTournamentRun(run);
       this.setActiveTournamentRun(run);
       this.#save = saveSlot(localStorage, this.#save);
     }
@@ -2203,8 +3896,51 @@ export class App {
       this.navigate("tournament");
       return;
     }
+    this.#terminalTournamentRun = null;
     this.#tournamentRoundIndex = run.roundIndex;
-    this.startBattle(true);
+    const definition = resolveTournamentRunDefinition(run);
+    this.#tournamentName = definition.name;
+    const resolved = resolveTournamentMatch({
+      definition,
+      run,
+      content: combatContent,
+      preferredDifficulty: this.#preferences.difficulty,
+    });
+    const match = resolved.match;
+    const tournamentNode = definition.nodes.find(
+      (node) => node.id === resolved.nodeId && node.kind === "fight",
+    );
+    if (!tournamentNode || tournamentNode.kind !== "fight") {
+      throw new Error("Current Tournament fight is not registered.");
+    }
+    const orderedPlayerInstanceIds = match.player.fighters.map(
+      (fighter) => fighter.instanceId,
+    );
+    const playerStarterInstanceId = orderedPlayerInstanceIds[0]!;
+    const opponentInstanceIds = match.opponent.fighters.map(
+      (fighter) => fighter.instanceId,
+    );
+    const playerAccessoryId = match.player.accessoryId;
+    const opponentAccessoryId = match.opponent.accessoryId;
+    this.#tournamentFightTitle = tournamentNode.enemySquadName;
+    this.queueFightSetup(
+      {
+        kind: "tournament",
+        tournamentId: run.tournamentId,
+        origin: run.origin,
+        nodeId: tournamentNode.id,
+        lineup: this.createLineupConfirmation({
+          id: `lineup.${run.tournamentId}.round-${run.roundIndex + 1}`,
+          playerInstanceIds: orderedPlayerInstanceIds,
+          playerStarterInstanceId,
+          opponentInstanceIds,
+          playerAccessoryId,
+          opponentAccessoryId,
+        }),
+        match,
+      },
+      "tournament",
+    );
   }
 
   private normaliseLoadedTournamentRun(): void {
@@ -2222,7 +3958,7 @@ export class App {
                 field === "tournamentRun" ? "story" : "standalone",
               ),
             )
-          : normaliseCheapSeatsRun(run);
+          : normaliseTournamentRun(run);
       if (JSON.stringify(normalised) !== JSON.stringify(run)) {
         this.#save[field] = normalised;
         changed = true;
@@ -2313,10 +4049,11 @@ export class App {
     try {
       if (selection.run) {
         this.setActiveTournamentRun(
-          selectCheapSeatsDeployment(
+          selectTournamentDeployment(
             selection.run,
             deployedInstanceIds,
             starterInstanceId,
+            this.#tournamentDraftAccessoryId,
           ),
         );
         this.#save = saveSlot(localStorage, this.#save);
@@ -2339,6 +4076,45 @@ export class App {
     }
   }
 
+  private moveTournamentDeployment(
+    instanceId: string,
+    direction: number,
+  ): void {
+    const selection = this.tournamentSelectionModel();
+    const currentIndex = selection.deployedInstanceIds.indexOf(instanceId);
+    if (currentIndex < 0 || (direction !== -1 && direction !== 1)) return;
+    const nextIndex = currentIndex + direction;
+    if (nextIndex < 0 || nextIndex >= selection.deployedInstanceIds.length) {
+      return;
+    }
+    const reordered = [...selection.deployedInstanceIds];
+    reordered.splice(currentIndex, 1);
+    reordered.splice(nextIndex, 0, instanceId);
+    try {
+      if (selection.run) {
+        this.setActiveTournamentRun(
+          selectTournamentDeployment(
+            selection.run,
+            reordered,
+            selection.starterInstanceId,
+            this.#tournamentDraftAccessoryId,
+          ),
+        );
+        this.#save = saveSlot(localStorage, this.#save);
+      } else {
+        this.#tournamentDraftDeploymentIds = reordered;
+      }
+      this.render();
+      this.announce("Tournament deployment order updated.");
+    } catch (error) {
+      this.announce(
+        error instanceof Error
+          ? error.message
+          : "Deployment order could not be changed.",
+      );
+    }
+  }
+
   private setActiveTournamentRun(run: TournamentRunData | null): void {
     if (this.#sessionMode === "story") {
       this.#save.tournamentRun = run;
@@ -2347,28 +4123,185 @@ export class App {
     }
   }
 
-  private chooseCupDrop(drop: CheapSeatsDrop): void {
+  private chooseTournamentInterlude(choiceId: string): void {
     const run = this.activeTournamentRun();
     if (!run) {
       return;
     }
-    this.setActiveTournamentRun(applyCheapSeatsDrop(run, drop));
+    this.setActiveTournamentRun(
+      resolveTournamentInterlude(
+        resolveTournamentRunDefinition(run),
+        run,
+        choiceId,
+      ),
+    );
     this.#save = saveSlot(localStorage, this.#save);
     this.render();
     this.announce("Roster drop locked. The next round is ready.");
   }
 
-  private startQuickBattle(): void {
-    this.startBattle(false, true);
+  private createLineupConfirmation(
+    confirmation: LineupConfirmation,
+  ): LineupConfirmation {
+    return confirmation;
   }
 
-  private forfeitActiveTournamentBattle(): void {
+  private startStoryBattle(retry = false): void {
+    const encounterId = retry
+      ? this.#storyBattleNodeId
+      : firstRunEncounter(this.#save.currentNodeId).nodeId;
+    const encounter = firstRunEncounter(encounterId);
+    const playerBuilds = this.playerBuilds(encounter.playerCharacterIds);
+    const playerInstanceIds = playerBuilds.map(
+      (build, index) =>
+        build.instanceId ??
+        `player.${index}.${encounter.playerCharacterIds[index]}`,
+    );
+    const opponentInstanceIds = encounter.enemyCharacterIds.map(
+      (characterId, index) => `enemy.${index}.${characterId}`,
+    );
+    const match = createResolvedMatchConfiguration(
+      {
+        id: `match.${encounterId}`,
+        mode: "story",
+        presetId: encounterId,
+        difficulty: this.#preferences.difficulty,
+        timeLimitMs: encounter.matchSettings.timeLimitMs,
+        seed: encounter.seed,
+        player: {
+          fighters: playerBuilds.map((build, index) => ({
+            instanceId: playerInstanceIds[index]!,
+            characterId: encounter.playerCharacterIds[index]!,
+            build: { ...build, instanceId: playerInstanceIds[index]! },
+          })),
+          accessoryId: encounter.matchSettings.playerAccessoryId,
+          startingCharge: encounter.matchSettings.playerStartingCharge,
+        },
+        opponent: {
+          fighters: encounter.enemyCharacterIds.map((characterId, index) => ({
+            instanceId: opponentInstanceIds[index]!,
+            characterId,
+            build: this.baselineBuild(characterId, opponentInstanceIds[index]!),
+          })),
+          accessoryId: encounter.matchSettings.opponentAccessoryId,
+          startingCharge: encounter.matchSettings.opponentStartingCharge,
+        },
+      },
+      combatContent,
+    );
+    this.queueFightSetup(
+      {
+        kind: "story",
+        storyId: "story.first-run",
+        encounterId,
+        lineup: this.createLineupConfirmation({
+          id: `lineup.${encounterId}`,
+          playerInstanceIds,
+          playerStarterInstanceId:
+            playerBuilds[0]?.instanceId ??
+            `player.0.${encounter.playerCharacterIds[0]}`,
+          opponentInstanceIds,
+          playerAccessoryId: encounter.matchSettings.playerAccessoryId,
+          opponentAccessoryId: encounter.matchSettings.opponentAccessoryId,
+        }),
+        match,
+      },
+      "lineup",
+    );
+  }
+
+  private startQuickBattle(retry = false): void {
+    if (!retry && this.#route !== "quick") {
+      return;
+    }
+    const result = launchQuickFightWorkflow(this.#quickWorkflow, (resolved) => {
+      const snapshot = resolved.snapshot;
+      this.#quickPlayerIds = [...resolved.playerCharacterIds];
+      this.#quickEnemyIds = [...resolved.opponentCharacterIds];
+      this.startBattle({
+        kind: "quick",
+        draftId: snapshot.draftId,
+        lineup: snapshot.lineup,
+        match: resolved.match,
+      });
+    });
+    if (!result.resolved) {
+      this.announce(
+        result.issues[0]?.message ??
+          "Check both Lineups before starting the fight.",
+      );
+    }
+  }
+
+  private confirmTournamentForfeit(): boolean {
+    return window.confirm(
+      "Forfeit this entire Tournament? The current run and carried Health will be lost.",
+    );
+  }
+
+  private forfeitActiveTournamentRun(): void {
+    if (!this.activeTournamentRun() || !this.confirmTournamentForfeit()) {
+      return;
+    }
+    this.setActiveTournamentRun(null);
+    this.#tournamentChoiceResult = {
+      title: "Tournament forfeited",
+      message:
+        "The run has ended. Its carried Health and exhausted Accessories were cleared.",
+    };
+    if (this.#sessionMode === "tournament") {
+      this.#tournamentWorkflow = enterTournamentStage(
+        this.#tournamentWorkflow,
+        "choice",
+      );
+    }
+    this.#save = saveSlot(localStorage, this.#save);
+    this.render();
+    this.announce("Tournament forfeited. The run has ended.");
+  }
+
+  private restartTerminalTournament(): void {
+    const source = this.#terminalTournamentRun;
+    if (!source) {
+      this.navigate("tournament");
+      return;
+    }
+    const restarted = restartTournamentRun(
+      resolveTournamentRunDefinition(source),
+      source,
+    );
+    this.setActiveTournamentRun(restarted);
+    this.#terminalTournamentRun = null;
+    this.#tournamentDraftDeploymentIds = [...restarted.deployedInstanceIds];
+    this.#tournamentDraftStarterId = restarted.activeInstanceId;
+    this.#tournamentDraftAccessoryId = restarted.deploymentAccessoryId ?? null;
+    this.#tournamentWorkflow = enterTournamentStage(
+      this.#tournamentWorkflow,
+      "deployment",
+    );
+    this.#save = saveSlot(localStorage, this.#save);
+    this.stopBattle();
+    this.#route = "tournament";
+    this.render();
+    this.announce(
+      "Tournament restarted with the same locked Roster and rules.",
+    );
+  }
+
+  private forfeitActiveTournamentBattle(nextStep: string): boolean {
     if (
       !this.#battle ||
       !this.#isTournamentFight ||
       this.#battle.outcome !== "active"
     ) {
-      return;
+      return false;
+    }
+    if (
+      !window.confirm(
+        `Forfeit this fight? Current Health and the opponent's remaining Health will be saved. ${nextStep}`,
+      )
+    ) {
+      return false;
     }
     if (this.#battleReport) {
       this.#battleReport = recordBattleDecision(
@@ -2379,9 +4312,49 @@ export class App {
       );
     }
     this.applyTransition(forfeitBattle(this.#battle, "player"));
-    this.setActiveTournamentRun(null);
-    this.#save = saveSlot(localStorage, this.#save);
-    this.archiveCurrentBattleReport();
+    this.handleBattleEnd();
+    return true;
+  }
+
+  private canLeaveCurrentBattle(destinationLabel: string): boolean {
+    if (!this.#battle || this.#battle.outcome !== "active") return true;
+    if (this.#isTournamentFight) {
+      return this.forfeitActiveTournamentBattle(
+        `You will then return to ${destinationLabel}.`,
+      );
+    }
+    return window.confirm(
+      `Quit this fight and return to ${destinationLabel}? This unfinished fight will be discarded.`,
+    );
+  }
+
+  private leaveBattleToParent(): void {
+    if (!this.canLeaveCurrentBattle(this.battleParentLabel())) return;
+    if (this.#isDevFight) {
+      this.navigate("dev");
+    } else if (this.#isQuickFight) {
+      this.navigate("quick");
+    } else if (this.#isTournamentFight) {
+      this.navigate(
+        this.#sessionMode === "story" && this.#cupCompletedThisBattle
+          ? "story"
+          : "tournament",
+      );
+    } else {
+      this.navigate("story");
+    }
+  }
+
+  private leaveBattleToMainMenu(): void {
+    if (!this.canLeaveCurrentBattle("Main Menu")) return;
+    this.exitToMainMenu();
+  }
+
+  private battleParentLabel(): string {
+    if (this.#isDevFight) return "Developer Lab";
+    if (this.#isQuickFight) return "Review Fight";
+    if (this.#isTournamentFight) return "Tournament";
+    return "Story";
   }
 
   private startDevBattle(scenarioDefinition: DevBattleScenario): void {
@@ -2391,22 +4364,47 @@ export class App {
     const validated = validateDevScenario(scenarioDefinition);
     this.#sessionMode = "dev";
     this.#devScenario = structuredClone(validated);
-    this.startBattle(false, false, validated);
+    this.startBattle(
+      {
+        kind: "development",
+        scenarioId: validated.id,
+        bypass: "validated-dev-scenario",
+      },
+      validated,
+    );
   }
 
   private startBattle(
-    tournament: boolean,
-    quick = false,
+    request: BattleLaunchRequest,
     devScenario: DevBattleScenario | null = null,
   ): void {
+    const launch = validateBattleLaunchRequest(request);
+    request = launch.request;
+    if (
+      (request.kind === "development" &&
+        (!devScenario || devScenario.id !== request.scenarioId)) ||
+      (request.kind !== "development" && devScenario)
+    ) {
+      throw new Error(
+        "Development Battle launch must match one validated scenario",
+      );
+    }
+    const tournament = request.kind === "tournament";
+    const quick = request.kind === "quick";
     const requestedStoryNodeId =
-      !tournament && !quick && !devScenario && this.#route === "battle"
-        ? this.#storyBattleNodeId
+      request.kind === "story"
+        ? request.encounterId
         : firstRunEncounter(this.#save.currentNodeId).nodeId;
     this.stopBattle();
     this.#isTournamentFight = tournament;
+    if (request.kind === "tournament") {
+      const activeRun = this.activeTournamentRun();
+      this.#tournamentName = activeRun
+        ? resolveTournamentRunDefinition(activeRun).name
+        : tournamentDefinition(request.tournamentId).name;
+    }
     this.#isQuickFight = quick;
-    this.#isDevFight = Boolean(devScenario);
+    this.#isDevFight = request.kind === "development";
     this.#battleControllers = devScenario?.controllers ?? {
       player: "human-local",
       enemy: "ai",
@@ -2418,122 +4416,52 @@ export class App {
     this.#battleTimeScale = 1;
     this.#actionTraySignature = "";
     this.#cupCompletedThisBattle = false;
-    if (!quick && !devScenario) {
-      this.#storyBattleNodeId = requestedStoryNodeId;
-    }
     const storyEncounter = firstRunEncounter(requestedStoryNodeId);
-    const tournamentRun =
-      this.activeTournamentRun() ??
-      createCheapSeatsRun(
-        [],
-        this.#sessionMode === "story" ? "story" : "standalone",
-      );
-    const tournamentEncounter = cheapSeatsEncounter(this.#tournamentRoundIndex);
-    const tournamentBuilds = tournamentRun.deployedInstanceIds
-      .map((instanceId) =>
-        tournamentRun.caseBuilds.find(
-          (build) => build.instanceId === instanceId,
-        ),
-      )
-      .filter((build): build is TournamentCaseBuild => build !== undefined);
-    const playerIds = devScenario
-      ? devScenario.playerCharacterIds
-      : quick
-        ? this.#quickPlayerIds
-        : tournament
-          ? tournamentBuilds.map((build) => build.characterId)
-          : storyEncounter.playerCharacterIds;
-    const enemyIds = devScenario
-      ? devScenario.enemyCharacterIds
-      : quick
-        ? this.#quickEnemyIds
-        : tournament
-          ? tournamentEncounter.enemyCharacterIds
-          : storyEncounter.enemyCharacterIds;
+    if (request.kind === "story") {
+      this.#storyBattleNodeId = storyEncounter.nodeId;
+    }
+    const match = request.kind === "development" ? null : request.match;
     const playerBuilds = devScenario
       ? devBuildsForSide(devScenario, "player")
-      : quick
-        ? this.quickFightBuilds(playerIds, "player")
-        : tournament
-          ? tournamentBuilds
-          : this.playerBuilds(playerIds);
+      : match!.player.fighters.map((fighter) => fighter.build);
     const enemyBuilds = devScenario
       ? devBuildsForSide(devScenario, "enemy")
-      : quick
-        ? this.quickFightBuilds(enemyIds, "enemy")
-        : undefined;
-    const quickSeed = quickFightSeed({
-      playerIds: this.#quickPlayerIds,
-      enemyIds: this.#quickEnemyIds,
-      playerAccessoryId: this.#quickPlayerAccessoryId,
-      enemyAccessoryId: this.#quickEnemyAccessoryId,
-    });
+      : match!.opponent.fighters.map((fighter) => fighter.build);
     const created = createBattle(
-      {
-        playerCharacterIds: playerIds,
-        playerBuilds,
-        enemyCharacterIds: enemyIds,
-        enemyBuilds,
-        playerStartingBar: devScenario
-          ? devScenario.playerStartingBar + openingChargeBonus(playerBuilds)
-          : openingChargeBonus(playerBuilds) +
-            (tournament ? tournamentRun.nextRoundChargeBonus : 0),
-        enemyStartingBar: devScenario
-          ? devScenario.enemyStartingBar + openingChargeBonus(enemyBuilds ?? [])
-          : undefined,
-        playerAccessoryId: devScenario
-          ? devScenario.playerAccessoryId === null
-            ? undefined
-            : (devScenario.playerAccessoryId ?? "accessory.press-pass")
-          : quick
-            ? this.#quickPlayerAccessoryId
-            : tournament
-              ? tournamentRun.exhaustedAccessoryIds.includes(
-                  "accessory.press-pass",
-                )
+      devScenario
+        ? {
+            playerCharacterIds: devScenario.playerCharacterIds,
+            playerBuilds,
+            enemyCharacterIds: devScenario.enemyCharacterIds,
+            enemyBuilds,
+            playerStartingBar:
+              devScenario.playerStartingBar + openingChargeBonus(playerBuilds),
+            enemyStartingBar:
+              devScenario.enemyStartingBar + openingChargeBonus(enemyBuilds),
+            playerAccessoryId:
+              devScenario.playerAccessoryId === null
                 ? undefined
-                : "accessory.press-pass"
-              : "accessory.press-pass",
-        enemyAccessoryId: devScenario
-          ? devScenario.enemyAccessoryId === null
-            ? undefined
-            : (devScenario.enemyAccessoryId ?? "accessory.dead-air")
-          : quick
-            ? this.#quickEnemyAccessoryId
-            : "accessory.dead-air",
-        seed:
-          devScenario?.seed ??
-          (quick
-            ? quickSeed
-            : tournament
-              ? tournamentEncounter.seed
-              : storyEncounter.seed),
-        difficulty: devScenario?.difficulty ?? this.#preferences.difficulty,
-        timeLimitMs: devScenario?.timeLimitMs ?? (quick ? 90_000 : 120_000),
-      },
+                : (devScenario.playerAccessoryId ?? "accessory.press-pass"),
+            enemyAccessoryId:
+              devScenario.enemyAccessoryId === null
+                ? undefined
+                : (devScenario.enemyAccessoryId ?? "accessory.dead-air"),
+            seed: devScenario.seed,
+            difficulty: devScenario.difficulty,
+            timeLimitMs: devScenario.timeLimitMs,
+          }
+        : battleInputForMatch(match!),
       combatContent,
     );
     const initialState = devScenario
       ? applyDevScenarioState(created.state, devScenario)
       : tournament
-        ? restoreCaseHealth(created.state, tournamentRun)
+        ? applyTournamentMatchInitialState(created.state, match!)
         : created.state;
     this.#battle = initialState;
     this.#battleReport = createBattleReport(initialState, created.events, {
-      mode: devScenario
-        ? "dev"
-        : tournament
-          ? "tournament"
-          : quick
-            ? "quick"
-            : "story",
-      encounterId: devScenario
-        ? devScenario.id
-        : tournament
-          ? `tournament.cheap-seats.round-${tournamentEncounter.roundIndex + 1}`
-          : quick
-            ? `quick.${this.#quickPlayerIds.join("+")}+${this.#quickPlayerAccessoryId}.vs.${this.#quickEnemyIds.join("+")}+${this.#quickEnemyAccessoryId}`
-            : storyEncounter.nodeId,
+      mode: launch.reportMode,
+      encounterId: launch.encounterId,
     });
     this.#battleReportArchived = false;
     this.#battleReward = null;
@@ -2546,14 +4474,38 @@ export class App {
   private quickFightBuilds(
     characterIds: string[],
     side: "player" | "enemy",
+    instanceIds?: readonly string[],
   ): CombatantBuild[] {
     return characterIds.map((characterId, index) => {
       const definition = combatContent.characters[characterId];
       if (!definition) {
         throw new Error(`Missing character definition: ${characterId}`);
       }
-      return createStandardBuild(definition, side, index);
+      const build = createStandardBuild(definition, side, index);
+      return instanceIds?.[index]
+        ? { ...build, instanceId: instanceIds[index] }
+        : build;
     });
+  }
+
+  private baselineBuild(
+    characterId: string,
+    instanceId: string,
+  ): CombatantBuild {
+    const definition = combatContent.characters[characterId];
+    if (!definition)
+      throw new Error(`Missing character definition: ${characterId}`);
+    return {
+      instanceId,
+      level: definition.level,
+      statBonuses: { health: 0, power: 0, evasion: 0, fortune: 0, tempo: 0 },
+      actionIds: definition.actionIds,
+      actionTiers: Object.fromEntries(
+        definition.actionIds.map((actionId) => [actionId, "stock"]),
+      ),
+      interruptionResistance: 0,
+      equippedPatchId: null,
+    };
   }
 
   private playerBuilds(characterIds: string[]): CombatantBuild[] {
@@ -3165,7 +5117,8 @@ export class App {
                 `
                 : ""
             }
-            <button class="secondary-action" data-command="leave-battle">Leave game</button>
+            <button class="secondary-action" data-command="quit-battle-parent">Quit to ${escapeHtml(this.battleParentLabel())}</button>
+            <button class="secondary-action" data-command="quit-battle-main">Quit to Main Menu</button>
           </div>
           <small>Escape toggles · P ${
             this.#preferences.pauseKeyMode === "hold"
@@ -3825,6 +5778,7 @@ export class App {
             >
               <span class="charge-move-seal">
                 <span class="charge-move-key">${index + 1}</span>
+                <span class="charge-move-glyph" aria-hidden="true">${category.marker}</span>
                 <strong data-action-value>${cost}</strong>
                 <small data-action-value-label>Charge</small>
                 <span class="charge-move-delta" data-action-delta hidden></span>
@@ -4227,6 +6181,7 @@ export class App {
           >
             <span class="enemy-move-seal">
               <small>${index + 1}</small>
+              <span class="enemy-move-glyph" aria-hidden="true">${category.marker}</span>
               <strong>${cost}</strong>
             </span>
             <span class="enemy-move-name">${escapeHtml(action.name)}</span>
@@ -4717,31 +6672,50 @@ export class App {
       }
       this.#save.currentNodeId = storyEncounter.nextNodeId;
     } else if (this.#isTournamentFight) {
-      const run =
-        this.activeTournamentRun() ??
-        createCheapSeatsRun(
-          [],
-          this.#sessionMode === "story" ? "story" : "standalone",
-        );
+      const run = this.activeTournamentRun();
+      if (!run) {
+        throw new Error("A Tournament Battle ended without an active run.");
+      }
+      const definition = resolveTournamentRunDefinition(run);
       const runWithAccessoryUse = exhaustTournamentAccessoriesFromEvents(
         run,
         this.#battleReport?.events ?? [],
       );
-      const result = recordCheapSeatsResult(
+      const result = recordTournamentBattleResult(
+        definition,
         runWithAccessoryUse,
         this.#battle,
         won,
       );
       if (result.status === "lost") {
+        this.#terminalTournamentRun = structuredClone(runWithAccessoryUse);
         this.setActiveTournamentRun(null);
+        if (this.#sessionMode === "tournament") {
+          this.#tournamentWorkflow = enterTournamentStage(
+            this.#tournamentWorkflow,
+            "choice",
+          );
+        }
       } else if (result.status === "complete") {
+        this.#terminalTournamentRun = null;
         this.setActiveTournamentRun(null);
-        const trophyAward = awardTournamentTrophy(
+        if (this.#sessionMode === "tournament") {
+          this.#tournamentWorkflow = enterTournamentStage(
+            this.#tournamentWorkflow,
+            "choice",
+          );
+        }
+        const trophyAward = awardTournamentDefinitionTrophy(
           this.#save.tournamentTrophyIds,
-          run.tournamentId,
+          definition,
         );
         this.#save.tournamentTrophyIds = trophyAward.trophyIds;
         if (run.origin === "story") {
+          if (
+            !this.#save.storyTournamentTrophyIds.includes(trophyAward.trophyId)
+          ) {
+            this.#save.storyTournamentTrophyIds.push(trophyAward.trophyId);
+          }
           if (!this.#save.clearedNodeIds.includes("story.first-run.06")) {
             this.#save.clearedNodeIds.push("story.first-run.06");
           }
@@ -4750,7 +6724,15 @@ export class App {
         this.#save.stamps += CUP_COMPLETION_BONUS;
         this.#battleReward.cupCompletionBonus = CUP_COMPLETION_BONUS;
         this.#cupCompletedThisBattle = true;
-      } else {
+        this.#save = saveTournamentVictory(
+          localStorage,
+          this.#save,
+          definition.baseTournamentId ?? definition.id,
+          run.origin,
+          "story.first-run",
+          definition.trophyId,
+        );
+      } else if (result.status === "continue" || result.status === "redeploy") {
         this.setActiveTournamentRun(result.run);
       }
     } else if (
@@ -4787,140 +6769,160 @@ export class App {
   }
 
   private showBattleResult(): void {
-    if (!this.#battleReward) {
+    if (!this.#battleReward || !this.#battle) {
       return;
     }
     const storyEncounter = firstRunEncounter(this.#storyBattleNodeId);
-    const cupEncounter = cheapSeatsEncounter(this.#tournamentRoundIndex);
     const panel = this.#root.querySelector<HTMLElement>("[data-battle-result]");
     if (!panel) {
       return;
     }
-    const resultExplanation = this.#battleReport
-      ? renderBattleResultExplanation(this.#battleReport, combatContent)
-      : "";
-    const playerDecisionCount =
-      this.#battleReport?.decisions.filter(
-        (decision) => decision.side === "player",
-      ).length ?? 0;
+    const tournamentCanRedeploy =
+      this.#isTournamentFight &&
+      !this.#battleReward.won &&
+      Boolean(this.activeTournamentRun());
+    const resultMode: BattleResultMode = this.#isDevFight
+      ? "dev"
+      : this.#isTournamentFight
+        ? "tournament"
+        : this.#isQuickFight
+          ? "quick"
+          : "story";
+    const winningTeam = this.#battleReward.won
+      ? this.#battle.player
+      : this.#battle.enemy;
+    const featuredFighter =
+      winningTeam.squad.find((fighter) => fighter.currentHealth > 0) ??
+      winningTeam.squad[winningTeam.activeIndex] ??
+      winningTeam.squad[0];
+    if (!featuredFighter) {
+      return;
+    }
+    const rewards: BattleResultReward[] | undefined =
+      resultMode === "quick" || resultMode === "dev"
+        ? undefined
+        : [
+            {
+              label: "Battle Stamps",
+              value: `+${
+                this.#battleReward.stamps - this.#battleReward.firstClearBonus
+              }`,
+            },
+            {
+              label: `Lineup XP · ${this.#battleReward.xpRecipients} Character${this.#battleReward.xpRecipients === 1 ? "" : "s"}`,
+              value: `+${this.#battleReward.xp}`,
+            },
+            ...(this.#battleReward.firstClearBonus > 0
+              ? [
+                  {
+                    label: "First clear",
+                    value: `+${this.#battleReward.firstClearBonus}`,
+                  },
+                ]
+              : []),
+            ...(this.#battleReward.cupCompletionBonus > 0
+              ? [
+                  {
+                    label: "Tournament purse",
+                    value: `+${this.#battleReward.cupCompletionBonus}`,
+                  },
+                ]
+              : []),
+          ];
+    const won = this.#battleReward.won;
+    const title = won
+      ? this.#isTournamentFight
+        ? this.#cupCompletedThisBattle
+          ? `${this.#tournamentName} is yours.`
+          : `Round ${this.#tournamentRoundIndex + 1} belongs to you.`
+        : this.#isDevFight
+          ? `${this.#devScenario?.name ?? "Development scenario"} cleared.`
+          : this.#isQuickFight
+            ? "Your Lineup takes the fight."
+            : storyEncounter.victoryTitle
+      : this.#isDevFight
+        ? `${this.#devScenario?.name ?? "Development scenario"} ends in defeat.`
+        : this.#isQuickFight
+          ? "The opposing Lineup takes it."
+          : this.#isTournamentFight
+            ? tournamentCanRedeploy
+              ? "Your Roster can still fight."
+              : "The Tournament is over."
+            : "Not this time.";
+    const message = won
+      ? this.#isTournamentFight
+        ? this.#cupCompletedThisBattle
+          ? "Your Roster made it through every round. The Trophy and final purse are yours."
+          : "Your Roster's Health is saved. Choose a drop, then prepare for the next round."
+        : this.#isDevFight
+          ? "Run the scenario again, inspect the report, or return to the Developer Lab."
+          : this.#isQuickFight
+            ? "Run it back with the same matchup, or return to Review Fight and make changes."
+            : storyEncounter.victoryCopy
+      : this.#isTournamentFight
+        ? this.activeTournamentRun()
+          ? "The opposing Squad keeps its damage. Choose from your surviving Roster and have another bite."
+          : "Your full Roster is down. Start a fresh Tournament when you're ready."
+        : this.#isDevFight
+          ? "Run the scenario again, inspect the report, or return to the Developer Lab."
+          : this.#isQuickFight
+            ? "Run it back with the same matchup, or return to Review Fight and change your approach."
+            : "You can fight again whenever you're ready.";
+    const retryLabel = this.#isTournamentFight
+      ? "Restart Tournament"
+      : this.#isDevFight
+        ? "Run again"
+        : this.#isQuickFight
+          ? "Rematch"
+          : "Fight again";
+    const parentLabel = this.#isTournamentFight
+      ? this.#cupCompletedThisBattle
+        ? this.#sessionMode === "story"
+          ? "See the ending"
+          : "Return to Tournament"
+        : won
+          ? "Choose a Roster drop"
+          : tournamentCanRedeploy
+            ? "Choose another Lineup"
+            : "Leave Tournament"
+      : this.#isDevFight
+        ? "Developer Lab"
+        : this.#isQuickFight
+          ? "Review Fight"
+          : "Return to Story";
     for (const element of this.#root.querySelectorAll<HTMLElement>(
       ".battle-rail, .battle-drawer",
     )) {
       element.inert = true;
     }
     panel.hidden = false;
-    panel.innerHTML = `
-      <div class="result-stamp ${this.#battleReward.won ? "is-win" : "is-loss"}">
-        <span>${this.#battleReward.won ? "VICTORY" : "DEFEAT"}</span>
-        <h2 id="battle-result-title">${
-          this.#battleReward.won
-            ? this.#isTournamentFight
-              ? this.#cupCompletedThisBattle
-                ? "The Wrong Door Cup is yours."
-                : `Round ${cupEncounter.roundIndex + 1} is cleared.`
-              : this.#isDevFight
-                ? `${this.#devScenario?.name ?? "Development scenario"}: player side wins.`
-                : this.#isQuickFight
-                  ? "Your Lineup wins."
-                  : storyEncounter.victoryTitle
-            : this.#isDevFight
-              ? `${this.#devScenario?.name ?? "Development scenario"}: enemy side wins.`
-              : this.#isQuickFight
-                ? "The opposing Lineup wins."
-                : "Partial credit. Full grudge."
-        }</h2>
-        <p>
-          ${
-            this.#battleReward.won
-              ? this.#isTournamentFight
-                ? this.#cupCompletedThisBattle
-                  ? "The Roster survived all three rounds. Your Tournament Trophy is on your Profile and the final purse is recorded."
-                  : "Roster health is saved. Return to the Cup and choose one drop before the next round."
-                : this.#isDevFight
-                  ? "The scenario ended in the isolated development sandbox. The report is retained for inspection and progression was not changed."
-                  : this.#isQuickFight
-                    ? "Quick Fight is over. Rematch or change either Lineup; Story progress stays untouched."
-                    : storyEncounter.victoryCopy
-              : this.#isTournamentFight
-                ? "The loss closes this Roster. Partial XP is paid; retry opens a fresh run from Round 1."
-                : this.#isDevFight
-                  ? "The scenario ended in the isolated development sandbox. Inspect or export the report, then rerun the same seed."
-                  : this.#isQuickFight
-                    ? "Quick Fight is over. Rematch or change either Lineup; Story progress stays untouched."
-                    : "Losses still pay partial XP. Level, adjust, and make it personal."
-          }
-        </p>
-        ${
-          this.#isQuickFight || this.#isDevFight
-            ? `
-              <dl>
-                <div><dt>Game type</dt><dd>${
-                  this.#isDevFight ? "Development" : "Quick Fight"
-                }</dd></div>
-                <div><dt>Progression</dt><dd>Unchanged</dd></div>
-                <div><dt>Result</dt><dd>${this.#battleReward.won ? "Win" : "Loss"}</dd></div>
-              </dl>
-            `
-            : `
-              <dl>
-                <div><dt>Battle Stamps</dt><dd>+${
-                  this.#battleReward.stamps - this.#battleReward.firstClearBonus
-                }</dd></div>
-                <div><dt>Lineup XP · ${this.#battleReward.xpRecipients} Character${
-                  this.#battleReward.xpRecipients === 1 ? "" : "s"
-                }</dt><dd>+${this.#battleReward.xp}</dd></div>
-                <div><dt>First clear</dt><dd>+${this.#battleReward.firstClearBonus}</dd></div>
-                ${
-                  this.#battleReward.cupCompletionBonus > 0
-                    ? `<div><dt>Cup purse</dt><dd>+${this.#battleReward.cupCompletionBonus}</dd></div>`
-                    : ""
-                }
-              </dl>
-            `
-        }
-        ${resultExplanation}
-        <p class="battle-report-note">
-          Report ${this.#battleReport?.encounterId ?? "battle"} · seed ${
-            this.#battleReport?.seed ?? this.#battle?.seed ?? 0
-          } · ${playerDecisionCount} player decisions recorded
-        </p>
-        <div class="result-actions">
-          ${
-            this.#isTournamentFight && this.#battleReward.won
-              ? ""
-              : `<button class="primary-action" data-command="retry-battle">${
-                  this.#isTournamentFight
-                    ? "Restart Cup from Round 1"
-                    : this.#isDevFight
-                      ? "Run scenario again"
-                      : this.#isQuickFight
-                        ? "Rematch"
-                        : "Fight again"
-                }</button>`
-          }
-          <button class="secondary-action" data-command="download-battle-report">Export report</button>
-          <button class="${
-            this.#isTournamentFight && this.#battleReward.won
-              ? "primary-action"
-              : "secondary-action"
-          }" data-command="leave-battle">${
-            this.#isTournamentFight
-              ? this.#cupCompletedThisBattle
-                ? this.#sessionMode === "story"
-                  ? "See the ending"
-                  : "Return to Tournament"
-                : this.#battleReward.won
-                  ? "Choose a Roster drop"
-                  : "Leave the Cup"
-              : this.#isDevFight
-                ? "Return to Developer Lab"
-                : this.#isQuickFight
-                  ? "Change matchup"
-                  : "Return to story"
-          }</button>
-        </div>
-      </div>
-    `;
+    panel.innerHTML = renderBattleResultScreen({
+      mode: resultMode,
+      won,
+      title,
+      message,
+      featuredCharacterId: featuredFighter.characterId,
+      explanation: this.#battleReport
+        ? explainBattleResult(this.#battleReport, combatContent)
+        : undefined,
+      rewards,
+      actions: {
+        retry:
+          (this.#isTournamentFight && won) || tournamentCanRedeploy
+            ? undefined
+            : { command: "retry-battle", label: retryLabel },
+        parent: { command: "quit-battle-parent", label: parentLabel },
+        mainMenu: { command: "quit-battle-main", label: "Main Menu" },
+        exportReport: this.#isDevFight
+          ? {
+              command: "download-battle-report",
+              label: "Export report",
+            }
+          : undefined,
+        parentIsPrimary:
+          (this.#isTournamentFight && won) || tournamentCanRedeploy,
+      },
+    });
     panel.querySelector<HTMLElement>("button")?.focus();
   }
 

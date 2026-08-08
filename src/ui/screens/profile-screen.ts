@@ -6,6 +6,7 @@ import type { SaveData } from "../../persistence/save";
 import { evaluateAchievements } from "../../progression/achievements";
 import { tournamentTrophies } from "../../tournaments/catalog";
 import { escapeHtml } from "../format";
+import { ICONS } from "../icons";
 
 export function renderProfileScreen(save: SaveData): string {
   const storyClears = save.clearedNodeIds.length;
@@ -44,7 +45,7 @@ export function renderProfileScreen(save: SaveData): string {
   return `
     <section class="profile-sheet" aria-labelledby="profile-title">
       <div class="section-heading">
-        <button class="text-button" data-command="main-menu">← Main Menu</button>
+        <button class="text-button" data-command="main-menu">${ICONS.arrowLeft}<span>Main Menu</span></button>
         <h1 id="profile-title">Player Profile</h1>
         <p>
           Identity and progression live here. Audio, accessibility, and local
@@ -91,7 +92,7 @@ export function renderProfileScreen(save: SaveData): string {
           </button>
           <button class="primary-action" data-command="enter-story">
             ${storyClears > 0 ? "Continue this Story" : "Start this Story"}
-            <span aria-hidden="true">→</span>
+            ${ICONS.arrowRight}
           </button>
         </section>
       </div>

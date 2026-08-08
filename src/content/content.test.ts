@@ -16,12 +16,22 @@ import {
 import { launchCharacterProvenance } from "./character-provenance";
 import { startupSequence } from "./startup-content";
 import {
+  firstRunStoryDefinition,
+  validateStoryDefinition,
+} from "../story/contracts";
+import {
   characterProvenanceSchema,
   validateContent,
   validateStartupContent,
 } from "./schema";
 
 describe("authored content", () => {
+  it("validates First Run as ordered Level steps with a fight, preset Tournament, and completion award", () => {
+    expect(validateStoryDefinition(firstRunStoryDefinition)).toEqual(
+      firstRunStoryDefinition,
+    );
+  });
+
   it("validates every initial Character and Move reference", () => {
     expect(() =>
       validateContent(actions, characters, accessories),

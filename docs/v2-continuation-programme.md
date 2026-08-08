@@ -1,6 +1,6 @@
 # V2 continuation programme
 
-Status: **EXECUTION HANDOFF — GATE V2-02 OWNER PLAYTEST OPEN**
+Status: **EXECUTION HANDOFF — FOUNDATION PACKET F00 COMPLETE; SHARED LINEUP ACTIVE**
 
 Prepared: 2026-08-01
 
@@ -9,6 +9,155 @@ replace the release specification, game design, technical design, implemented
 visual system, alignment ledger, source ledger, or roadmap. Those authorities
 continue to own their existing subjects.
 
+## 0. Owner scope correction — 2026-08-07
+
+The owner accepted the following foundation after playing and reviewing the
+current application. It supersedes the older global-collection and
+single-fight-loss assumptions, but must be reconciled into the owning
+authorities, persistence/content schemas, migrations, and tests together in
+Foundation Packet F00. F00 completed on 2026-08-07; no surrounding screen may
+return to the old ownership model.
+
+### Global Player and Story ownership
+
+- A Player Profile is the storage-agnostic global identity. It is stored in the
+  browser for a guest and may be synchronised by an optional account in V2.2.
+- The Profile owns Quick Fight history, standalone Tournament records, custom
+  Tournament definitions, the global Tournament Trophy cabinet, global Story
+  completion awards, and the list of Story Saves.
+- The Profile does not own Characters, Character levels, XP, currency,
+  Modifications, Accessories, Store inventory, or Missions.
+- One Story Save exists per Story definition in the first implementation. Many
+  different Stories can be in progress concurrently. Supporting multiple
+  parallel runs of the same Story remains an additive extension.
+- Each Story Save owns its collection, duplicate Character instances, levels,
+  XP, builds, currency, Modifications, Accessories, Store, Missions, active
+  Story Squad, progress, and Story-local Tournament Trophy records.
+- Deleting or restarting a Story Save removes those Story-owned facts. Trophies
+  and Story completion awards already copied into the global Profile remain.
+
+### Quick Fight
+
+- Quick Fight has presets and a Custom Match path.
+- It grants no Character ownership or progression. Both sides use temporary
+  sandbox instances that may select any registered Character, including exact
+  duplicates, and every supported level/build/customisation.
+- A preset may enter the shared Lineup pre-filled. Custom Match uses a Match
+  Builder before the same Lineup confirmation.
+
+### Tournament definitions, runs, and Trophies
+
+- Standalone Tournament Mode offers preset Tournaments and locally persisted
+  custom Tournaments. Stories may reference preset Tournaments only.
+- Every Tournament has a stable identity, name, one mandatory Trophy, at least
+  one fight, one or more ordered nodes, and named opponent Squads containing
+  one to three configured Characters.
+- Nodes may represent fights, content, seeded chance, rewards, healing,
+  team-wide healing, revival, next-fight Charge/status/stat effects, Store
+  access, or other data-authored interstitials.
+- A player begins a run with a locked Tournament Roster of at most six
+  configured Character instances. Up to three living instances form each
+  deployed Lineup. Player Roster Health and defeat state persist across the
+  complete Tournament.
+- When a deployed Lineup loses but at least one Tournament Roster member lives,
+  the same fight remains current and the player receives another Lineup choice.
+  The current opponent Squad's Health and defeat state also persist across
+  these repeat deployments. A new opponent Squad starts from its authored
+  initial state.
+- The run is lost only when the complete player Tournament Roster is defeated
+  or the player explicitly forfeits the Tournament. Forfeit ends the run after
+  confirmation; it is not a way to preserve or rewind a pre-fight snapshot.
+- Beating every required opponent Squad and resolving the remaining required
+  nodes wins the Tournament.
+- Preset Tournaments may use unique generated Trophies. Custom Tournaments must
+  select a generic registered Trophy before they can be saved.
+- Global Trophy ownership is de-duplicated by Tournament identity. A standalone
+  win upserts it globally. A Story win records it in that Story Save and also
+  upserts it globally. Deleting the Story Save removes only its local record.
+- Deleting a custom Tournament removes its global Trophy record. Preset
+  Tournament removal is a versioned content migration because Stories may
+  reference it.
+
+### Story definitions and ordinary fights
+
+- A Story is an ordered set of Levels. A Level is an ordered sequence of
+  content, grants/rewards, fights, preset Tournaments, choices, Store/Mission
+  hooks, and completion steps rather than one mutually exclusive renderer type.
+- Content can use text, registered images/slideshows/video, music, sound, and
+  explicit player-controlled advance. Grants may occur before a fight so the
+  item is available during selection.
+- Every Story contains at least one ordinary fight, at least one preset
+  Tournament, and one mandatory Story completion award that can enter the
+  global Profile collection.
+- A boss is an ordinary fight with authored rules, presentation, content, and
+  rewards; it is not another combat engine or required node type.
+- A Story Save may own any number of Character instances but has one active
+  Story Squad of at most six. An ordinary fight deploys one to three from that
+  Squad, starts both sides at full Health/resources, and does not carry Health
+  to the next attempt or Level.
+- Losing an ordinary Story fight keeps earned XP and requires another attempt.
+  Winning resolves its ordered post-fight content/grants and advances according
+  to the Level definition.
+- Entering a Story Tournament confirms up to six eligible Story-owned or
+  explicitly loaned instances, then locks that snapshot as the Tournament
+  Roster and uses the common Tournament runner.
+
+### Shared selection and battle boundary
+
+`Fight Setup` is a process, not one overloaded screen:
+
+```text
+mode-owned eligible pool/build configuration
+  → Fighter Select when a Lineup must be chosen
+  → Match Settings when the mode permits edits
+  → required read-only shared Fight Setup confirmation
+  → validated match configuration
+  → combat engine
+  → Battle Report
+  → mode-owned consequences
+```
+
+Fighter Select chooses one to three eligible instances, their order, and the
+starter. Match Settings owns only permitted builds, team Accessories, music,
+seed, and encounter rules. The final Fight Setup displays the resolved match
+and confirms it once; it never decides ownership, build legality, Tournament
+membership, or Story progression.
+
+### Milestone allocation
+
+| Milestone   | Revised allocation                                                                                                                                                                                                                                                      |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| V2          | Correct Profile/Story ownership and migration; one Story Save; one preset Tournament proving repeat deployments and Trophy projection; complete Quick Fight Standard/Custom setup; validated shared Lineup; current six-Character release and full application quality. |
+| V2.1        | Twenty Characters; multiple publishable Stories and preset Tournaments; local custom Tournament builder; generic Trophy selection; richer content/chance/interstitial authoring; PWA and produced SFX.                                                                  |
+| V2.2        | Optional accounts, guest linking, cloud synchronisation/conflict/recovery for the same local-first Profile, Story Saves, custom Tournaments, and archives.                                                                                                              |
+| V2.3        | Thin native development shells, device integration, reproducible builds, and store-readiness evidence over the same domain/content/save contracts.                                                                                                                      |
+| Multiplayer | No committed milestone. Preserve the optional seam research without scheduling implementation.                                                                                                                                                                          |
+
+### Foundation Packet F00 — complete 2026-08-07
+
+The completed atomic foundation packet:
+
+1. reconcile `docs/game-design.md`, `docs/technical-design.md`,
+   `docs/v2-release-spec.md`, `docs/view-inventory.md`, `PRODUCT.md`, and the
+   alignment/source ledgers;
+2. introduce the Player Profile, Story Save, Story definition/Level-step,
+   Tournament definition/node/run, source-aware Trophy, sandbox build, and
+   validated Lineup/match-draft schemas;
+3. migrate the current V2 local save without silently losing the existing First
+   Run collection, progress, Quick Fight history, active Tournament, or Trophy;
+4. update mode orchestration and consequence tests before changing screen
+   composition; and
+5. retain the current playable battle and presentation output while the input
+   ownership boundary changes around it.
+
+F00 now persists schema-v3 Player Profiles with nested Story Saves and a
+preserved v2 rollback snapshot, validates Story Level steps and Tournament
+nodes, records source-aware Trophy provenance, carries both sides' Health across
+Tournament redeployments, and rejects Battle launches without confirmed Lineup
+or validated Developer Lab provenance. Shared Lineup is the active first visual
+package. Launcher/header work waits because its destinations and navigation
+should reflect the corrected mode model.
+
 ## 1. Reconciled starting point
 
 The repository and current evidence agree on the following state:
@@ -16,13 +165,14 @@ The repository and current evidence agree on the following state:
 - Gate 0 and Gate V2-01 are complete. All 44 questionnaire answers and all 117
   mechanic-registry rows are reconciled. Do not repeat that work or reopen the
   completed questionnaire.
-- Gate V2-02 is active. `v2.viking-acceptance`, seed `3844240869`, is a clean
-  owner-playtest candidate using the rail-first shell, rectangular Move labels,
-  and selectable Kinetic Print or Comic Cutaways presentation.
+- Gate V2-02 is accepted as the current Battle hold point. The owner confirmed
+  on 2026-08-07 that gameplay is in a good place while surrounding application
+  structure is corrected. `v2.viking-acceptance`, seed `3844240869`, remains
+  the fixed regression candidate.
 - The fixed benchmark remains Standard-build Viking versus Standard-build Grim
   Reaper on Normal with ordinary 90-second rules. Its semantic-control run wins
   with 65/147 Health remaining. Headless, replay, delayed-command and responsive
-  browser evidence already exist; owner feel evidence does not.
+  browser evidence and owner feel acceptance now exist.
 - Main Menu, navigation and Shared Fight Setup are implemented production
   surfaces but are not spatially approved. Each needs its own replacement,
   real-application screenshot-led batch.
@@ -41,10 +191,10 @@ The repository and current evidence agree on the following state:
   launcher, navigation or setup composition. It improves determinism and test
   leverage while Dean playtests.
 
-The highest-risk missing proof remains whether a person finds the current
-Battle understandable, forgiving and satisfying on the target phone. The
-highest-leverage autonomous work is the typed encounter-modifier foundation and
-explicit Dev Mode boundary described in Packet M01.
+The highest-leverage work is now F00: correct ownership, persistence and entry
+contracts without changing the accepted Battle behaviour. The typed encounter
+modifier and explicit Dev Mode boundary in Packet M01 remain subsequent engine
+work rather than the immediate handoff.
 
 ## 2. Decision boundary
 
@@ -53,18 +203,12 @@ explicit Dev Mode boundary described in Packet M01.
 Only these points require Dean before the dependent spatial or feel decision is
 locked:
 
-1. **Gate V2-02 Battle observation:** naturally play the current candidate and
-   return raw observations, screenshots or recordings. Approval, rejection or
-   a named revision of the Battle spatial direction follows reconciliation.
-2. **Battle presentation judgement:** compare Kinetic Print and Comic Cutaways
-   as part of natural play. This may identify a preference without forcing a
-   binary choice if neither is ready.
-3. **Main Menu composition:** review the dedicated replacement batch after it
+1. **Shared Lineup composition:** review the first dedicated replacement batch
+   after F00 is complete and the mode-owned eligibility rules are executable.
+2. **Main Menu composition:** review the dedicated replacement batch after it
    is built from real application screenshots.
-4. **Navigation composition:** review its dedicated real-application batch.
-5. **Shared Fight Setup composition:** review its dedicated real-application
-   batch.
-6. **Existing non-Battle reviews:** review the Trophy family and choose the
+3. **Navigation composition:** review its dedicated real-application batch.
+4. **Existing non-Battle reviews:** review the Trophy family and choose the
    landing-page composition. These are not Gate V2-02 blockers.
 
 ### Autonomous work
@@ -620,8 +764,9 @@ stabilise. V2-08 alone freezes scope, accepted evidence, artefact and tag.
 - **Completion:** Dean has reviewable, genuinely different real-app variants.
 - **Dependencies:** none for evidence capture; U03 incorporates M04 rules
   summaries when available.
-- **Before playtest:** yes, but do not request simultaneous reviews unless Dean
-  asks; Gate V2-02 remains the first owner checkpoint.
+- **Before owner review:** F00 must complete first. Prepare Shared Lineup before
+  Main Menu and navigation; request each review separately unless Dean asks to
+  combine them.
 
 ### U04 — approved application shell implementation
 
@@ -728,28 +873,25 @@ stabilise. V2-08 alone freezes scope, accepted evidence, artefact and tag.
 The repository contains three ready/current activities, with different release
 weight:
 
-1. **IN-012 Battle candidate playtest — active V2 blocker.** This is the only
-   current owner action blocking Gate V2-02. Intake must use the open-ended
-   process above.
-2. **IN-007 Trophy-family review — ready, not a current Gate V2-02 blocker.**
+1. **IN-007 Trophy-family review — ready, not a current V2 blocker.**
    Functional Trophy persistence is implemented. The review primarily locks a
    reusable V2.1 Tournament-art family unless it uncovers a V2 defect.
-3. **IN-009 landing-page composition — ready, Gate V2-03 dependency.** The
-   decision unblocks landing implementation and its social image, but it should
-   not interrupt the first Battle observation unless Dean chooses to review it.
+2. **IN-009 landing-page composition — ready, Gate V2-03 dependency.** The
+   decision unblocks landing implementation and its social image.
 
-IN-008 developer memberships waits until after V2.3; IN-010 multiplayer rules
-remain deferred until after V2.3. IN-001 through IN-006 and IN-011 are complete.
-No new owner question is required to start M01.
+IN-008 developer memberships waits until after V2.3. IN-010 is retired because
+multiplayer has no committed milestone. IN-001 through IN-006, IN-011, and
+IN-012 are complete. F00 is complete and no new owner question is required to
+implement the Shared Lineup package.
 
 ## 9. Immediate handoff
 
-Start **M01 — typed modifier and Dev Mode foundation** while Dean playtests.
-Keep `v2.viking-acceptance` byte-for-byte equivalent in resolved gameplay
-values, make Dev Mode default off, and prove that an empty modifier set produces
-the current engine state and report outcome. Do not add final ordinary-player
-layout for custom rules in this packet. M02 follows once the resolver contract
-is stable.
+Implement **Package 01 — Shared Lineup** against the completed F00 contracts.
+Quick Fight may arrive pre-filled or fully editable, Story supplies only
+eligible Story-owned/loaned instances, and Tournament supplies only living
+members of its locked six. All three choose one to three, choose one starter,
+show current build/Health/Accessory/rules evidence, and produce exactly one
+validated Lineup confirmation before Battle.
 
 At the end of each packet, update the owning authorities, schema, tests,
 mechanic registry and trays together only where their facts changed. Run

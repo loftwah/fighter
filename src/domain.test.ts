@@ -46,16 +46,21 @@ import {
 } from "./progression/patches";
 import {
   acceptSafeDefaults,
+  createDefaultPlayerProfile,
   createDefaultSave,
   createOwnedCharacter,
   defaultPreferences,
   loadActiveSaveSlot,
   loadPreferences,
+  loadPlayerProfile,
   loadSave,
   loadStorageWarning,
+  recordTournamentTrophyOwnership,
   savePreferences,
+  savePlayerProfile,
   saveActiveSaveSlot,
   saveSlot,
+  saveTournamentVictory,
 } from "./persistence/save";
 import { evaluateMissionProgress } from "./missions/evaluate";
 import { baseOffers, rotatingOffers } from "./store/catalog";
@@ -227,6 +232,7 @@ describe("combat rules", () => {
     save.missionProgress["mission.invoice-denied"] = 1;
     save.missionProgress["mission.print-it-personal"] = 2;
     save.tournamentTrophyIds.push("trophy.wrong-door-cup");
+    save.storyTournamentTrophyIds.push("trophy.wrong-door-cup");
     const first = claimFirstRunEnding(save);
     expect(first.claimed).toBe(true);
     expect(first.save.stamps).toBe(save.stamps + FIRST_RUN_ENDING_REWARD);
@@ -265,7 +271,7 @@ describe("combat rules", () => {
       "mission.invoice-denied",
       "mission.print-it-personal",
     ];
-    save.tournamentTrophyIds = ["trophy.wrong-door-cup"];
+    save.storyTournamentTrophyIds = ["trophy.wrong-door-cup"];
 
     expect(claimFirstRunEnding(save).claimed).toBe(true);
   });
@@ -277,7 +283,7 @@ describe("combat rules", () => {
       "mission.invoice-denied",
       "mission.print-it-personal",
     ];
-    save.tournamentTrophyIds = ["trophy.wrong-door-cup"];
+    save.storyTournamentTrophyIds = ["trophy.wrong-door-cup"];
 
     expect(claimFirstRunEnding(save)).toEqual({
       claimed: false,
@@ -525,22 +531,108 @@ describe("combat rules", () => {
     expect(repaired.activeInstanceId).toBe(caseBuilds[1]!.instanceId);
   });
 
-  it("ends a Cheap Seats run on any lost round", () => {
+  it("repeats a lost fight while the Tournament Roster has survivors", () => {
+    const caseBuilds = cheapSeatsPlayerIds
+      .slice(0, 2)
+      .map((characterId, index) => {
+        const definition = combatContent.characters[characterId]!;
+        const build = createStandardBuild(definition, "player", index);
+        return {
+          characterId,
+          instanceId: build.instanceId!,
+          level: build.level!,
+          statBonuses: {
+            health: 0,
+            power: 0,
+            evasion: 0,
+            fortune: 0,
+            tempo: 0,
+          },
+          actionIds: build.actionIds!,
+          actionTiers: {},
+          interruptionResistance: 0,
+          equippedPatchId: null,
+        };
+      });
     const state = createBattle(
       {
-        playerCharacterIds: ["character.viking"],
+        playerCharacterIds: [caseBuilds[0]!.characterId],
+        playerBuilds: [caseBuilds[0]!],
         enemyCharacterIds: ["character.ned-kelly"],
         seed: cheapSeatsEncounter(1).seed,
         difficulty: "normal",
       },
       combatContent,
     ).state;
+    state.player.squad[0]!.currentHealth = 0;
+    state.enemy.squad[0]!.currentHealth = Math.round(
+      state.enemy.squad[0]!.maxHealth * 0.4,
+    );
     const result = recordCheapSeatsResult(
-      { ...createCheapSeatsRun(), roundIndex: 1 },
+      { ...createCheapSeatsRun(caseBuilds), roundIndex: 1 },
       state,
       false,
     );
-    expect(result).toEqual({ status: "lost", run: null });
+    expect(result.status).toBe("redeploy");
+    if (result.status !== "redeploy") {
+      return;
+    }
+    expect(result.run.deployedInstanceIds).toEqual([caseBuilds[1]!.instanceId]);
+    expect(result.run.healthRatios[caseBuilds[0]!.instanceId]).toBe(0);
+    expect(Object.values(result.run.opponentHealthRatios)[0]).toBeCloseTo(0.4);
+
+    const repeated = restoreCaseHealth(
+      createBattle(
+        {
+          playerCharacterIds: [caseBuilds[1]!.characterId],
+          playerBuilds: [caseBuilds[1]!],
+          enemyCharacterIds: ["character.ned-kelly"],
+          seed: cheapSeatsEncounter(1).seed,
+          difficulty: "normal",
+        },
+        combatContent,
+      ).state,
+      result.run,
+    );
+    expect(repeated.enemy.squad[0]!.currentHealth).toBeLessThan(
+      repeated.enemy.squad[0]!.maxHealth,
+    );
+  });
+
+  it("ends a Tournament only when every locked Roster member is defeated", () => {
+    const definition = combatContent.characters["character.viking"]!;
+    const build = createStandardBuild(definition, "player", 0);
+    const caseBuild = {
+      characterId: definition.id,
+      instanceId: build.instanceId!,
+      level: build.level!,
+      statBonuses: {
+        health: 0,
+        power: 0,
+        evasion: 0,
+        fortune: 0,
+        tempo: 0,
+      },
+      actionIds: build.actionIds!,
+      actionTiers: {},
+      interruptionResistance: 0,
+      equippedPatchId: null,
+    };
+    const state = createBattle(
+      {
+        playerCharacterIds: [definition.id],
+        playerBuilds: [caseBuild],
+        enemyCharacterIds: ["character.ned-kelly"],
+        seed: cheapSeatsEncounter(0).seed,
+        difficulty: "normal",
+      },
+      combatContent,
+    ).state;
+    state.player.squad[0]!.currentHealth = 0;
+
+    expect(
+      recordCheapSeatsResult(createCheapSeatsRun([caseBuild]), state, false),
+    ).toEqual({ status: "lost", run: null });
   });
 
   it("locks the exact Case roster and migrates legacy loaner health", () => {
@@ -3089,6 +3181,163 @@ describe("AI, missions, and store", () => {
 });
 
 describe("validated persistence", () => {
+  it("migrates a flat v2 save into one profile with a nested First Run Story Save", () => {
+    const storage = new MemoryStorage();
+    const legacy = createDefaultSave(1);
+    legacy.playerName = "Dean";
+    legacy.stamps = 432;
+    legacy.currentNodeId = "story.first-run.07";
+    legacy.clearedNodeIds = ["story.first-run.06"];
+    legacy.collection = [
+      createOwnedCharacter(
+        "owned.viking.profile-migration",
+        "character.viking",
+        9,
+      ),
+    ];
+    legacy.quickFightRecord.wins = 4;
+    legacy.tournamentTrophyIds = ["trophy.wrong-door-cup"];
+    const rawLegacy = JSON.stringify(legacy);
+    storage.setItem("riot-relics.save.v2.1", rawLegacy);
+
+    const profile = loadPlayerProfile(storage, 1);
+
+    expect(profile).toMatchObject({
+      schemaVersion: 3,
+      profileId: "profile.local.1",
+      playerName: "Dean",
+      quickFightRecord: { wins: 4 },
+    });
+    expect(profile.storySaves["story.first-run"]).toMatchObject({
+      storyId: "story.first-run",
+      stamps: 432,
+      activeSquadInstanceIds: ["owned.viking.profile-migration"],
+    });
+    expect(profile.storySaves["story.first-run"]?.collection).toHaveLength(1);
+    expect(profile.storySaves["story.first-run"]?.tournamentTrophies).toEqual([
+      expect.objectContaining({
+        tournamentId: "tournament.cheap-seats",
+        trophyId: "trophy.wrong-door-cup",
+        provenance: "legacy-imported",
+      }),
+    ]);
+    expect(profile.tournamentTrophies["tournament.cheap-seats"]).toMatchObject({
+      trophyId: "trophy.wrong-door-cup",
+      provenance: [expect.objectContaining({ source: "legacy-imported" })],
+    });
+    expect(storage.getItem("riot-relics.profile.v3.1")).not.toBeNull();
+    expect(storage.getItem("riot-relics.save.v2.1.pre-profile-v3")).toBe(
+      rawLegacy,
+    );
+    expect(loadSave(storage, 1)).toMatchObject({
+      playerName: "Dean",
+      stamps: 432,
+      storyTournamentTrophyIds: ["trophy.wrong-door-cup"],
+    });
+  });
+
+  it("keeps standalone and Story Trophy provenance on one global ownership record", () => {
+    const awardedAt = "2026-08-07T00:00:00.000Z";
+    let profile = recordTournamentTrophyOwnership(
+      createDefaultPlayerProfile(1),
+      {
+        tournamentId: "tournament.cheap-seats",
+        trophyId: "trophy.wrong-door-cup",
+        source: "standalone",
+        awardedAt,
+      },
+    );
+    profile = recordTournamentTrophyOwnership(profile, {
+      tournamentId: "tournament.cheap-seats",
+      trophyId: "trophy.wrong-door-cup",
+      source: "story",
+      storyId: "story.first-run",
+      awardedAt,
+    });
+
+    expect(Object.keys(profile.tournamentTrophies)).toEqual([
+      "tournament.cheap-seats",
+    ]);
+    expect(
+      profile.tournamentTrophies["tournament.cheap-seats"]?.provenance,
+    ).toEqual([
+      { source: "standalone", storyId: null, awardedAt },
+      { source: "story", storyId: "story.first-run", awardedAt },
+    ]);
+    expect(profile.storySaves["story.first-run"]?.tournamentTrophies).toEqual([
+      {
+        tournamentId: "tournament.cheap-seats",
+        trophyId: "trophy.wrong-door-cup",
+        provenance: "story",
+        awardedAt,
+      },
+    ]);
+  });
+
+  it("records a later standalone win when Story already owns the same Trophy", () => {
+    const storage = new MemoryStorage();
+    const storyWin = loadSave(storage, 1);
+    storyWin.tournamentTrophyIds = ["trophy.wrong-door-cup"];
+    storyWin.storyTournamentTrophyIds = ["trophy.wrong-door-cup"];
+    const savedStoryWin = saveTournamentVictory(
+      storage,
+      storyWin,
+      "tournament.cheap-seats",
+      "story",
+    );
+    saveTournamentVictory(
+      storage,
+      savedStoryWin,
+      "tournament.cheap-seats",
+      "standalone",
+    );
+
+    expect(
+      loadPlayerProfile(storage, 1).tournamentTrophies[
+        "tournament.cheap-seats"
+      ]?.provenance.map(({ source }) => source),
+    ).toEqual(["story", "standalone"]);
+  });
+
+  it("persists Story progression and global Quick Fight history to separate profile branches", () => {
+    const storage = new MemoryStorage();
+    const save = loadSave(storage, 2);
+    save.stamps = 901;
+    save.quickFightRecord.fightsPlayed = 12;
+    saveSlot(storage, save);
+
+    const profile = loadPlayerProfile(storage, 2);
+    expect(profile.storySaves["story.first-run"]?.stamps).toBe(901);
+    expect(profile.quickFightRecord.fightsPlayed).toBe(12);
+    expect(profile.storySaves["story.first-run"]).not.toHaveProperty(
+      "quickFightRecord",
+    );
+  });
+
+  it("rejects a custom Tournament without a fight node", () => {
+    const storage = new MemoryStorage();
+    const profile = createDefaultPlayerProfile(1);
+    profile.customTournamentDefinitions.push({
+      id: "tournament.custom.no-fight",
+      name: "No Fight Cup",
+      trophyId: "trophy.generic.gold-cup",
+      nodes: [
+        {
+          id: "node.content-only",
+          kind: "content",
+          label: "A very short speech",
+          opponentCharacterIds: [],
+        },
+      ],
+      createdAt: "2026-08-07T00:00:00.000Z",
+      updatedAt: "2026-08-07T00:00:00.000Z",
+    });
+
+    expect(() => savePlayerProfile(storage, 1, profile)).toThrow(
+      "A custom Tournament requires at least one fight",
+    );
+  });
+
   it("adds a profile-owned Quick Fight record to older compatible v2 saves", () => {
     const storage = new MemoryStorage();
     const olderSave = {

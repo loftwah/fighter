@@ -4,6 +4,7 @@ import {
 } from "../../assets/registry";
 import { combatContent } from "../../content/initial-content";
 import { escapeHtml, formatLabel } from "../format";
+import { ICONS } from "../icons";
 import { renderCharacterTraits } from "./trait-synergy";
 
 export interface FightSetupMember {
@@ -134,13 +135,15 @@ export function renderFightSetupFrame(model: FightSetupFrame): string {
         </div>
         ${model.rulesHtml}
       </header>
-      ${model.contextHtml ?? ""}
-      <div class="fight-matchup">
-        ${renderFightSetupSide(model.player)}
-        <div class="fight-versus" aria-label="versus"><span>VS</span></div>
-        ${renderFightSetupSide(model.enemy)}
+      <div class="fight-setup-body">
+        ${model.contextHtml ?? ""}
+        <div class="fight-matchup">
+          ${renderFightSetupSide(model.player)}
+          <div class="fight-versus" aria-label="versus"><span>VS</span></div>
+          ${renderFightSetupSide(model.enemy)}
+        </div>
+        ${model.selectionHtml ?? ""}
       </div>
-      ${model.selectionHtml ?? ""}
       <footer class="fight-confirmation">
         <div class="fight-confirmation-copy">${model.footerHtml}</div>
         ${model.actionHtml}
@@ -168,7 +171,7 @@ function renderFightSetupMember(member: FightSetupMember): string {
                 style="object-position: ${resolveImageObjectPosition(character.portraitAssetId)}"
                 alt=""
               />`
-            : '<span aria-hidden="true">+</span>'
+            : `<span aria-hidden="true">${ICONS.plus}</span>`
         }
         <span class="fight-member-slot">${escapeHtml(member.slotLabel)}</span>
         ${

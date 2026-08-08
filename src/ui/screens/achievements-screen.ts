@@ -1,6 +1,7 @@
 import type { SaveData } from "../../persistence/save";
 import { evaluateAchievements } from "../../progression/achievements";
 import { escapeHtml } from "../format";
+import { ICONS } from "../icons";
 
 export function renderAchievementsScreen(save: SaveData): string {
   const progress = evaluateAchievements(save);
@@ -10,7 +11,7 @@ export function renderAchievementsScreen(save: SaveData): string {
   return `
     <section class="achievements-sheet" aria-labelledby="achievements-title">
       <div class="section-heading">
-        <button class="text-button" data-command="main-menu">← Main Menu</button>
+        <button class="text-button" data-command="main-menu">${ICONS.arrowLeft}<span>Main Menu</span></button>
         <p class="eyebrow">Player record · ${complete}/${progress.length}</p>
         <h1 id="achievements-title">Achievements</h1>
         <p>

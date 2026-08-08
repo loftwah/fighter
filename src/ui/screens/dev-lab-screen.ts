@@ -9,6 +9,7 @@ import {
 import type { SaveData } from "../../persistence/save";
 import { patches } from "../../progression/patches";
 import { escapeHtml, formatLabel } from "../format";
+import { ICONS } from "../icons";
 
 export interface DevLabScreenModel {
   save: SaveData;
@@ -100,7 +101,7 @@ export function renderDevLabScreen({
     <section class="dev-lab" aria-labelledby="dev-lab-title">
       <header class="dev-lab-heading">
         <div>
-          <button class="text-button" data-command="main-menu">← Main Menu</button>
+          <button class="text-button" data-command="main-menu">${ICONS.arrowLeft}<span>Main Menu</span></button>
           <h1 id="dev-lab-title">Developer Lab</h1>
           <p>
             Isolated sandbox. Development fights never change Story,

@@ -12,6 +12,7 @@ export default tseslint.config(
       ".playwright-cli",
       "output",
       "public/assets/generated",
+      "video",
       "eslint.config.js",
     ],
   },

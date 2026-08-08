@@ -6,6 +6,14 @@ const roadmap = readFileSync(
   "utf8",
 );
 const product = readFileSync(new URL("../PRODUCT.md", import.meta.url), "utf8");
+const continuation = readFileSync(
+  new URL("../docs/v2-continuation-programme.md", import.meta.url),
+  "utf8",
+);
+const gameDesign = readFileSync(
+  new URL("../docs/game-design.md", import.meta.url),
+  "utf8",
+);
 
 function milestone(version: string, nextVersion: string): string {
   const start = roadmap.indexOf(`## ${version}`);
@@ -24,18 +32,35 @@ describe("release roadmap contract", () => {
     expect(v22).not.toContain("Durable Objects with WebSockets");
   });
 
-  it("places server-authoritative multiplayer last at V2.4", () => {
-    const v24 = milestone("V2.4", "Distribution after V2.3");
-    expect(v24).toContain("last currently planned feature milestone");
-    expect(v24).toContain("server-authoritative match coordinator");
-    expect(v24).toContain("One Durable Object");
-    expect(v24).toContain("local or solo player loses no existing capability");
+  it("keeps multiplayer outside the committed milestone programme", () => {
+    const deferred = milestone(
+      "Deferred multiplayer",
+      "Distribution after V2.3",
+    );
+    expect(deferred).toContain("not part of the committed V2–V2.3");
+    expect(deferred).toContain("optional future gate");
+    expect(deferred).toContain("server-authoritative match coordinator");
+    expect(deferred).toContain("One Durable Object");
+    expect(deferred).toContain(
+      "local or solo player loses no existing capability",
+    );
   });
 
   it("keeps the product summary aligned with the roadmap", () => {
-    expect(product).toContain(
-      "V2.4 is the final currently planned feature milestone",
+    expect(product).toContain("Multiplayer has no committed milestone");
+    expect(product).toMatch(/Public\s+app-store distribution can follow V2\.3/);
+  });
+
+  it("keeps the corrected mode foundation in the active programme", () => {
+    expect(continuation).toContain("FOUNDATION PACKET F00 COMPLETE");
+    expect(continuation).toMatch(
+      /Shared Lineup is the active first visual\s+package/,
     );
-    expect(product).toContain("Public app-store distribution can follow V2.3");
+    expect(gameDesign).toContain(
+      "When a deployed Lineup loses but at least one Tournament Roster member lives",
+    );
+    expect(gameDesign).toContain(
+      "The Player Profile does not own Characters or Story economy/progression",
+    );
   });
 });

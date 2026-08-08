@@ -424,7 +424,7 @@ const rationaleFor = (mechanic, disposition) => {
   }
   if (disposition === "DEFER") {
     return mechanic.id === "mode.online_optional"
-      ? "Defer online play to V2.4; it must not delay the local-first releases."
+      ? "Leave online play unscheduled; it is outside the committed local-first V2–V2.3 programme."
       : "Not required by the six launch-kit calibration or the V2 proof content; reconsider for V2.1 content breadth after the reusable V2 grammar is stable.";
   }
   if (disposition === "REJECT") {
@@ -507,7 +507,7 @@ registry.mechanics = registry.mechanics.map((mechanic) => {
     disposition,
     targetMilestone:
       mechanic.id === "mode.online_optional"
-        ? "V2.4"
+        ? "Unscheduled"
         : disposition === "DEFER"
           ? "V2.1 or later"
           : "V2",

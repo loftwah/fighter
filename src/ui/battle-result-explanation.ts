@@ -89,9 +89,15 @@ function luckEvidence(report: BattleReport): string {
     (event) => event.type === "characterDodged",
   ).length;
   if (criticals === 0 && dodges === 0) {
-    return "Luck check: no critical hits or dodges decided this fight.";
+    return "No critical hits or dodges swung the fight.";
   }
-  return `Luck check: ${criticals} critical hit${criticals === 1 ? "" : "s"} and ${dodges} dodge${dodges === 1 ? "" : "s"} changed the damage race.`;
+  if (criticals === 0) {
+    return `${dodges} dodge${dodges === 1 ? "" : "s"} changed the damage race.`;
+  }
+  if (dodges === 0) {
+    return `${criticals} critical hit${criticals === 1 ? "" : "s"} changed the damage race.`;
+  }
+  return `${criticals} critical hit${criticals === 1 ? "" : "s"} and ${dodges} dodge${dodges === 1 ? "" : "s"} changed the damage race.`;
 }
 
 export function explainBattleResult(
@@ -114,20 +120,20 @@ export function explainBattleResult(
     : battleEnd?.message?.endsWith("Forfeited")
       ? "The fight ended by forfeit."
       : report.elapsedMs >= report.initialState.timeLimitMs
-        ? "The result was decided by surviving Health when the clock expired."
-        : "The report records the result without a single proven finishing hit.";
+        ? "The clock ran out. Remaining Health decided the winner."
+        : "No single blow decided the ending.";
 
   const evidence: string[] = [];
   const topWinningMove = winningDamage[0];
   const topLosingMove = losingDamage[0];
   if (topWinningMove) {
     evidence.push(
-      `${content.actions[topWinningMove.actionId]?.name ?? topWinningMove.actionId} led the winning side with ${topWinningMove.amount} total damage.`,
+      `${content.actions[topWinningMove.actionId]?.name ?? topWinningMove.actionId} led ${playerWon ? "your Lineup" : "the opposing Lineup"} with ${topWinningMove.amount} total damage.`,
     );
   }
   if (topLosingMove) {
     evidence.push(
-      `${content.actions[topLosingMove.actionId]?.name ?? topLosingMove.actionId} was the other side's strongest answer at ${topLosingMove.amount} damage.`,
+      `${content.actions[topLosingMove.actionId]?.name ?? topLosingMove.actionId} was ${playerWon ? "the opponent's" : "your"} strongest answer at ${topLosingMove.amount} damage.`,
     );
   }
 
@@ -167,11 +173,11 @@ export function explainBattleResult(
       decision.side === "player" && decision.command.kind === "switch",
   ).length;
   evidence.push(
-    `Decision record: ${playerMoves} Move${playerMoves === 1 ? "" : "s"} and ${playerSwitches} switch${playerSwitches === 1 ? "" : "es"}.`,
+    `You used ${playerMoves} Move${playerMoves === 1 ? "" : "s"} and switched ${playerSwitches} time${playerSwitches === 1 ? "" : "s"}.`,
   );
 
   return {
-    heading: playerWon ? "Why you won" : "Why you lost",
+    heading: playerWon ? "How you won" : "What went wrong",
     decisiveMoment,
     evidence: evidence.slice(0, 5),
   };

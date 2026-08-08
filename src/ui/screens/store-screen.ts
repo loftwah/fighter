@@ -3,6 +3,7 @@ import { findPatch } from "../../progression/patches";
 import type { StoreOffer } from "../../store/catalog";
 import { renderLockedFeature } from "../components/locked-feature";
 import { escapeHtml } from "../format";
+import { ICONS } from "../icons";
 
 export interface StoreScreenModel {
   save: SaveData;
@@ -34,7 +35,7 @@ export function renderStoreScreen(model: StoreScreenModel): string {
                 <p>Inspect today's four labels. Buying is optional; the mission board is already being pinned up.</p>
               </div>
               <button class="primary-action" data-command="advance-story-node">
-                Read the mission slips <span aria-hidden="true">→</span>
+                Read the mission slips ${ICONS.arrowRight}
               </button>
             </aside>
           `

@@ -346,6 +346,9 @@ describe("screen renderers", () => {
     expect(markup).toContain('aria-expanded="false"');
     expect(markup).toContain('data-command="inspect-battle-detail"');
     expect(markup).toContain('title="Pause fight · Escape toggles · hold P"');
+    expect(markup).toMatch(/data-battle-loading[^>]*hidden/);
+    expect(markup).toMatch(/data-battle-versus-intro[^>]*aria-label="Matchup"/);
+    expect(markup).not.toMatch(/data-battle-versus-intro[^>]*hidden/);
     expect(markup).toMatch(
       /data-player-charge-meter[\s\S]*data-battle-event-feed/,
     );
@@ -383,11 +386,13 @@ describe("screen renderers", () => {
       run: {
         tournamentId: "tournament.cheap-seats",
         origin: "standalone",
+        currentNodeId: "round-2",
         roundIndex: 1,
         phase: "ready",
         caseBuilds: [],
         deployedInstanceIds: [],
         healthRatios: {},
+        opponentHealthRatios: {},
         activeInstanceId: null,
         nextRoundChargeBonus: 0,
         selectedDrop: null,

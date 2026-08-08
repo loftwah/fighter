@@ -9,6 +9,7 @@ public home is `fighter.loftwah.com`, and the first intended release is V2.
 - [Documentation hub](docs/README.md)
 - [V2 release specification](docs/v2-release-spec.md)
 - [Release roadmap](docs/release-roadmap.md)
+- [Long-term platform direction](docs/platform-direction.md)
 - [V2 source and archive ledger](docs/v2-source-ledger.md)
 - [Brand, domain, landing page, and promotional art](docs/brand-and-site.md)
 

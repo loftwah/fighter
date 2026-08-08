@@ -279,6 +279,15 @@ svg {
   font-weight: 700;
 }
 
+.primary-action > svg,
+.secondary-action > svg,
+.text-button > svg,
+button > span > svg {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+}
+
 .primary-action {
   display: inline-flex;
   min-height: 3.6rem;
@@ -303,7 +312,11 @@ svg {
 }
 
 .secondary-action {
+  display: inline-flex;
   min-height: 3.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
   border: 3px solid var(--chalk);
   padding: 0.65rem 1rem;
   background: var(--indigo);
@@ -311,6 +324,9 @@ svg {
 }
 
 .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   padding: 0;
   background: transparent;
   color: inherit;

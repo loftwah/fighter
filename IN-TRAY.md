@@ -35,24 +35,13 @@ Status values: `READY`, `IN PROGRESS`, `WAITING`, `DONE`, `DEFERRED`.
 
 ### IN-012 — Choose the Battle UI spatial model
 
-- **Status:** IN PROGRESS
-- **Why:** The owner authorised an interactive Battle-first evaluation and
-  asked for the control/information shell to remain stable while presentation
-  styles vary. The development candidate now implements Variant C's rail-first
-  ownership with Variant A's rectangular Move labels; this is implementation
-  for playtest, not silent final approval.
-- **Action:** Play `Developer Lab → V2 Viking Acceptance` naturally on the
-  phone. Experiment, make mistakes, and send any raw notes, screenshots or
-  recordings in whatever form is easiest. There is no required Move sequence
-  or questionnaire. The agent will reconcile the observations first and ask a
-  follow-up only where two materially different implementation directions
-  remain plausible.
+- **Status:** DONE 2026-08-07
+- **Outcome:** The owner confirmed the current gameplay and Battle experience
+  are in a good place. Preserve the candidate as the hold/regression direction
+  while work moves outward to mode ownership and Shared Lineup.
 - **Style comparison:** **Kinetic Print** and **Comic Cutaways** remain the two
-  presentation treatments. If useful during natural play, compare them through
-  `Settings → Development experiments → Battle visual style`.
-- **Intake:** `docs/v2-continuation-programme.md#3-gate-v2-02-playtest-and-feedback-handling`
-  records the lightweight context wrapper and triage process. Supplying that
-  structure is optional; unstructured observations come first.
+  retained presentation treatments. They may be revisited without reopening
+  the surrounding application programme.
 - **Evidence:** The semantic-control path completes the intended four-Move win
   at all three Tier 1 viewport sizes. Automated geometry inspection reports no
   out-of-bounds critical regions or sibling intersections at `390 × 844`,
@@ -60,7 +49,7 @@ Status values: `READY`, `IN PROGRESS`, `WAITING`, `DONE`, `DEFERRED`.
   defeats followed by repeated responsive layout passes without a Phaser
   texture error; compact landscape statuses remain visible and Pause plus
   Accessory meet the 44-pixel target floor.
-- **Still separate:** Main Menu, navigation, and Shared Fight Setup retain their
+- **Still separate:** Shared Lineup, Main Menu, and navigation retain their
   dedicated screenshot-led mock-up and implementation batches.
 
 ## Later, after the V2 rules are locked
@@ -77,16 +66,14 @@ Status values: `READY`, `IN PROGRESS`, `WAITING`, `DONE`, `DEFERRED`.
   Play developer programme.
 - **Unblocks:** signed testing tracks and public app-store releases.
 
-### IN-010 — Ratify V2.4 multiplayer rules
+### IN-010 — Decide whether to pursue multiplayer
 
-- **Status:** DEFERRED
-- **Why:** Multiplayer is the final currently planned feature milestone and
-  must not distract from tightening V2–V2.3.
-- **Action:** After V2.3 is accepted, review `docs/multiplayer-seam.md` and
-  decide private/public scope, timing model, latency budget, pause/disconnect
-  rules, ranking, rewards, regions, moderation, retention, and cost ceiling.
-- **Unblocks:** the local two-client coordinator prototype. It does not
-  authorise a production backend or public matchmaking.
+- **Status:** RETIRED 2026-08-07
+- **Why:** Multiplayer no longer has a committed milestone. The local solo game
+  is the complete product direction through V2.3.
+- **Action:** None. Preserve `docs/multiplayer-seam.md` only as optional seam
+  research. A new accepted design change is required before implementation.
+- **Unblocks:** Nothing in the committed roadmap.
 
 ## Completed owner actions
 
@@ -124,8 +111,9 @@ Status values: `READY`, `IN PROGRESS`, `WAITING`, `DONE`, `DEFERRED`.
 ### IN-006 — Ratify V2 scope and roadmap split
 
 - **Status:** DONE 2026-07-31
-- **Outcome:** The existing V2–V2.4 allocation is correct. The programme
-  contract is ratified; release proof and freeze remain open.
+- **Outcome:** The then-current V2–V2.4 allocation was accepted. The owner
+  superseded its multiplayer commitment on 2026-08-07; V2–V2.3 remain the
+  committed programme and multiplayer is optional research only.
 
 ### IN-011 — Review Main Menu mock-up batch 01
 

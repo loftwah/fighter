@@ -1,0 +1,7 @@
+{
+  "kind": "ui-mockup",
+  "approved": true,
+  "source": "live 1920x1080 Tournament lobby plus written requirements",
+  "viewport": "1920x1080",
+  "direction": "Retain the real arena, Trophy and bracket grammar; remove premature Lineup and opponent content; make resume and start-new actions the attached launch deck"
+}

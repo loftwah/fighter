@@ -73,7 +73,7 @@ comfortable reading or touch sizes.
 ### Must be viewport-contained on Tier 1
 
 - Main Menu;
-- Quick Fight and ordinary Character confirmation;
+- Fighter Select and ordinary Fight Setup confirmation;
 - Battle, countdown, ordinary Pause, and Result;
 - Tournament round choice;
 - any blocking recovery or confirmation state.
@@ -104,49 +104,110 @@ Settings and How to Play may use ordinary document scrolling when their content
 is inherently sequential. Their section navigation and save/back action remain
 reachable.
 
-## Batch order
+## One-at-a-time perfection checklist
 
-The order follows the player's comprehension path and resolves shared patterns
-before dependent screens:
+This programme is also the owner-facing delivery board. Exactly one interaction
+family is **ACTIVE**. One may be named **NEXT** so dependencies are visible;
+everything else stays queued or on hold. Work does not move forward merely
+because code exists or a mock-up looks promising.
 
-| Batch | Interaction family                            | Principal questions                                                                 |
-| ----: | --------------------------------------------- | ----------------------------------------------------------------------------------- |
-|    01 | Main Menu / mode launcher                     | Mode hierarchy, resume state, global navigation, one-viewport mobile                |
-|    02 | Shared Battle and Pause                       | Side consoles, Charge decisions, Lineup visibility, event feed, readiness, overlays |
-|    03 | Shared Fight Setup                            | Character selection, opponent preview, synergy, Accessory, Standard versus Custom   |
-|    04 | Story Home, node, Result, and Ending          | Narrative focus, next action, recovery, completion checklist                        |
-|    05 | Lineup, Collection, build editing, and lore   | Pagination, owned copies, Move tiers, stats, Modifications, detail topology         |
-|    06 | Tournament lobby, Case, interlude, and Result | Trophy desire, carried Health, deploy/start choices, round progression              |
-|    07 | Profile, Achievements, and Trophy cabinet     | Identity, durable progress, collection proof, local slots                           |
-|    08 | Story Store and Missions                      | Purchases, claims, locks, balance, small/large catalogues                           |
-|    09 | Settings, How to Play, Move key, and recovery | Discoverability, accessibility, local data, long-form help                          |
-|    10 | Intro, loading, empty, error, and completion  | Honest waiting, skip, recovery, first/returning-player states                       |
+Every interaction family uses the same completion checklist:
 
-Current front-of-queue status:
+- [ ] reconcile its job, state owner, entry/exit paths, and exclusions with the
+      authoritative documents;
+- [ ] capture the real application at `1728 × 1117` and `390 × 844`, plus
+      `844 × 390` when landscape materially changes the task;
+- [ ] document minimum, typical, maximum, loading, empty, error, resume,
+      complete, and development-only states that apply;
+- [ ] prepare the required composition alternatives from the real captures;
+- [ ] record Dean's `APPROVE`, `COMBINE`, `REVISE`, `REJECT`, or `DEFER`
+      decision;
+- [ ] reconcile the accepted direction into `DESIGN.md`, the view inventory,
+      the relevant authority, and its surface brief;
+- [ ] implement semantic responsive controls without duplicating domain or
+      orchestration rules;
+- [ ] prove route/session availability, state isolation, keyboard/touch/focus,
+      reduced motion, and the interaction family's specific contracts;
+- [ ] complete one bounded desktop/mobile browser inspection and fix pass;
+- [ ] pass `mise run check`, record evidence, and mark the family **ACCEPTED**.
 
-| Batch | Status                 | Next evidence action                                                                                                         |
-| ----: | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-|   01R | `REBUILD REQUIRED`     | Capture the real Main Menu and global/Story navigation states, then generate three replacement compositions.                 |
-|    02 | `IMPLEMENTED PLAYTEST` | Owner-test the rail-first C + rectangular A-label candidate and either lock it or request named changes.                     |
-|    03 | `QUEUED`               | Capture Standard/Custom, one-to-three Character, opponent, Accessory, validation, and return states from Shared Fight Setup. |
+## Delivery order
 
-Batch 01R treats the Main Menu and navigation as one tightly coupled launcher
-family, but its brief and evidence must distinguish global navigation from the
-Story-owned rail. Batch 03 owns Shared Fight Setup. Neither current production
-composition is approved merely because its requirements are documented in
-`DESIGN.md`.
+The active order reflects the owner's 2026-08-07 decision to keep the currently
+satisfactory Battle/gameplay surface stable while entry, setup, and surrounding
+application flows are perfected one at a time.
 
-Batch boundaries can change when one review exposes a shared component that
-should be settled earlier. Battle remains its own batch because it needs
-portrait, landscape, and desktop variants plus multiple live states.
+| Order | Interaction family                                                            | Status     | Exit condition                                                                                                                                            |
+| ----: | ----------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|    00 | Mode ownership, Story Save, Tournament/Trophy, and validated match foundation | **DONE**   | Schema-v3 Profile migration, Story/Tournament content contracts, repeat deployment, Trophy provenance, and validated Battle entry pass the full check.    |
+|    01 | Fighter Select, Match Settings, and shared Fight Setup                        | **ACTIVE** | Each task has one owner; selection and confirmation fit Tier 1 without deliberate scrolling; every player fight confirms one resolved draft exactly once. |
+|    02 | Story Squad and Tournament Roster commitments                                 | `QUEUED`   | Story ownership, six-instance commitments, standalone sandbox builds, presets, and validation remain upstream of per-fight deployment.                    |
+|    03 | Tournament library, lobby, nodes, repeat deployment, forfeit, and Result      | `QUEUED`   | Preset/custom definitions, mandatory Trophies, persistent Health, interstitials, and all-six defeat flow are coherent.                                    |
+|    04 | Story library, Story Save, Levels/content, ordinary Result, and Ending        | `QUEUED`   | Concurrent Stories own their progression and collections; Levels compose content/grants/fights/preset Tournaments; completion awards project globally.    |
+|    05 | Main Menu, LOFTWAH FIGHTER wordmark, and global game utilities                | `QUEUED`   | Three modes and resume state fit one viewport; navigation feels like game chrome rather than an assumed website header.                                   |
+|    06 | Profile identity, records, Story saves, and Trophy/award cabinets             | `QUEUED`   | Global identity and archives are distinct from Story-owned collections and progression.                                                                   |
+|    07 | Settings and the music/audio control model                                    | `QUEUED`   | Preferences remain global; playback intent and context changes are predictable; controls do not crowd game surfaces.                                      |
+|    08 | Story Collection, builds, Store, Missions, and lore                           | `QUEUED`   | Owned instances, purchases, upgrades, claims, and catalogues stay inside the selected Story Save.                                                         |
+|    09 | Intro, honest loading, storage recovery, and completion states                | `QUEUED`   | Entry and recovery are explicit, skippable where promised, and never silently start a session or erase data.                                              |
+|    10 | Developer Lab and development inspector                                       | `QUEUED`   | Development entry remains isolated, validated, non-progressing, visibly assisted, and removable from public builds.                                       |
+|    11 | Achievements                                                                  | `LAST`     | Profile-derived awards are polished after their durable global and Story source facts are settled.                                                        |
+|  HOLD | Shared Battle, Pause, and gameplay presentation                               | `HOLD`     | Keep the current candidate available; reopen for a concrete defect, failed acceptance check, or explicit review.                                          |
 
-Batch 02 was deliberately moved ahead of the replacement launcher/navigation
-batch and Shared Fight Setup after the
-2026-07-31 playtest exposed Battle collisions that prevented useful gameplay
-testing. Batch 02 also establishes the screenshot-led process requested in the
-Batch 01 review: capture the real application, describe every required state,
-generate alternatives from that evidence, then implement only an approved
-direction.
+### Completed package 00 — Foundation Packet F00
+
+F00 is deliberately not a visual batch. It owns the corrected global
+Player/Story Save boundary, sandbox builds, generic Tournament definitions and
+nodes, repeat deployment until all six are defeated, Tournament forfeit,
+source-aware Trophy projection, Story Level steps, migration, and the one
+validated match boundary. Its complete contract is recorded in
+`docs/v2-continuation-programme.md`.
+
+It completed on 2026-08-07. The implementation anchors are
+`src/persistence/save.ts`, `src/story/contracts.ts`,
+`src/tournaments/catalog.ts`, `src/tournaments/cheap-seats.ts`, and
+`src/app/match-entry.ts`.
+
+No screen may be declared production-complete against the retired assumption
+that the global Profile owns Characters or that one lost Tournament fight ends
+the complete run.
+
+### Active package 01 boundary — Fight workflow
+
+`Fight Setup` is the overall process. Fighter Select chooses participating
+instances, order, and starter; Match Settings edits only mode-permitted rules,
+builds, music, and team Accessories; the required final Fight Setup screen is a
+read-only match confirmation. Quick Fight presets may arrive pre-filled, but
+every player-facing fight reaches that final screen before Battle:
+
+```text
+Quick preset → pre-filled Fight Setup → Battle
+Quick Standard → Fighter Select → Fight Setup → Battle
+Quick Custom → Fighter Select → Match Settings → Fight Setup → Battle
+Story fight → eligible Fighter Select → Fight Setup → Battle
+Tournament fight → living-Roster Fighter Select → Fight Setup → Battle
+```
+
+Fight Setup displays the resolved one-to-three-instance Lineups, starter/bench
+order, Accessories, opponent, effective rules, difficulty, carried state, and
+consequences. It has no dropdowns or editable configuration controls. It never
+determines ownership, sandbox build legality, Story Squad membership,
+Tournament Roster membership, or rewards.
+
+The selected direction and live measurements are recorded in
+`docs/mockup-batches/batch-03-fight-workflow.md`.
+
+### Package 05 boundary — Main Menu and game chrome
+
+The Main Menu remains a one-viewport three-mode launcher, but no persistent
+website-style header is assumed. The later batch must compare minimal game
+utilities, contextual mode controls, and any compact navigation treatment from
+real application states. Battle keeps only gameplay and Pause chrome.
+
+The earlier Batch 01 variants remain historical evidence. They are not
+approval for the current Story-dominant production composition.
+
+Package boundaries may change when a review exposes a shared component that
+must settle earlier. The owner is asked about one active package only.
 
 ## Review answer format
 

@@ -21,11 +21,15 @@
     "assets:trophies": "node scripts/build-trophy-art.mjs",
     "assets:music": "node scripts/sync-music.mjs",
     "content:validate": "vitest run src/content/content.test.ts",
+    "demo:capture": "node scripts/capture-gameplay-demo.mjs",
+    "demo:trailer": "node scripts/render-gameplay-trailer.mjs",
+    "video:check": "pnpm --dir video lint",
     "preview": "vite preview"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.2.6",
     "@fontsource/league-gothic": "^5.2.6",
+    "lucide": "^1.29.0",
     "phaser": "^3.90.0",
     "zod": "^4.1.12"
   },
@@ -35,6 +39,7 @@
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^16.5.0",
+    "playwright": "^1.62.1",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.48.1",

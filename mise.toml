@@ -1,10 +1,16 @@
 [tools]
+ffmpeg = "8.1.2"
 node = "22"
 pnpm = "11.17.0"
 
 [tasks.install]
-description = "Install the pinned JavaScript dependencies"
-run = "pnpm install"
+description = "Install the pinned game, browser, media, and video dependencies"
+run = """
+pnpm install --frozen-lockfile
+pnpm exec playwright install chromium
+pnpm --dir video install --frozen-lockfile
+pnpm --dir video exec remotion browser ensure
+"""
 
 [tasks.dev]
 description = "Start the Vite development server"
@@ -50,6 +56,18 @@ run = "pnpm assets:music"
 description = "Validate authored game content"
 run = "pnpm content:validate"
 
+[tasks."demo:capture"]
+description = "Capture a music-mixed 1920x1080 gameplay demonstration"
+run = "pnpm demo:capture"
+
+[tasks."demo:trailer"]
+description = "Render the branded 1920x1080 gameplay trailer"
+run = "pnpm demo:trailer"
+
+[tasks."video:check"]
+description = "Lint and type-check the Remotion trailer project"
+run = "pnpm video:check"
+
 [tasks.check]
 description = "Run the complete local quality gate"
-depends = ["lint", "format", "typecheck", "test", "build", "content:validate"]
+depends = ["lint", "format", "typecheck", "test", "build", "content:validate", "video:check"]

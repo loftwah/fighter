@@ -9,6 +9,7 @@ import {
 import { firstRunStoryPanel } from "../../story/first-run-panels";
 import { tournamentTrophies } from "../../tournaments/catalog";
 import { escapeHtml } from "../format";
+import { ICONS } from "../icons";
 
 export function renderStoryScreen(save: SaveData): string {
   const cleared = new Set(save.clearedNodeIds);
@@ -52,12 +53,12 @@ export function renderStoryScreen(save: SaveData): string {
       const complete =
         save.claimedMissionIds.includes(mission.id) ||
         (save.missionProgress[mission.id] ?? 0) >= mission.target;
-      return `<li class="${complete ? "is-complete" : ""}"><span>${complete ? "✓" : "○"}</span><strong>Mission · ${escapeHtml(mission.name)}</strong></li>`;
+      return `<li class="${complete ? "is-complete" : ""}"><span aria-hidden="true">${complete ? ICONS.check : ICONS.circle}</span><strong>Mission · ${escapeHtml(mission.name)}</strong></li>`;
     }),
     ...FIRST_RUN_REQUIRED_TROPHY_IDS.map((trophyId) => {
       const trophy = tournamentTrophies[trophyId];
-      const complete = save.tournamentTrophyIds.includes(trophyId);
-      return `<li class="${complete ? "is-complete" : ""}"><span>${complete ? "✓" : "○"}</span><strong>Tournament · ${escapeHtml(trophy?.name ?? trophyId)}</strong></li>`;
+      const complete = save.storyTournamentTrophyIds.includes(trophyId);
+      return `<li class="${complete ? "is-complete" : ""}"><span aria-hidden="true">${complete ? ICONS.check : ICONS.circle}</span><strong>Tournament · ${escapeHtml(trophy?.name ?? trophyId)}</strong></li>`;
     }),
   ].join("");
   return `
@@ -76,7 +77,7 @@ export function renderStoryScreen(save: SaveData): string {
           ${endingButtonAttribute}
           ${atEnding && firstRunComplete ? "disabled" : ""}
         >
-          ${escapeHtml(progress.action)} <span aria-hidden="true">→</span>
+          ${escapeHtml(progress.action)} ${ICONS.arrowRight}
         </button>
       </div>
     </section>
@@ -99,7 +100,7 @@ export function renderStoryScreen(save: SaveData): string {
               firstRunComplete
                 ? `
                   <button class="primary-action" data-command="enter-quick">
-                    Open end-game Quick Fight <span aria-hidden="true">→</span>
+                    Open end-game Quick Fight ${ICONS.arrowRight}
                   </button>
                 `
                 : ""

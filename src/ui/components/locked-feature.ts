@@ -1,4 +1,5 @@
 import { escapeHtml } from "../format";
+import { ICONS } from "../icons";
 
 export function renderLockedFeature(
   headingId: string,
@@ -11,7 +12,7 @@ export function renderLockedFeature(
       <h1 id="${headingId}">${escapeHtml(title)}</h1>
       <p>${escapeHtml(copy)}</p>
       <button class="primary-action" data-route="story">
-        Back to First Run <span aria-hidden="true">→</span>
+        Back to First Run ${ICONS.arrowRight}
       </button>
     </section>
   `;

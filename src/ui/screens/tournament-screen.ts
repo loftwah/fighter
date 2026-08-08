@@ -3,7 +3,6 @@ import {
   resolveImageObjectPosition,
   resolveImagePath,
 } from "../../assets/registry";
-import { STANDARD_MATCH_LEVEL } from "../../combat/standard-build";
 import { combatContent } from "../../content/initial-content";
 import type {
   SaveData,
@@ -11,9 +10,11 @@ import type {
   TournamentRunData,
 } from "../../persistence/save";
 import {
+  resolveTournamentRunDefinition,
   tournamentDefinition,
-  tournamentTrophy,
+  tournamentTrophies,
 } from "../../tournaments/catalog";
+import { effectiveTournamentFightSettings } from "../../tournaments/runner";
 import {
   renderFightSetupAccessory,
   renderFightSetupFrame,
@@ -32,13 +33,16 @@ export interface TournamentScreenModel {
   caseBuilds?: TournamentCaseBuild[];
   deployedInstanceIds?: string[];
   starterInstanceId?: string | null;
+  accessoryId?: string | null;
   locked: boolean;
 }
 
 export function renderTournamentScreen(model: TournamentScreenModel): string {
   const tournamentId =
     model.run?.tournamentId ?? model.tournamentId ?? "tournament.cheap-seats";
-  const tournament = tournamentDefinition(tournamentId);
+  const tournament = model.run
+    ? resolveTournamentRunDefinition(model.run)
+    : tournamentDefinition(tournamentId);
   if (model.locked) {
     return renderLockedFeature(
       "tournament-title",
@@ -46,10 +50,31 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
       "Clear the two-Character qualifier to earn a place in the bracket.",
     );
   }
-  const trophy = tournamentTrophy(tournament.id);
+  const trophy = tournamentTrophies[tournament.trophyId];
+  if (!trophy) {
+    throw new Error(`Tournament ${tournament.id} has no registered Trophy.`);
+  }
   const champion = model.save.tournamentTrophyIds.includes(trophy.id);
-  const encounter =
-    tournament.rounds[model.run?.roundIndex ?? 0] ?? tournament.rounds[0]!;
+  const fightNodes = tournament.nodes.filter((node) => node.kind === "fight");
+  const currentNodeIndex = model.run
+    ? tournament.nodes.findIndex((node) => node.id === model.run!.currentNodeId)
+    : -1;
+  const currentNode =
+    currentNodeIndex >= 0 ? tournament.nodes[currentNodeIndex] : fightNodes[0];
+  const fightNode =
+    currentNode?.kind === "fight"
+      ? currentNode
+      : (tournament.nodes
+          .slice(Math.max(0, currentNodeIndex + 1))
+          .find((node) => node.kind === "fight") ?? fightNodes[0]);
+  if (!fightNode || fightNode.kind !== "fight") {
+    throw new Error(`Tournament ${tournament.id} has no fight to prepare.`);
+  }
+  const fightIndex = Math.max(0, fightNodes.indexOf(fightNode));
+  const encounter = tournament.rounds[fightIndex] ?? tournament.rounds[0]!;
+  const effectiveSettings = model.run
+    ? effectiveTournamentFightSettings(tournament, model.run, fightNode.id)
+    : { ...tournament.matchDefaults, ...fightNode.matchSettings };
   const caseBuilds = model.caseBuilds ?? model.run?.caseBuilds ?? [];
   const deployedInstanceIds =
     model.deployedInstanceIds ?? model.run?.deployedInstanceIds ?? [];
@@ -129,6 +154,10 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
                       />
                       Starts
                     </label>
+                    <span class="cup-roster-order">
+                      <button type="button" data-command="move-tournament-deployment" data-instance-id="${build.instanceId}" data-direction="-1" aria-label="Move ${escapeHtml(character.name)} earlier" ${!selected || deployedInstanceIds.indexOf(build.instanceId) <= 0 ? "disabled" : ""}>←</button>
+                      <button type="button" data-command="move-tournament-deployment" data-instance-id="${build.instanceId}" data-direction="1" aria-label="Move ${escapeHtml(character.name)} later" ${!selected || deployedInstanceIds.indexOf(build.instanceId) >= deployedInstanceIds.length - 1 ? "disabled" : ""}>→</button>
+                    </span>
                   </article>
                 `;
               })
@@ -136,20 +165,27 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
           </div>
         </fieldset>
       `;
+  const interludeChoices =
+    currentNode?.kind === "recovery"
+      ? (currentNode.choices ??
+        currentNode.choiceIds.map((id) => ({
+          id,
+          label: formatLabel(id),
+          effects: [],
+        })))
+      : [];
   const dropControls = `
     <div class="cup-drops" aria-label="Choose a between-round drop">
-      <button data-command="cup-drop" data-drop="front-print-repair">
-        <strong>Front-Line Repair</strong>
-        Heal the Character that ended the prior round active by 45%.
-      </button>
-      <button data-command="cup-drop" data-drop="case-repair">
-        <strong>Roster Repair</strong>
-        Heal the Roster by 18% and revive one defeated Character at 35%.
-      </button>
-      <button data-command="cup-drop" data-drop="hot-start">
-        <strong>Hot Start</strong>
-        Begin the next round with another 18 Charge.
-      </button>
+      ${interludeChoices
+        .map(
+          (
+            choice,
+          ) => `<button data-command="tournament-interlude-choice" data-choice-id="${escapeHtml(choice.id)}">
+        <strong>${escapeHtml(choice.label)}</strong>
+        ${escapeHtml(choice.effects.map((effect) => formatLabel(effect.kind)).join(" · ") || "Continue to the next fight")}
+      </button>`,
+        )
+        .join("")}
     </div>
   `;
   const playerMembers: FightSetupMember[] = deployedInstanceIds
@@ -169,18 +205,39 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
       };
     })
     .filter((member): member is FightSetupMember => member !== null);
-  const enemyMembers = encounter.enemyCharacterIds.map(
-    (characterId, index): FightSetupMember => ({
-      characterId,
-      slotLabel: index === 0 ? "Starts" : `Bench ${index}`,
-      detail: `${formatLabel(combatContent.characters[characterId]!.typeId)} · Round rival`,
-    }),
-  );
-  const playerAccessoryAvailable = !model.run?.exhaustedAccessoryIds.includes(
-    "accessory.press-pass",
+  const enemyMembers = fightNode.enemyCharacterIds.map(
+    (characterId, index): FightSetupMember => {
+      const instanceId = `tournament.${fightNode.id}.opponent.${index}.${characterId}`;
+      const ratio = model.run?.opponentHealthRatios[instanceId] ?? 1;
+      return {
+        characterId,
+        slotLabel: index === 0 ? "Starts" : `Bench ${index}`,
+        detail: `${formatLabel(combatContent.characters[characterId]!.typeId)} · ${Math.round(ratio * 100)}% current Health`,
+        healthPercent: ratio * 100,
+        defeated: ratio <= 0,
+      };
+    },
   );
   const interlude = model.run?.phase === "interlude";
-
+  const playerAccessoryAvailable = !model.run?.exhaustedAccessoryIds.includes(
+    model.accessoryId ?? "accessory.press-pass",
+  );
+  const selectedAccessoryId = playerAccessoryAvailable
+    ? (model.accessoryId ?? "accessory.press-pass")
+    : null;
+  const accessoryControls = interlude
+    ? ""
+    : `<fieldset class="cup-accessory-selector"><legend>Choose this deployment's Accessory</legend><div>
+      <button type="button" data-command="select-tournament-accessory" data-accessory-id="" aria-pressed="${selectedAccessoryId === null}"><span aria-hidden="true">—</span><strong>No Accessory</strong></button>
+      ${Object.values(combatContent.accessories)
+        .map((accessory) => {
+          const exhausted = Boolean(
+            model.run?.exhaustedAccessoryIds.includes(accessory.id),
+          );
+          return `<button type="button" data-command="select-tournament-accessory" data-accessory-id="${accessory.id}" aria-pressed="${selectedAccessoryId === accessory.id}" ${exhausted ? "disabled" : ""}><img src="${resolveImagePath(accessory.imageAssetId)}" data-asset-id="${accessory.imageAssetId}" alt=""/><strong>${escapeHtml(accessory.name)}</strong><small>${exhausted ? "Used this run" : "Available"}</small></button>`;
+        })
+        .join("")}
+    </div></fieldset>`;
   return renderFightSetupFrame({
     mode: "tournament",
     titleId: "tournament-title",
@@ -188,11 +245,11 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
     summary: interlude
       ? `Round ${model.run!.roundIndex} is stamped. Choose one recovery before ${encounter.title}.`
       : `Round ${encounter.roundIndex + 1}: ${encounter.title} — ${encounter.subtitle}`,
-    backControl: `<button class="text-button" ${
+    backControl: `<span class="fight-setup-exits"><button class="text-button" ${
       model.sessionMode === "story"
         ? 'data-route="story"'
-        : 'data-command="main-menu"'
-    }>← ${model.sessionMode === "story" ? "Back to Story" : "Main Menu"}</button>`,
+        : 'data-command="back-to-tournament-choice"'
+    }>← ${model.sessionMode === "story" ? "Back to Story" : "Tournament Choice"}</button><button class="text-button" data-command="main-menu">Main Menu</button></span>`,
     rulesHtml: renderFightSetupRules("Tournament round", [
       `Round ${encounter.roundIndex + 1} of ${tournament.rounds.length}`,
       `Roster ${selectedCount} / 3 deployed`,
@@ -257,7 +314,7 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
               },
             ],
       accessoryHtml: renderFightSetupAccessory(
-        playerAccessoryAvailable ? "accessory.press-pass" : undefined,
+        selectedAccessoryId ?? undefined,
         { status: playerAccessoryAvailable ? "Available" : "Already used" },
       ),
       synergyHtml: renderTraitSynergy(
@@ -270,16 +327,20 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
       label: "Round Rivals",
       countLabel: `${enemyMembers.length} revealed`,
       members: enemyMembers,
-      accessoryHtml: renderFightSetupAccessory("accessory.dead-air", {
-        status: "Opponent",
-      }),
-      synergyHtml: renderTraitSynergy(encounter.enemyCharacterIds),
+      accessoryHtml: renderFightSetupAccessory(
+        effectiveSettings.opponentAccessoryId ?? undefined,
+        {
+          status: "Opponent",
+        },
+      ),
+      synergyHtml: renderTraitSynergy(fightNode.enemyCharacterIds),
       enemy: true,
     },
     selectionHtml: `
       <section class="fight-selection" aria-label="Tournament preparation">
         <div class="case-health">${caseStatus}</div>
         ${interlude ? dropControls : rosterControls}
+        ${accessoryControls}
       </section>
     `,
     footerHtml: `
@@ -287,17 +348,24 @@ export function renderTournamentScreen(model: TournamentScreenModel): string {
       <span>${
         model.sessionMode === "story"
           ? "Story Roster uses owned and authored-loan builds."
-          : `Standalone Roster uses Level ${STANDARD_MATCH_LEVEL} Standard Builds.`
+          : "Locked builds and carried Health persist for the complete run."
       }
       </span>
     `,
     actionHtml: interlude
       ? '<span class="fight-confirmation-wait">Choose a drop above</span>'
       : `
+        <div class="tournament-confirmation-actions">
+        ${
+          model.run
+            ? '<button class="secondary-action" data-command="forfeit-tournament">Forfeit Tournament</button>'
+            : ""
+        }
         <button class="primary-action" data-command="start-tournament">
           ${model.run ? `Confirm Lineup · Enter Round ${encounter.roundIndex + 1}` : "Confirm Lineup · Lock Roster · Enter Round 1"}
           <span aria-hidden="true">→</span>
         </button>
+        </div>
       `,
   });
 }

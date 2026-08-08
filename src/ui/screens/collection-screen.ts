@@ -14,6 +14,7 @@ import {
 import { findPatch } from "../../progression/patches";
 import { renderCharacterTraits } from "../components/trait-synergy";
 import { escapeHtml, formatLabel } from "../format";
+import { ICONS } from "../icons";
 
 const statLabel: Record<keyof StatBlock, string> = {
   health: "Vitality",
@@ -185,7 +186,7 @@ export function renderCollectionScreen(save: SaveData): string {
                               data-delta="-1"
                               aria-label="Remove one ${statLabel[stat]} point from ${escapeHtml(character.name)}"
                               ${buildLocked || amount < 1 ? "disabled" : ""}
-                            >−</button>
+                            >${ICONS.minus}</button>
                             <output aria-label="${statLabel[stat]} allocated points">${amount}</output>
                             <button
                               type="button"
@@ -199,7 +200,7 @@ export function renderCollectionScreen(save: SaveData): string {
                                   ? "disabled"
                                   : ""
                               }
-                            >+</button>
+                            >${ICONS.plus}</button>
                           </div>
                         `;
                       }).join("")}
@@ -283,7 +284,7 @@ export function renderCollectionScreen(save: SaveData): string {
                                       ? "disabled"
                                       : ""
                                   }
-                                >←</button>
+                                >${ICONS.chevronLeft}</button>
                                 <button
                                   type="button"
                                   data-command="move-build-action"
@@ -298,7 +299,7 @@ export function renderCollectionScreen(save: SaveData): string {
                                       ? "disabled"
                                       : ""
                                   }
-                                >→</button>
+                                >${ICONS.chevronRight}</button>
                               </div>
                               <div class="move-enhance-controls">
                                 ${

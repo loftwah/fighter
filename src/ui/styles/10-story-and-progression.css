@@ -141,6 +141,12 @@
   font-weight: 700;
 }
 
+.story-completion-list svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}
+
 .dialogue-line {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -639,6 +645,12 @@
   font-weight: 900;
 }
 
+.stat-stepper button svg,
+.move-order-controls button svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
 .stat-stepper button:disabled,
 .move-order-controls button:disabled,
 .move-enhance-controls button:disabled {
@@ -960,6 +972,11 @@
   border-radius: 50%;
   font-size: 1.5rem;
   font-weight: 700;
+}
+
+.mission-check svg {
+  width: 1.6rem;
+  height: 1.6rem;
 }
 
 .mission-slip h2,

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-30T01:41:00Z",
+  "generatedAt": "2026-08-07T08:12:22Z",
   "title": "Design System: loftwah/fighter V2",
   "extensions": {
     "colorMeta": {
@@ -289,36 +289,44 @@
       "css": ".ds-btn-secondary { min-height: 3.4rem; border: 3px solid var(--chalk, #f7f0dd); padding: 0.65rem 1rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-btn-secondary:hover { background: var(--tomato, #ef4d39); } .ds-btn-secondary:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-btn-secondary:active { transform: translateY(1px); }"
     },
     {
-      "name": "Game Mode Launcher",
-      "kind": "card",
-      "refersTo": "mode-bill",
-      "description": "Three explicit session bills that explain Story, sandbox, and tournament consequences before entry.",
-      "html": "<section class=\"ds-launcher\" aria-label=\"Choose a game\"><article class=\"ds-mode ds-mode-story\"><h2>STORY MODE</h2><p>Progress your collection through First Run.</p><button>START NEW STORY →</button></article><article class=\"ds-mode ds-mode-quick\"><h2>QUICK FIGHT</h2><p>Sandbox play with no Story rewards changed.</p><button>SET UP QUICK FIGHT →</button></article><article class=\"ds-mode ds-mode-tournament\"><h2>TOURNAMENT</h2><p>A separate three-round persistent Case.</p><button>START TOURNAMENT →</button></article></section>",
-      "css": ".ds-launcher { display: grid; grid-template-columns: 1.35fr 0.65fr 0.65fr; gap: 1rem; background: var(--indigo-deep, #091128); padding: 1rem; } .ds-mode { display: grid; align-content: center; gap: 0.75rem; border: 5px solid var(--ink, #14151a); padding: 1.5rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); } .ds-mode-quick { background: var(--yellow, #f2d742); } .ds-mode h2 { margin: 0; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 3rem; line-height: 0.86; } .ds-mode p { margin: 0; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); line-height: 1.4; } .ds-mode button { min-height: 2.8rem; border: 3px solid var(--ink, #14151a); background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-weight: 700; cursor: pointer; } .ds-mode button:hover { background: var(--tomato, #ef4d39); } .ds-mode button:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } @media (max-width: 620px) { .ds-launcher { grid-template-columns: 1fr; gap: 0.45rem; padding: 0.8rem; } .ds-mode { border-width: 3px; padding: 0.75rem; box-shadow: 0.2rem 0.25rem 0 var(--ink, #14151a); } .ds-mode h2 { font-size: 2.35rem; } }"
+      "name": "Quick Preset Select",
+      "kind": "input",
+      "refersTo": "field",
+      "description": "One compact native select inside Quick Fight Settings. Full Power is the default, Hot Start applies its values in place, and editing a covered value derives Custom.",
+      "html": "<label class=\"ds-preset\"><span><strong>FIGHT PRESET</strong><small>Start strong or tune every rule.</small></span><select name=\"quickPreset\"><option selected>FULL POWER</option><option>HOT START</option><option>CUSTOM</option></select></label>",
+      "css": ".ds-preset { display: grid; min-height: 4.6rem; grid-template-columns: minmax(12rem, 0.72fr) minmax(0, 1.28fr); align-items: center; gap: 1rem; border: 3px solid var(--ink, #14151a); padding: 0.45rem 0.7rem; background: var(--paper-muted, #d8d1bf); color: var(--ink, #14151a); } .ds-preset > span { display: grid; } .ds-preset strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2rem; font-weight: 400; line-height: 0.9; } .ds-preset small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-preset select { min-height: 3rem; border: 2px solid var(--ink, #14151a); padding: 0.45rem 0.65rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); font: 800 0.9rem var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-preset select:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } @media (max-width: 620px) { .ds-preset { grid-template-columns: minmax(0, 1fr) minmax(8.5rem, 0.8fr); gap: 0.5rem; border-width: 2px; padding: 0.4rem; } }"
     },
     {
       "name": "Context Navigation Rail",
       "kind": "nav",
       "refersTo": "navigation-tab",
       "description": "A context-specific rail: this global example exposes Main Menu, Profile, Settings, and persisted music intent; Story swaps in its own destinations.",
-      "html": "<div class=\"ds-global-rail\"><nav class=\"ds-nav\" aria-label=\"Global\"><button class=\"ds-nav-tab ds-is-active\">MAIN MENU</button><button class=\"ds-nav-tab\">PROFILE</button><button class=\"ds-nav-tab\">SETTINGS</button></nav><button class=\"ds-music\" aria-label=\"Turn music on\" aria-pressed=\"false\">♫</button></div>",
-      "css": ".ds-global-rail { display: flex; border: 4px solid var(--ink, #14151a); background: var(--chalk, #f7f0dd); } .ds-nav { display: flex; flex: 1; } .ds-nav-tab { min-width: 6rem; flex: 1; border: 0; border-right: 2px dashed rgb(20 21 26 / 36%); padding: 0.8rem 0.65rem; background: transparent; color: var(--indigo, #111f46); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-nav-tab:hover, .ds-nav-tab.ds-is-active { background: var(--yellow, #f2d742); color: var(--ink, #14151a); } .ds-nav-tab.ds-is-active { box-shadow: inset 0 -0.45rem 0 var(--tomato, #ef4d39); } .ds-nav-tab:focus-visible, .ds-music:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-music { width: 3.5rem; border: 0; border-left: 3px solid var(--ink, #14151a); background: var(--tomato, #ef4d39); color: var(--chalk, #f7f0dd); font-size: 1.25rem; cursor: pointer; } .ds-music[aria-pressed=\"true\"] { background: var(--indigo, #111f46); }"
+      "html": "<div class=\"ds-global-rail\"><nav class=\"ds-nav\" aria-label=\"Global\"><button class=\"ds-nav-tab ds-is-active\">MAIN MENU</button><button class=\"ds-nav-tab\">PROFILE</button><button class=\"ds-nav-tab\">SETTINGS</button></nav><button class=\"ds-music\" aria-label=\"Turn music on\" aria-pressed=\"false\"><span data-icon=\"music\" aria-hidden=\"true\"></span></button></div>",
+      "css": ".ds-global-rail { display: flex; border: 4px solid var(--ink, #14151a); background: var(--chalk, #f7f0dd); } .ds-nav { display: flex; flex: 1; } .ds-nav-tab { min-width: 6rem; flex: 1; border: 0; border-right: 2px dashed rgb(20 21 26 / 36%); padding: 0.8rem 0.65rem; background: transparent; color: var(--indigo, #111f46); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-weight: 700; cursor: pointer; } .ds-nav-tab:hover, .ds-nav-tab.ds-is-active { background: var(--yellow, #f2d742); color: var(--ink, #14151a); } .ds-nav-tab.ds-is-active { box-shadow: inset 0 -0.45rem 0 var(--tomato, #ef4d39); } .ds-nav-tab:focus-visible, .ds-music:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-music { display: grid; width: 3.5rem; place-items: center; border: 0; border-left: 3px solid var(--ink, #14151a); background: var(--tomato, #ef4d39); color: var(--chalk, #f7f0dd); cursor: pointer; } .ds-music [data-icon] { width: 1.25rem; height: 1.25rem; } .ds-music[aria-pressed=\"true\"] { background: var(--indigo, #111f46); }"
     },
     {
-      "name": "Registration Field",
-      "kind": "input",
-      "refersTo": "field",
-      "description": "A plain paper field held by a hard registration border.",
-      "html": "<label class=\"ds-field-label\" for=\"ds-collector\">COLLECTOR NAME</label><input class=\"ds-field\" id=\"ds-collector\" value=\"Collector\" />",
-      "css": ".ds-field-label { display: block; margin-bottom: 0.35rem; color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; } .ds-field { width: 100%; min-height: 2.8rem; border: 3px solid var(--ink, #14151a); border-radius: 0; padding: 0.45rem 0.65rem; background: #fff; color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-field:hover { border-color: var(--tomato, #ef4d39); } .ds-field:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
+      "name": "Rules Work-Order Ledger",
+      "kind": "custom",
+      "refersTo": "print-ticket",
+      "description": "Match Settings Rules group direct choices into one compact perforated ledger instead of independent dashboard panels.",
+      "html": "<section class=\"ds-rules-ledger\"><div><span><strong>DIFFICULTY</strong><small>How quickly your opponent reacts</small></span><span class=\"ds-rule-choices\"><button>NORMAL</button><button aria-pressed=\"true\">HARD</button></span></div><div><span><strong>FIGHT CLOCK</strong><small>How long the fight can run</small></span><span class=\"ds-rule-choices\"><button>90 SEC</button><button aria-pressed=\"true\">120 SEC</button></span></div><div><span><strong>MATCH PATTERN</strong><small>Keep this matchup or shuffle it</small></span><button>SHUFFLE PATTERN</button></div></section>",
+      "css": ".ds-rules-ledger { display: grid; width: min(52rem, 100%); border: 3px solid var(--ink, #14151a); background: var(--paper-muted, #d8d1bf); color: var(--ink, #14151a); box-shadow: 0.55rem 0.7rem 1.25rem rgb(4 8 22 / 35%); } .ds-rules-ledger > div { display: grid; min-height: 4.6rem; grid-template-columns: minmax(12rem, 0.72fr) minmax(0, 1.28fr); align-items: center; gap: 1rem; border-bottom: 2px dashed rgb(20 21 26 / 55%); padding: 0.45rem 0.7rem; } .ds-rules-ledger > div:last-child { border-bottom: 0; } .ds-rules-ledger > div > span:first-child { display: grid; } .ds-rules-ledger strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2rem; font-weight: 400; line-height: 0.9; } .ds-rules-ledger small { font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-rule-choices { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: 0.25rem; } .ds-rule-choices button { min-height: 3rem; border: 2px solid var(--ink, #14151a); background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); font-weight: 900; cursor: pointer; } .ds-rule-choices button[aria-pressed=\"true\"] { background: var(--yellow, #f2d742); box-shadow: inset 0 -0.28rem 0 var(--tomato, #ef4d39); } .ds-rule-choices button:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
     },
     {
-      "name": "Lineup Specimen Ticket",
+      "name": "Registered Art Cartridge",
       "kind": "card",
       "refersTo": "print-ticket",
-      "description": "A roster ticket combining square character art, class, health, and explicit state.",
-      "html": "<button class=\"ds-lineup-ticket\"><span class=\"ds-lineup-art\" aria-hidden=\"true\">MV</span><span class=\"ds-lineup-copy\"><strong>MARA VEX</strong><small>IMPACT · 160 / 160</small></span><span class=\"ds-lineup-state\">ACTIVE</span></button>",
-      "css": ".ds-lineup-ticket { position: relative; display: grid; width: 18rem; min-height: 5.4rem; grid-template-columns: 4rem minmax(0, 1fr); gap: 0.6rem; align-items: center; border: 3px solid var(--ink, #14151a); padding: 0.35rem; overflow: hidden; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); text-align: left; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 0.55rem), calc(100% - 0.55rem) 100%, 0 100%); cursor: pointer; } .ds-lineup-ticket:hover { background: var(--yellow, #f2d742); transform: translateX(0.2rem); } .ds-lineup-ticket:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } .ds-lineup-art { display: grid; width: 4rem; height: 4rem; place-items: center; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.5rem; } .ds-lineup-copy { display: grid; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-lineup-copy strong { font-size: 1rem; } .ds-lineup-copy small { font-size: 0.72rem; } .ds-lineup-state { position: absolute; right: -1.6rem; bottom: 0.45rem; width: 6rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-size: 0.62rem; font-weight: 700; text-align: center; transform: rotate(-38deg); }"
+      "description": "The reusable square registered well used for Fighter, Accessory, and Modification selectors; copy compresses before artwork changes shape.",
+      "html": "<button class=\"ds-cartridge\" aria-pressed=\"true\"><span class=\"ds-cartridge-art\" aria-hidden=\"true\">VK</span><span class=\"ds-cartridge-copy\"><strong>VIKING</strong><small>YOUR TEAM · LEVEL 4</small><span>Moves unlock at Level 10</span></span></button>",
+      "css": ".ds-cartridge { display: grid; width: 18rem; min-height: 5rem; grid-template-columns: 4.25rem minmax(0, 1fr); gap: 0.4rem; align-items: center; border: 2px solid var(--ink, #14151a); padding: 0.25rem; overflow: hidden; background: var(--paper-muted, #d8d1bf); color: var(--ink, #14151a); text-align: left; cursor: pointer; } .ds-cartridge[aria-pressed=\"true\"] { background: var(--yellow, #f2d742); } .ds-cartridge-art { display: grid; width: 4.25rem; aspect-ratio: 1; place-items: center; border: 2px solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-deep, #091128); color: var(--chalk, #f7f0dd); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.4rem; } .ds-cartridge-copy { display: grid; min-width: 0; gap: 0.15rem; font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-cartridge-copy strong { overflow: hidden; font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.5rem; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; } .ds-cartridge-copy small, .ds-cartridge-copy span { font-size: 0.68rem; font-weight: 700; } .ds-cartridge:hover { background: var(--chalk, #f7f0dd); } .ds-cartridge:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } @media (max-width: 620px) { .ds-cartridge { width: 100%; grid-template-columns: 3.25rem minmax(0, 1fr); } .ds-cartridge-art { width: 3.25rem; } }"
+    },
+    {
+      "name": "Lineup Accessory Tray",
+      "kind": "custom",
+      "refersTo": "print-ticket",
+      "description": "A bounded visual tray on Fighter Select. It changes the targeted Lineup's Accessory and never appears as a Match Settings field.",
+      "html": "<fieldset class=\"ds-accessory-tray\"><legend>YOUR LINEUP ACCESSORY</legend><button aria-pressed=\"true\"><span aria-hidden=\"true\">NO</span><strong>NONE</strong></button><button aria-pressed=\"false\"><img src=\"/assets/accessories/second-wind.png\" alt=\"\"><strong>SECOND WIND</strong></button><button aria-pressed=\"false\"><img src=\"/assets/accessories/dead-air.png\" alt=\"\"><strong>DEAD AIR</strong></button></fieldset>",
+      "css": ".ds-accessory-tray { display: grid; grid-template-columns: repeat(3, minmax(4.5rem, 1fr)); gap: 0.4rem; max-width: 24rem; border: 3px solid var(--ink, #14151a); padding: 0.45rem; background: var(--indigo-deep, #091128); color: var(--chalk, #f7f0dd); } .ds-accessory-tray legend { padding: 0 0.35rem; font: 700 0.72rem var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); letter-spacing: 0.08em; } .ds-accessory-tray button { display: grid; min-height: 5rem; grid-template-rows: minmax(0, 1fr) auto; gap: 0.25rem; border: 2px solid var(--ink, #14151a); padding: 0.2rem; overflow: hidden; background: var(--paper-muted, #d8d1bf); color: var(--ink, #14151a); cursor: pointer; } .ds-accessory-tray button[aria-pressed=\"true\"] { background: var(--yellow, #f2d742); box-shadow: inset 0 -0.28rem 0 var(--tomato, #ef4d39); } .ds-accessory-tray img, .ds-accessory-tray button > span { display: grid; width: 100%; aspect-ratio: 1; place-items: center; object-fit: cover; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); } .ds-accessory-tray strong { overflow: hidden; font: 700 0.68rem var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); text-overflow: ellipsis; white-space: nowrap; } .ds-accessory-tray button:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
     },
     {
       "name": "Battle Move Seal",
@@ -337,12 +345,12 @@
       "css": ".ds-charge-deck { position: relative; width: min(64rem, 100%); padding: 0; color: var(--chalk, #f7f0dd); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); } .ds-charge-heading { position: absolute; z-index: 2; right: 0.55rem; bottom: 0.52rem; left: 0.55rem; display: flex; justify-content: space-between; font-weight: 700; pointer-events: none; } .ds-charge-heading span, .ds-charge-heading strong { border: 2px solid var(--chalk, #f7f0dd); padding: 0.1rem 0.35rem; background: var(--indigo-deep, #091128); } .ds-charge-heading strong { color: var(--charge-green, #8eef5d); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.45rem; } .ds-meter { height: 3.25rem; border: 0.38rem solid var(--ink, #14151a); overflow: hidden; background: var(--indigo-soft, #1a326a); box-shadow: 0 0 0 0.2rem var(--focus, #8de1ff), 0.38rem 0.45rem 0 0.2rem var(--ink, #14151a); } .ds-meter span { display: block; width: 100%; height: 100%; background: var(--charge-green, #8eef5d); box-shadow: inset -0.5rem 0 0 #48bf36; transform: scaleX(var(--ds-fill, 0)); transform-origin: left center; transition: transform 80ms linear; }"
     },
     {
-      "name": "Status Stamp",
-      "kind": "chip",
-      "refersTo": "status-stamp",
-      "description": "An outlined text label for battle status that never relies on colour alone.",
-      "html": "<span class=\"ds-status\">BURN · 2 TURNS</span>",
-      "css": ".ds-status { display: inline-block; border: 2px solid var(--ink, #14151a); padding: 0.06rem 0.35rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); font-family: var(--body, \"Atkinson Hyperlegible\", ui-sans-serif, sans-serif); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; } .ds-status:hover { background: var(--yellow, #f2d742); } .ds-status:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; }"
+      "name": "Read-Only Review Fight",
+      "kind": "custom",
+      "refersTo": "print-ticket",
+      "description": "The shared final match contract: two resolved starter-led Lineups, minimal facts, explicit routes to Parent and Main Menu, and one Start Fight action.",
+      "html": "<section class=\"ds-fight-setup\"><div class=\"ds-duel\"><article><h2>YOUR LINEUP</h2><strong>VIKING</strong><small>STARTER · SECOND WIND</small></article><b>VS</b><article><h2>OPPONENT</h2><strong>GRIM REAPER</strong><small>STARTER · DEAD AIR</small></article></div><dl><div><dt>DIFFICULTY</dt><dd>NORMAL</dd></div><div><dt>CLOCK</dt><dd>120 SEC</dd></div></dl><footer><button class=\"ds-back\">FIGHT SETTINGS</button><button class=\"ds-back\">CHANGE FIGHTERS</button><button class=\"ds-back\">MAIN MENU</button><button class=\"ds-start\">START FIGHT</button></footer></section>",
+      "css": ".ds-fight-setup { display: grid; width: min(64rem, 100%); gap: 0.65rem; padding: 0.75rem; background: var(--indigo-deep, #091128); color: var(--chalk, #f7f0dd); } .ds-duel { display: grid; grid-template-columns: minmax(0, 1fr) 4rem minmax(0, 1fr); gap: 0.55rem; align-items: stretch; } .ds-duel article { display: grid; min-height: 12rem; align-content: end; gap: 0.25rem; border: 4px solid var(--ink, #14151a); padding: 0.65rem; background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); } .ds-duel article:last-child h2 { background: var(--tomato, #ef4d39); color: var(--chalk, #f7f0dd); } .ds-duel h2 { margin: -0.65rem -0.65rem auto; padding: 0.4rem 0.55rem; background: var(--indigo, #111f46); color: var(--chalk, #f7f0dd); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2rem; font-weight: 400; } .ds-duel article > strong { font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.4rem; font-weight: 400; } .ds-duel > b { display: grid; width: 4rem; aspect-ratio: 1; place-items: center; align-self: center; border: 3px solid var(--ink, #14151a); background: var(--yellow, #f2d742); color: var(--ink, #14151a); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 2.5rem; transform: rotate(-4deg); } .ds-fight-setup dl { display: flex; margin: 0; border: 3px solid var(--ink, #14151a); background: var(--paper-muted, #d8d1bf); color: var(--ink, #14151a); } .ds-fight-setup dl div { display: flex; flex: 1; justify-content: space-between; padding: 0.45rem 0.65rem; border-right: 2px dashed var(--ink, #14151a); } .ds-fight-setup dl div:last-child { border-right: 0; } .ds-fight-setup dt, .ds-fight-setup dd { margin: 0; font-weight: 800; } .ds-fight-setup footer { display: grid; grid-template-columns: repeat(3, minmax(8rem, 0.55fr)) minmax(14rem, 1fr); gap: 0.55rem; } .ds-fight-setup footer button { min-height: 3.6rem; border: 3px solid var(--ink, #14151a); font-weight: 900; cursor: pointer; } .ds-back { background: var(--chalk, #f7f0dd); color: var(--ink, #14151a); } .ds-start { background: var(--yellow, #f2d742); color: var(--ink, #14151a); font-family: var(--display, \"League Gothic\", \"Arial Narrow\", sans-serif); font-size: 1.8rem; } .ds-fight-setup footer button:hover { background: var(--tomato, #ef4d39); color: var(--chalk, #f7f0dd); } .ds-fight-setup footer button:focus-visible { outline: 4px solid var(--focus, #8de1ff); outline-offset: 3px; } @media (max-width: 620px) { .ds-duel { grid-template-columns: 1fr; } .ds-duel > b { width: 3rem; } .ds-fight-setup footer { grid-template-columns: repeat(2, minmax(0, 1fr)); } .ds-start { grid-column: 1 / -1; } }"
     },
     {
       "name": "Battle Result Stamp",
@@ -355,7 +363,7 @@
   ],
   "narrative": {
     "northStar": "The Collector Drawer",
-    "overview": "loftwah/fighter feels like a pulled-open collector drawer full of underground fight bills, specimen labels, scuffed toys, and hand-stamped results. It is tactile, dense, irreverent, and immediately playable: the interface behaves like a physical archive being sorted under pressure, never like a floating sci-fi HUD.\n\nThe visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. The player enters through an explicit three-mode launcher, then sees navigation scoped to the chosen game context. Static rectangular character art becomes kinetic through layered stills, two-frame swaps, panel translation, cut-ins, hit-stop, shake, flashes, and stamped feedback. Story's durable interaction loop is story node → Lineup → Charge Strip → Stamps → next print.",
+    "overview": "loftwah/fighter feels like a pulled-open collector drawer full of underground fight bills, specimen labels, scuffed toys, and hand-stamped results. It is tactile, dense, irreverent, and immediately playable: the interface behaves like a physical archive being sorted under pressure, never like a floating sci-fi HUD.\n\nThe visual world uses a constrained risograph palette, blunt display type, torn seams, clipped paper corners, halftone texture, and square pull-tabs. The player enters through an explicit three-mode launcher, then sees navigation scoped to the chosen game context. Static opaque character frames become kinetic through metadata-aware cover crops, fixed panel masks, two-layer crossfades, internal pans and zooms, sliding cut-ins, hit-stop, shake, flashes, and stamped feedback. Story's durable interaction loop is story node → Lineup → Charge Strip → Stamps → next print.\n\nQuick Fight expresses that system as the implemented Saturday-Night Match Cabinet: the Main Menu opens directly into a full-viewport Fighter Select, then a bounded Quick Fight Settings workbench, one shared read-only Review Fight contract, and Battle. A compact native preset select applies Full Power, Hot Start, or the derived Custom state in place; it is not a destination of its own. Square registered Fighter and Accessory artwork sits in physical cartridge wells on the Lineup surface, while rules and build facts form attached rails or work orders rather than floating dashboard cards. The result feels like loading toys into a battered imaginary arcade machine while remaining semantic, legible, and playable with touch, mouse, or keyboard.",
     "keyCharacteristics": [
       "Pulled-open drawer composition with compact rails and strict trays.",
       "Three explicit game-mode bills before any session begins.",
@@ -364,7 +372,11 @@
       "Layered rectangular Kinetic Print stills with halftone wear and purposeful misregistration.",
       "Square, bordered controls with torn or clipped paper edges; circles are reserved for holes and stamps.",
       "Large condensed uppercase display type paired with highly legible body copy.",
-      "Short, forceful motion that always has a reduced-motion equivalent."
+      "Short, forceful motion that always has a reduced-motion equivalent.",
+      "No-scroll Quick Fight stages that keep the next meaningful action inside the 1920×1080 and 390×844 Tier 1 viewports.",
+      "Square registered Character, Accessory, and Modification wells attached to cabinet rails rather than decorative card chrome.",
+      "Quick Fight follows Main Menu → Fighter Select → Quick Fight Settings → Review Fight → Battle.",
+      "Accessories are Lineup-owned visual choices; Quick Fight Settings contains only Rules and Builds."
     ],
     "rules": [
       {
@@ -398,13 +410,13 @@
         "section": "layout"
       },
       {
-        "name": "The Pinned-Control Rule",
-        "body": "Health, timer, Lineups, Pause, and the Move-and-Charge field attach to screen edges so the arena never becomes a small card inside UI chrome.",
+        "name": "The Thin-HUD Rule",
+        "body": "Permanent battle UI is limited to pause, timer, opponent Health and Charge, Lineup health, three Moves, one player Charge Strip, and a contextual Accessory. Everything else is progressive disclosure or a dedicated state.",
         "section": "layout"
       },
       {
         "name": "The Three-Move Rule",
-        "body": "All three Moves remain equally prominent; no action receives a privileged hero-card slot.",
+        "body": "All three Move controls remain equally prominent; no action receives a privileged hero-card slot.",
         "section": "layout"
       },
       {
@@ -418,8 +430,38 @@
         "section": "layout"
       },
       {
+        "name": "The Bounded Match Workflow Rule",
+        "body": "Fighter Select, Quick Fight Settings, and Review Fight each complete their normal task inside the Tier 1 viewport; compress evidence and paginate catalogues before introducing document scroll.",
+        "section": "layout"
+      },
+      {
+        "name": "The Lineup Ownership Rule",
+        "body": "Fighters, order, starter, and Accessories belong to the Lineup draft. Match Settings may describe their resolved builds but never owns or edits an Accessory.",
+        "section": "layout"
+      },
+      {
+        "name": "The Escape Route Rule",
+        "body": "Every full-screen workflow surface exposes both its immediate Parent and Main Menu. Battle pause and result sheets offer the same two destinations without placing application navigation over the arena.",
+        "section": "layout"
+      },
+      {
         "name": "The Charge-First Rule",
-        "body": "The player reads one large Charge Strip and the three Move seals anchored to it as a single control. Moves must never drift into a separate row of dashboard cards.",
+        "body": "The player reads one large Charge Strip and three rectangular Move controls as a single control field. Exact costs remain printed on the Moves; fuller forecasts stay available on focus without crowding the arena.",
+        "section": "layout"
+      },
+      {
+        "name": "The Two-Band Move Rule",
+        "body": "Every Move control's cost seal has two independent readings. The inner band communicates Normal, Tier 1 silver, or Tier 2 gold. The outer spot-colour band communicates the authored tactical category: Attack tomato, Team attack orange, Stun yellow, Team stun violet, Support mid-green, Team support teal, Charge control cyan, or Special chalk. Support does not use the brighter charge green reserved for readiness. Both meanings also have visible text labels. Pause contains the shared key; colour is never the only carrier.",
+        "section": "layout"
+      },
+      {
+        "name": "The Deliberate Pause Rule",
+        "body": "Escape always toggles the blocking pause sheet. P follows the player's global choice: hold to pause and release to resume, or press to toggle. The visible pause control remains available to touch and pointer users, and the pause sheet states both keyboard behaviours.",
+        "section": "layout"
+      },
+      {
+        "name": "The Developer Switchboard Rule",
+        "body": "Development builds add a dense operator surface in the same print-archive world: one-click scenario tickets lead, the custom Lineup composer sits beneath them, and diagnostics/convenience tools remain in a narrow ledger. It is visibly marked as an isolated sandbox and never masquerades as a fourth game mode.",
         "section": "layout"
       },
       {
@@ -448,18 +490,33 @@
         "section": "shapes"
       },
       {
+        "name": "The Icon Provenance Rule",
+        "body": "Use a named icon from the central Lucide registry for ordinary controls. Do not improvise one-off SVG paths inside screens.",
+        "section": "shapes"
+      },
+      {
+        "name": "The Honest Rectangle Rule",
+        "body": "Generated art is never treated as a transparent sprite. Its rectangle is the shot. A bespoke Move or reaction plate may include static illustrative arcs, debris, stars, or impact shapes that belong to that single authored pose; code still supplies the panel, crop, timed movement, changing particles, impact words, values, statuses, and dynamic state.",
+        "section": "components"
+      },
+      {
+        "name": "The Live Copy Rule",
+        "body": "Gameplay artwork contains no readable or pseudo-readable names, Move titles, values, costs, statuses, instructions, or UI. The game layer owns that text and may place it over a declared quiet region of the shot. Fixed text is allowed only in an explicitly authored promotional composition that is never mirrored and is not duplicated by a live overlay.",
+        "section": "components"
+      },
+      {
         "name": "The Persistent Intent Rule",
         "body": "Turning music off is durable user intent, not a temporary state for the current screen.",
         "section": "components"
       },
       {
         "name": "The Touch Explanation Rule",
-        "body": "Responsive compression may shorten Move output to a compact hit/effect summary, but it may not remove the explanation entirely.",
+        "body": "Responsive compression may move the predicted hit/effect summary into the control's accessible name or focus disclosure, but it may not remove the explanation entirely. Pause/help states that holding a Move opens its details so touch inspection is discoverable without permanent tutorial prose over the Charge Strip.",
         "section": "components"
       },
       {
         "name": "The Choose-Then-Watch Rule",
-        "body": "A command is selected before its presentation. No further player or AI decision may be accepted while that presentation owns the stage.",
+        "body": "A command is selected before its presentation. No further player or AI decision may be accepted while that presentation owns the stage. The opponent's reaction timer restarts only after presentation releases, leaving the player a readable active beat before the next AI command.",
         "section": "components"
       },
       {
@@ -471,14 +528,19 @@
     "dos": [
       "Do stage play as labelled physical matter: drawers, tickets, specimen wells, pull-tabs, perforations, and stamps.",
       "Do open on the explicit three-mode launcher and preserve the selected session context until the player exits it.",
-      "Do keep the first battle viewport readable as top health, edge Lineups, dominant arena art, then the large integrated Move-and-Charge field.",
+      "Do keep the first battle viewport readable as dominant arena art with one thin opponent strip, edge Lineups, and one lower Move-and-Charge field.",
       "Do freeze the complete simulation during countdowns and attack presentations while letting presentation motion finish.",
       "Do use layered rectangular and square art as an intentional Kinetic Print language.",
-      "Do retain a readable short Move explanation on touch layouts and a fuller explanation on hover or keyboard focus.",
+      "Do retain a readable predicted hit/effect summary on touch layouts and a fuller explanation on hover or keyboard focus.",
       "Do pair colour with text, shape, position, or value for every gameplay state.",
       "Do preserve visible keyboard focus, touch-sized controls, and the reduced-motion override.",
       "Do preserve the player's music on/off intent across navigation, reloads, and Collector profiles.",
-      "Do use stable logical asset IDs and the approved fallback chain when adding new art."
+      "Do use stable logical asset IDs and the approved fallback chain when adding new art.",
+      "Do keep Fighter Select, Quick Fight Settings, and Review Fight usable without deliberate document scrolling at 1920×1080 and 390×844.",
+      "Do keep registered Character, Accessory, and Modification art square and recognisable while adjacent copy absorbs responsive compression.",
+      "Do show level-gated build controls in place with their Level 5 or Level 10 explanation and semantic disabled state.",
+      "Do expose both Parent and Main Menu on every full-screen workflow surface and on Battle pause/result sheets.",
+      "Do source ordinary control icons from the central Lucide registry and keep their visible text or accessible name."
     ],
     "donts": [
       "Don't introduce rounded dashboard cards, pills as default controls, glassmorphism, neon glow, or a sci-fi HUD.",
@@ -488,9 +550,15 @@
       "Don't mix global navigation with Story-only destinations such as Store or Missions.",
       "Don't start Story, Quick Fight, Tournament, or music playback merely because a screen rendered.",
       "Don't make one Move visually dominant over the other two.",
-      "Don't separate the player's Moves from the Charge Strip or hide all Move explanation on touch.",
+      "Don't separate the player's Move controls from the Charge Strip, shrink the Strip into a minor meter, or remove accessible Move explanation.",
+      "Don't duplicate active Health, Charge, readiness, traits, statuses and event prose across multiple permanent panels.",
       "Don't rely on colour alone for class, status, availability, health, or outcome.",
-      "Don't add decorative motion without a short purpose and a reduced-motion equivalent."
+      "Don't add decorative motion without a short purpose and a reduced-motion equivalent.",
+      "Don't repeat Fighter Select inside Review Fight; confirmation is a read-only match contract with one `Start Fight` action.",
+      "Don't turn Match Settings Rules or Builds into oversized, independent dashboard panels when a perforated ledger or attached work order expresses the relationship.",
+      "Don't put Accessory selection in Match Settings; Accessories belong to Lineups and use visual registered-art choices on Fighter Select.",
+      "Don't turn Quick Fight presets into cards, bills, tabs, or a separate screen; use one compact native select inside Rules and update the visible settings in place.",
+      "Don't hand-author private SVG paths for ordinary interface icons."
     ]
   }
 }

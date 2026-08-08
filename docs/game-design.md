@@ -99,7 +99,11 @@ Owner corrections refine that work rather than requiring the owner to author it.
 The application opens on a Main Menu. The player explicitly starts or resumes Story
 Mode, Quick Fight, or Tournament Mode; launching the application never drops
 the player into an active game. Global navigation contains Main Menu, Profile,
-and Settings only.
+Settings, and global access to Achievements. Achievements may be visually
+secondary to the three everyday destinations, but never become Story-owned.
+Every non-Battle view provides an explicit Parent destination and Main Menu
+destination. Battle Pause provides Quit Fight to Parent and Quit to Main Menu;
+neither path depends on browser history or an unexplained wordmark.
 
 Before the Main Menu, the application may play an ordered, skippable startup
 sequence made from text, registered images, and registered video. A visible
@@ -109,27 +113,82 @@ advances or skips it; it never disappears on a timer. Its brief handoff names
 the Main Menu rather than claiming a fight is loading. Startup content never
 creates or resumes a game session by itself.
 
-Every player-facing battle passes through a mode-appropriate **Fight Setup**
-surface before arena construction. Quick Fight edits both Lineups, Story shows
-owned and authored-loan access plus any forced composition, and Tournament
-selects the deployed Lineup and starter from the locked Tournament Roster.
-These surfaces share confirmation language even when a mode deliberately locks
-some choices.
+Every player-facing battle passes through a mode-appropriate launch flow before
+arena construction. Each stage has one job:
+
+1. **Character Select** chooses the available Characters or long-lived Roster
+   when the mode has not already supplied them;
+2. **Lineup preparation** chooses the one-to-three deployed instances, their
+   order, and one team Accessory per side where the player controls that side;
+3. **Fight Settings** edits only the encounter rules and sandbox builds the
+   current mode permits; and
+4. **Review Fight** is a read-only match card showing both resolved Lineups,
+   effective rules, provenance, and one `Start Fight` action.
+
+Accessories are Lineup equipment. They never belong to Fight Settings, even
+when a preset or authored encounter supplies a default Accessory. Fight
+Settings may display that the Lineup influences a resolved value such as
+opening Charge, but the Accessory itself is chosen, inherited, or locked during
+Lineup preparation.
+
+Quick Fight selects both sandbox sides. Story selects from eligible active
+Squad members while the Story owns the opponent. Tournament selects living
+members from its locked Roster while the Tournament owns the opponent. A preset
+may update or lock individual values, but it is never a destination screen and
+never bypasses Character Select or Review Fight. The exact accepted flows and
+choice ownership are maintained in
+[`docs/match-launch-flows.md`](match-launch-flows.md).
 
 ### Story Mode
 
+- An ordinary Story fight flows from its Story node through active Character
+  and Lineup preparation, authored Fight Settings, Review Fight, and Battle.
+  Authored rules remain visible even when every value is read-only.
 - One canonical main story and any number of independent or unofficial stories.
-- Nodes can be dialogue, narration, choice, battle, store, mission unlock, reward, tournament, chapter transition, or ending.
+  The first persistence model keeps one Story Save per Story definition, so
+  different Stories can remain in progress concurrently without sharing
+  progression.
+- A Story Level is an ordered sequence of content, grants/rewards, fights,
+  preset Tournaments, choices, Store/Mission hooks, chapter transitions, and
+  completion steps. These are composable steps rather than mutually exclusive
+  page renderers.
+- Content steps may use text, registered images/slideshows/video, music, sound,
+  and explicit player-controlled advance. A grant may occur before a fight so
+  its Character, Modification, or Accessory is available during selection.
+- Every Story declares at least one ordinary fight, at least one preset
+  Tournament, and one registered Story completion award that can be recorded
+  globally.
 - Cleared nodes are directly replayable. Dialogue and cleared fights can be skipped.
 - Choices may alter reachable short-term nodes but never permanently lock content.
 - Story progress is shared across difficulty settings.
-- A story may lend characters or override a Lineup only by giving the player additional access, never by permanently taking owned content.
+- A Story Save owns its collection, duplicate instances, XP, levels, builds,
+  currency, Modifications, Accessories, Store, Missions, active Story Squad,
+  progress, and Story-local Tournament Trophy records. No Story progression
+  belongs to Quick Fight, standalone Tournament, or another Story Save.
+- A Story may own any number of Character instances but only up to six form its
+  active Story Squad. An ordinary fight deploys one to three eligible active
+  Squad members and chooses one starter.
+- Ordinary Story fights start both sides at full Health/resources and do not
+  carry Health between attempts or Levels. A loss keeps earned XP and requires
+  another attempt; a win resolves the Level's ordered post-fight steps.
+- A boss is an ordinary authored fight with boss presentation, rules, content,
+  and rewards. It is not a separate combat engine or required node type.
+- A Story may lend Characters or override a Lineup only by giving the player
+  additional access, never by permanently taking Story-owned content.
 - Collection, Store, Missions, story Lineup, and authored story tournaments are
   scoped to an active Story Mode session. Store and Missions are not global
   Main Menu destinations.
+- Stories reference preset Tournament definitions only. Tournament entry
+  confirms up to six eligible Story-owned or explicitly loaned instances and
+  locks that snapshot as the Tournament Roster for the common Tournament
+  runner.
 - Each Story definition declares the Missions and Tournament Trophies required
   for its ending. Reaching the final node is not completion by itself: the
   ending unlocks only when every declared requirement is complete.
+- A Tournament victory inside Story is recorded in that Story Save and upserts
+  the same Tournament Trophy into the global Profile cabinet. Deleting or
+  restarting the Story Save removes its local record but not the global Trophy
+  or Story completion award already earned.
 - After the canonical Story is complete, Quick Fight remains the unrestricted
   end-game sandbox. This is a state of the existing mode, not a fourth mode.
 - Player-facing numbered levels are battles, Tournaments, and later authored
@@ -140,12 +199,36 @@ some choices.
 
 ### Quick Fight
 
-- Quick Fight defaults to the progression-neutral **Standard Build**: Level 10,
-  nine equally budgeted allocation points (`2 Vitality / 2 Power / 2 Evasion /
-2 Fortune / 1 Tempo`), Stock Moves, and no Modification.
+- Quick Fight always opens Character Select directly from the Main Menu. It
+  does not insert a preset gallery, Quick Fight Home, or other destination
+  between the launcher and selection.
+- After both Lineups are prepared, Quick Fight opens **Quick Fight Settings**.
+  Its compact preset selector updates the related controls in place. Selecting
+  a preset is a convenience operation, not navigation; the player remains on
+  the same screen and can inspect every affected value.
+- The registered V2 choices include **Full Power** as the default, **Hot
+  Start**, and **Custom**. Full Power is the immediately entertaining sandbox
+  baseline: the highest supported Character level, every available allocation
+  point assigned through a balanced default, and every Move at the highest
+  supported tier. Hot Start applies its faster opening conditions on top of
+  that baseline. Custom describes a draft after any preset-controlled value is
+  changed; it is not a separate screen.
+- Preset copy describes the feel of the fight in player language. Exact levels,
+  tiers, clock values, Charge, and other affected values remain visible beside
+  their controls rather than being used as a navigation pitch.
+- Lineup preparation owns fighter order, starter choice, and each side's
+  Accessory. Quick Fight Settings owns difficulty, clock, opening Charge,
+  deterministic seed, and supported per-instance sandbox builds. Changing a
+  preset may update both categories, but the resulting Accessory remains shown
+  and editable with its Lineup.
 - All Characters and opponents are available without ownership. Supported custom
   rules may override levels, allocations, Move order/tiers, Modifications, music, and
   encounter rules, but the setup and result must be labelled `Custom`.
+- Both sides use temporary sandbox instances. Exact duplicate Characters are
+  allowed, and each instance may carry its own supported sandbox build.
+- Global Settings owns the preferred difficulty used to initialise a new
+  match. Quick Fight Settings owns the effective difficulty for that draft;
+  changing either one does not silently rewrite the other.
 - It is a sandbox and does not require ownership.
 - Quick Fight never changes Story progress, Stamps, XP, Missions, ownership, or
   tournament runs.
@@ -153,36 +236,71 @@ some choices.
   last two Lineups. This is history, not progression or a reward source.
 - Story completion may relabel Quick Fight as the end-game sandbox, but never
   restricts its roster, rules, rematches, or matchup controls.
-- The first V2 benchmark defaults to Standard-build Viking against
-  Standard-build Grim Reaper with Second Wind versus Dead Air and seed
-  `3844240869`.
+- The deterministic Viking-versus-Grim-Reaper benchmark remains a development
+  and balance fixture. It does not define the player-facing Quick Fight default
+  or require technical benchmark language in the launch flow.
 
 ### Tournament Mode
 
-- The player selects a Tournament Roster of up to six Characters before entry.
+- Standalone Tournament Mode offers preset Tournaments and locally persisted
+  custom Tournaments. Stories may reference preset Tournaments only.
+- Standalone entry flows from Tournament choice through Roster selection,
+  Tournament Settings, per-fight Lineup preparation, Review Fight, and Battle.
+  Tournament Settings exposes run-wide defaults and explicit per-fight
+  overrides. A preset definition is immutable; changing its authored values
+  creates a custom variant rather than rewriting registered content.
+- Every Tournament has a stable identity, name, one mandatory registered
+  Trophy, at least one fight, one or more ordered nodes, and named opponent
+  Squads containing one to three configured Characters.
+- Tournament nodes may be fights, content, seeded chance, rewards, recovery,
+  Store access, or data-authored next-fight effects. Supported effects include
+  healing, team-wide healing, revival, starting Charge, starting statuses, and
+  temporary stat modifiers.
+- The player selects a locked Tournament Roster of up to six configured
+  Character instances before entry. Standalone instances are sandbox builds;
+  Story Tournament instances come from that Story Save's eligible collection
+  and loans.
 - Up to three living Tournament Roster members enter each fight.
+- Before each fight the player chooses the deployed living members, their
+  order, starter, and one available Lineup Accessory. Accessories do not belong
+  to Tournament Settings.
 - The launch Wrong Door Cup locks all six launch Characters, lets the player
   deploy one to three living members before each ready round, and explicitly
   choose which deployed Character starts.
-- Health, defeat state, and equipped Modifications persist between rounds.
+- Player Roster Health, defeat state, equipped Modifications, and used
+  Accessories persist across the complete Tournament. The current opponent
+  Squad's Health and defeat state persist across repeat deployments for its
+  fight node; a new opponent Squad starts from authored initial state.
 - Modifications cannot be changed during the tournament.
 - Interstitial nodes can heal, heal the Tournament Roster, revive, grant starting Charge, stun the next enemy, open a store, or give a reward.
-- Losing a fight ends the run. A tournament can be restarted and replayed indefinitely.
-- A loss clears the run and the next attempt begins at Round 1. Participants
-  still receive the authored loss XP; there is no rematch inside the failed run.
+- When a deployed Lineup loses but at least one Tournament Roster member lives,
+  the same fight remains current and the player chooses another Lineup from the
+  living Roster. The run is lost only when all Roster members are defeated or
+  the player explicitly forfeits the Tournament.
+- Forfeit ends the run after confirmation and cannot preserve or restore a
+  pre-fight snapshot. A Tournament can be restarted and replayed indefinitely.
+- Beating every required opponent Squad and resolving every remaining required
+  node wins the Tournament.
 - Activating the selected team Accessory exhausts it for the remainder of that
   Tournament run. Restarting or completing the run restores availability.
 - Standalone tournaments can be customised; Story tournaments are authored.
+- A Tournament inside Story reuses the common Tournament runner while
+  inheriting the Story-owned/loaned Character pool, builds, Story Save, and
+  authored preset definition. The player still chooses the eligible locked
+  Roster and each living deployment; authored Tournament Settings are visible
+  but not editable.
 - A standalone tournament uses Standard Builds unless its authored or Custom
   rules explicitly provide another locked Tournament Roster build. A Story tournament uses
   owned or authored-loan builds.
-- Every authored Tournament names exactly one registered Trophy with an opaque
+- Every preset Tournament names exactly one registered Trophy with an opaque
   image asset, name, description, and accessible alternative text.
-- The first win permanently adds that Trophy to the selected Player profile.
-  Replays can pay their authored repeat rewards, but cannot duplicate ownership.
-- Custom Tournaments may select from registered generic Trophy designs. Generic
-  designs are reusable presentation options; each completed custom Tournament
-  still records its own authored award identity when custom persistence ships.
+- Global Trophy ownership is de-duplicated by Tournament identity. The first
+  standalone or Story win upserts it into the selected Player Profile; replays
+  cannot duplicate it.
+- Custom Tournaments must select a registered generic Trophy before they can be
+  saved. Deleting a custom Tournament removes its dependent global Trophy
+  record. Removing a preset Tournament is a versioned content migration because
+  Story definitions and saves may reference it.
 
 ### Achievements
 
@@ -205,6 +323,10 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
   pause menu during every battle.
 - The Lab launches validated, named scenarios or a custom one-to-three-Character
   matchup without requiring Story progress, ownership, or setup navigation.
+- The Lab may bypass the player-facing Review Fight screen for speed, but every
+  scenario still resolves through the same validated match-configuration
+  boundary as player-facing modes. It cannot call the combat engine with an
+  unclassified or partially resolved draft.
 - Scenario controls include Lineups, levels, Move presentation tiers, Modifications,
   seed, difficulty, starting health and Charge, time limit, and whether the
   fight opens paused.
@@ -671,6 +793,12 @@ post-Story sandbox.
 4. Interstitial store or revive offer when applicable.
 5. Final against Ned Kelly and Grim Reaper.
 
+If a deployed Lineup is defeated during any of these fights while another
+Tournament Roster member lives, the same opponent Squad remains current with
+its remaining Health and the player deploys another one-to-three-Character
+Lineup. The Wrong Door Cup is lost only when all six locked Roster members are
+defeated or the player forfeits.
+
 The first victory awards the unique **Wrong Door Cup** Trophy, its registered
 image, Stamps, XP, and a chance to reveal a rare store offer. The Trophy is
 shown permanently on the selected Profile and is required for First Run
@@ -763,8 +891,16 @@ loftwah/fighter identity and name are not the raster-art target.
 ## 14. Profiles, saves, and accessibility
 
 - The prototype supports three local Player profiles. Slot-shaped storage is
-  an implementation detail; the player manages identity and progression from
-  Profile, not Settings.
+  an implementation detail; the player manages global identity, Story Saves,
+  records, custom Tournaments, Tournament Trophies, and Story completion awards
+  from Profile, not Settings.
+- The Player Profile does not own Characters or Story economy/progression.
+  Those facts belong to a selected Story Save. Quick Fight and standalone
+  Tournament create temporary configurable sandbox instances instead.
+- The first implementation permits one save per Story definition and many
+  different Stories in progress concurrently. Restarting or deleting a Story
+  requires confirmation. Multiple simultaneous saves of the same Story are an
+  additive future extension rather than a prerequisite.
 - Autosave after battles, purchases, upgrades, and story progress.
 - Preferences are separate from progression and survive progression wipes.
 - Settings owns accessibility, audio, difficulty, pause-key behaviour, and
@@ -821,9 +957,10 @@ open-world systems.
   that remain `UNKNOWN EXACT`; V2 uses measured original baselines.
 - Final visual approval and future character/story-specific visual variance.
 - The implemented Battle spatial candidate remains subject to owner playtest.
-  The revised Main Menu, navigation, and Shared Fight Setup remain separate
+  The revised Main Menu, navigation, and shared Review Fight remain separate
   screenshot-led approval batches rather than accepted current production
   layouts.
 - Analytics and observability provider, cloud-save design, and account identity.
-  Multiplayer rules remain deliberately deferred until V2.4; PWA, account,
-  native, and online milestone timing is fixed by `docs/release-roadmap.md`.
+  Multiplayer rules remain deliberately deferred without a committed
+  milestone; PWA, account, native, and optional future online scope is fixed by
+  `docs/release-roadmap.md`.

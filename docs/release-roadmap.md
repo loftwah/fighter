@@ -6,12 +6,14 @@ Created: 2026-07-31
 
 This roadmap states strict release requirements without prescribing a detailed
 implementation backlog. `docs/v2-release-spec.md` owns V2 acceptance.
+`docs/platform-direction.md` preserves the larger AI-operated product-line
+direction but cannot add work to a milestone by itself.
 
 ## Version policy
 
 - `V2` means the first frozen release and maps to `v2.0.0`.
 - `2.0.x` releases fix or refine V2 without adding planned feature breadth.
-- `V2.1`, `V2.2`, `V2.3`, and `V2.4` are cumulative. A later release must
+- `V2.1`, `V2.2`, and `V2.3` are cumulative. A later release must
   preserve the accepted quality and compatibility of every earlier milestone.
 - A milestone does not ship merely because its headline feature exists. Its
   complete release gate must pass.
@@ -26,9 +28,20 @@ implementation backlog. `docs/v2-release-spec.md` owns V2 acceptance.
 - Release-quality battle feel, readability, balance evidence, and explanation.
 - A complete Quick Fight experience.
 - One short end-to-end Story proof and one complete Tournament proof.
+- A storage-agnostic global Player Profile with Story-owned collection,
+  economy, progression, active Squad, and one local Story Save per Story
+  definition. The same model remains usable without an account.
+- One validated shared Lineup boundary used by Quick Fight, Story, and
+  Tournament after their separate preset/build/ownership policies resolve.
+- The representative Tournament keeps a locked Roster of up to six, persists
+  Health across the run, repeats an unfinished fight while any Roster member
+  lives, and ends only when every required opponent Squad is beaten, the whole
+  player Roster is defeated, or the player forfeits.
 - The representative Tournament awards one unique illustrated Trophy to the
-  selected Profile; Story completion requires every V2 Mission and Tournament,
-  then identifies Quick Fight as the unrestricted end-game sandbox.
+  selected Profile. A Story-local win also records that Trophy in the Story
+  Save without duplicating its global ownership. Story completion requires
+  every V2 Mission and Tournament, awards the Story's completion item, then
+  identifies Quick Fight as the unrestricted end-game sandbox.
 - Coherent production-facing pages, views, navigation, local profiles,
   progression, recovery, settings, accessibility, and responsive layouts.
 - A truthful public landing page at `fighter.loftwah.com` with a deliberate
@@ -66,7 +79,11 @@ implementation backlog. `docs/v2-release-spec.md` owns V2 acceptance.
   demonstration.
 - Every shipping Tournament has its own registered illustrated Trophy. Custom
   Tournament authoring can select from a maintained generic Trophy set without
-  requiring new engine or UI code.
+  requiring a new engine or per-Tournament UI branch.
+- Ship the local custom Tournament builder over the same validated definition
+  schema: editable name, mandatory generic Trophy, configured opponent Squads,
+  at least one fight, and ordered fight/content/chance/recovery nodes. Custom
+  Tournament deletion removes its dependent global Trophy record.
 - Produce and integrate SFX for every shipping Move family and core UI,
   readiness, hit, status, victory, defeat, reward, and navigation event.
 - Keep music, SFX, and dialogue independently controllable.
@@ -97,8 +114,9 @@ implementation backlog. `docs/v2-release-spec.md` owns V2 acceptance.
   recovery, and no silent replacement of a newer local profile.
 - Account export, deletion, retention, audit, rate-limit, support, and
   operational recovery paths.
-- A versioned service boundary that can authenticate a future V2.4 match
-  session without implementing matchmaking or network battles.
+- A versioned service boundary that could authenticate a future match session
+  if multiplayer is separately approved, without implementing matchmaking or
+  network battles in V2.2.
 - Local Quick Fight and owned offline content remain playable without an
   account.
 
@@ -160,11 +178,15 @@ commands, or multiplayer UI.
 - The web and native applications consume the same versioned content and save
   contracts.
 
-## V2.4 — multiplayer release
+## Deferred multiplayer — no committed milestone
 
-V2.4 is the last currently planned feature milestone. Nothing in V2–V2.3 may be
-delayed by speculative multiplayer implementation; those releases preserve
-only the documented domain and adapter seams.
+Multiplayer is not part of the committed V2–V2.3 delivery programme. Nothing in
+those releases may be delayed by speculative multiplayer implementation. The
+existing deterministic, side-agnostic domain and adapter seams remain useful,
+but they do not promise a multiplayer release or reserve the label V2.4.
+
+The requirements below are preserved as an optional future gate only. They do
+not become backlog items until the owner accepts a separate design change.
 
 ### Required
 
@@ -221,12 +243,12 @@ After V2.3, a distribution release may ship signed iOS and Android store
 applications once the game is ready and the required developer memberships,
 privacy material, ratings, testing tracks, and review evidence exist. App Store
 or Play Store distribution is deliberately not required while web play remains
-the primary development loop, and it does not need to wait for V2.4
-multiplayer.
+the primary development loop, and it does not need to wait for multiplayer.
 
-## Beyond V2.4
+## Beyond V2.3
 
-The roadmap does not currently commit to:
+The roadmap does not currently assign a release number or delivery commitment
+to:
 
 - monetisation;
 - open-world traversal;
@@ -236,6 +258,120 @@ The roadmap does not currently commit to:
 - a second gameplay implementation.
 
 Any of these requires an accepted design change and its own release milestone.
+
+The absence of a release number does not discard the longer product direction.
+LOFTWAH FIGHTER is intended to become the first proven gameplay capability in a
+system that can create and maintain materially different games from high-level
+briefs. The direction includes research, coherent world/content generation,
+provider-neutral asset production, web-first canaries, supporting content,
+optional merchandise and monetisation, controlled native promotion, and safe
+uplift of active products. `docs/platform-direction.md` owns that strategic
+context and its safety boundaries.
+
+## Unversioned product-line proofs
+
+These are evidence gates, not accepted feature releases. They may be assigned
+to versions only through normal change control. Safe discovery may accompany an
+existing milestone when it directly satisfies that milestone—for example, a
+V2.1 Character or Story template may record what a later product brief would
+need—but speculative platform work cannot delay the owning release.
+
+### Proof P0 — known-good fighter baseline
+
+- Freeze V2 with its fun, quality, accessibility, deterministic report,
+  content-template, migration, and release evidence intact.
+- Preserve the current public identity and local-first behaviour.
+- Record the cost and manual work required to add V2.1 content before claiming
+  autonomous generation.
+
+Exit: `v2.0.0` is accepted and the first content templates can recreate their
+release structures without bespoke engine or renderer branches.
+
+### Proof P1 — one radical re-theme
+
+- Produce one coherent, rights-safe variation of the fighter using a real
+  brief and the existing known-good mechanics.
+- Inventory every changed identity, content, asset, copy, audio, build,
+  persistence, and code concern.
+- Identify accidental LOFTWAH FIGHTER and First Run coupling from evidence.
+- Do not create repository fleet machinery, a customer portal, or a universal
+  schema merely to complete the comparison.
+
+Exit: the variation is playable and reviewable, and the comparison clearly
+distinguishes configurable content from code that genuinely deserves
+extraction.
+
+### Proof P2 — earned product boundary
+
+- Produce LOFTWAH FIGHTER and the re-themed product as independent release
+  candidates while sharing the proven combat, accessibility, validation, and
+  migration behaviour.
+- Define only the minimum product identity/content contract required by those
+  two builds.
+- Keep public names, storage identities, content IDs, and assets from leaking
+  between products.
+- Record what is versioned and what compatibility currently means.
+
+Exit: two products build and validate without copying the combat implementation
+or forcing product-specific branches into the domain.
+
+### Proof P3 — brief to reviewed proposal
+
+- Use one real high-level brief and, where relevant, time-stamped source-backed
+  research.
+- Produce a reviewable concept, audience/purpose statement, character and Story
+  plan, asset inventory, consistency anchors, rights/policy risks, generation
+  budget, and approval plan before high-cost production.
+- Preserve factual research separately from invented canon.
+- Treat the input fields as learned evidence rather than a universal form.
+
+Exit: an owner can approve, revise, or reject the proposal without reading the
+game's internal schemas or paying for the complete asset run.
+
+### Proof P4 — generated web canary
+
+- Generate or author the approved content and media through explicit,
+  provider-replaceable workflows with provenance and fallbacks.
+- Reject invalid assets, content, Story/Tournament paths, builds, and release
+  claims automatically where the repository has a declared contract.
+- Stage and deliberately release one coherent web experiment.
+- Record elapsed time, provider and human cost, failures, interventions,
+  publication approvals, and reusable outputs.
+
+Exit: the experiment can be stopped, archived, iterated, or promoted without
+leaving an unmaintainable fork.
+
+### Proof P5 — operate and uplift
+
+- Define privacy-reviewed observation for a real active product rather than a
+  speculative universal analytics taxonomy.
+- Define experimental, active, maintenance-only, frozen, archived, and
+  unsupported lifecycle behaviour as required.
+- When at least two active products consume a central update, prove
+  compatibility classification, migration, validation, staging, approval,
+  rollback, and release.
+- Add supported-version windows only when active product obligations justify
+  them.
+
+Exit: a central improvement measurably reduces fleet maintenance while each
+product can remain, migrate, or retire deliberately.
+
+### Optional proofs after product evidence
+
+- Economy or monetisation for one product with consumer, platform, rating,
+  support, refund, disclosure, and failure policy.
+- A provider-neutral supporting-content hand-off to the existing external
+  scheduler.
+- Approved print-on-demand merchandise through a replaceable fulfilment
+  adapter.
+- PWA or native promotion for a canary whose purpose or traction justifies it.
+- One reusable mini-game introduced by a concrete Story requirement.
+- A second primary gameplay capability introduced by a concrete product, then
+  compared with the fighter before any universal gameplay abstraction.
+
+Repository topology, remote content/CMS, the canonical brief format, provider
+selection, fleet release cadence, and the public platform identity remain open
+until their owning proofs expose the requirement.
 
 ## Release engineering across milestones
 
@@ -248,8 +384,9 @@ Any of these requires an accepted design change and its own release milestone.
 - Accepted versions use annotated Git tags and GitHub Releases. A Release links
   the exact source tag, web artefact, schema/migration notes, known issues, and
   owner acceptance evidence.
-- PWA, account/Worker, native, and multiplayer workflows are added at their
-  owning milestones; V2 does not carry unused signing secrets or backend
+- PWA, account/Worker, and native workflows are added at their owning
+  milestones; multiplayer workflows exist only after a separately accepted
+  future milestone. V2 does not carry unused signing secrets or backend
   credentials.
 - Public native-release jobs remain manual and environment-protected. They
   cannot run merely because a branch was pushed.

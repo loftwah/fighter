@@ -22,3 +22,13 @@ related_targets: ["src/main.ts", "src/styles.css", "src/app/App.ts"]
 - Responsive commitment: preset tickets wrap; custom Lineups stack before diagnostics; the Charge field remains full-width and all three Move seals retain touch-sized targets on narrow screens.
 - Safety: development battles and debug mutations are labelled and cannot award Stamps/XP, update Missions/Story, or alter a tournament run.
 - Unresolved: future local-human enemy controls will reuse the side-agnostic command surface after controller assignment is proven here.
+
+## Standalone Tournament V2 extension
+
+- Scope and mode: Tournament Choice, Roster Select, Settings, deployment and result stages; Operate.
+- Player job: choose or resume one registered preset, lock up to six configured sandbox instances, resolve run-wide rules, deploy living members with one available Accessory, review the exact carried match and finish the run.
+- Chosen composition: live-led Tournament cassette. The real arena plate, Trophy ticket and bracket form one selected preset; resume/new-run actions attach beneath it and the unavailable V2.1 Builder remains a narrow secondary drawer.
+- Approved concept: `.impeccable/mocks/tournament-choice/live-led-approved.png`.
+- Component grammar: square three-pixel registration borders, indigo cabinet wells, chalk work orders, tomato definition field, acid-yellow selected/primary tickets, soft physical offset shadows, League Gothic display and Atkinson body copy.
+- Responsive commitment: Choice may own one content scroller; Roster selection paginates; Settings, deployment, Review Fight and Battle keep their primary action in the Tier 1 viewport.
+- Asset inventory: registered Tournament arena and Trophy, registered Character portraits, registered Accessory squares, central Lucide controls. All labels and controls remain semantic code.

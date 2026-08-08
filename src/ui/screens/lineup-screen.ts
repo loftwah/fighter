@@ -10,6 +10,7 @@ import {
 } from "../components/fight-setup";
 import { renderTraitSynergy } from "../components/trait-synergy";
 import { formatLabel } from "../format";
+import { ICONS } from "../icons";
 
 export interface LineupScreenModel {
   save: SaveData;
@@ -48,8 +49,7 @@ export function renderLineupScreen(model: LineupScreenModel): string {
     titleId: "lineup-title",
     title: encounter.title,
     summary,
-    backControl:
-      '<button class="text-button" data-route="story">← Back to Story</button>',
+    backControl: `<button class="text-button" data-route="story">${ICONS.arrowLeft}<span>Back to Story</span></button>`,
     rulesHtml: renderFightSetupRules("Story encounter", [
       `Node ${encounter.index}`,
       formatLabel(model.difficulty),
@@ -81,7 +81,7 @@ export function renderLineupScreen(model: LineupScreenModel): string {
     `,
     actionHtml: `
       <button class="primary-action" data-command="start-battle">
-        Confirm Lineup · Start Fight <span aria-hidden="true">→</span>
+        Confirm Lineup · Start Fight ${ICONS.arrowRight}
       </button>
     `,
   });

@@ -1,6 +1,9 @@
 import { missions } from "../content/initial-content";
 import type { SaveData } from "../persistence/save";
-import { tournamentDefinitions } from "../tournaments/catalog";
+import {
+  tournamentDefinitions,
+  type TournamentMatchSettings,
+} from "../tournaments/catalog";
 
 export type FirstRunBattleNodeId = "story.first-run.02" | "story.first-run.05";
 
@@ -12,6 +15,7 @@ export interface FirstRunEncounter {
   playerCharacterIds: string[];
   enemyCharacterIds: string[];
   seed: number;
+  matchSettings: TournamentMatchSettings;
   nextNodeId: "story.first-run.03" | "story.first-run.06";
   victoryTitle: string;
   victoryCopy: string;
@@ -61,6 +65,13 @@ const encounters: Record<FirstRunBattleNodeId, FirstRunEncounter> = {
       "character.humpty",
     ],
     seed: 20_260_729,
+    matchSettings: {
+      timeLimitMs: 120_000,
+      playerStartingCharge: 0,
+      opponentStartingCharge: 0,
+      playerAccessoryId: "accessory.press-pass",
+      opponentAccessoryId: "accessory.dead-air",
+    },
     nextNodeId: "story.first-run.03",
     victoryTitle: "History remains unresolved.",
     victoryCopy: "Lost Property is now open on this save.",
@@ -73,6 +84,13 @@ const encounters: Record<FirstRunBattleNodeId, FirstRunEncounter> = {
     playerCharacterIds: ["character.tux", "character.humpty"],
     enemyCharacterIds: ["character.moses", "character.grim-reaper"],
     seed: 20_260_805,
+    matchSettings: {
+      timeLimitMs: 120_000,
+      playerStartingCharge: 0,
+      opponentStartingCharge: 0,
+      playerAccessoryId: "accessory.press-pass",
+      opponentAccessoryId: "accessory.dead-air",
+    },
     nextNodeId: "story.first-run.06",
     victoryTitle: "The impossible team works.",
     victoryCopy: "The Wrong Door Cup is unlocked on this save.",
@@ -134,7 +152,7 @@ export function firstRunCompletionStatus(
     },
   );
   const missingTrophyIds = FIRST_RUN_REQUIRED_TROPHY_IDS.filter(
-    (trophyId) => !save.tournamentTrophyIds.includes(trophyId),
+    (trophyId) => !save.storyTournamentTrophyIds.includes(trophyId),
   );
   return {
     ready: incompleteMissionIds.length === 0 && missingTrophyIds.length === 0,

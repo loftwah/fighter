@@ -1,5 +1,9 @@
 # Audio plan
 
+The selected generated-audio creative direction, candidate policy, dialogue
+contract, and ElevenLabs production workflow live in `docs/audio-bible.md`.
+This document owns the current runtime catalogue and fallback behaviour.
+
 ## Current stage
 
 The eighteen supplied MP3 files are the only non-silent audio. They form one

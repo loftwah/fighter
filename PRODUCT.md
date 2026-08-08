@@ -11,12 +11,12 @@ browsers in portrait and landscape plus the 16-inch 2024 MacBook Pro desktop
 reference. The iPhone 14 is the physical mobile reference. Other current
 desktops and tablets are Tier 2; older or unusual browsers are best effort.
 
-V2.1 adds PWA installation, V2.2 adds optional accounts and cloud saves, V2.3
-proves thin iOS and Android development shells around the shared web/game
-codebase, and V2.4 is the final currently planned feature milestone for
-server-authoritative multiplayer. Public app-store distribution can follow V2.3
-when the product and developer memberships are ready; it does not wait for
-multiplayer. `docs/release-roadmap.md` owns those milestone boundaries.
+V2.1 adds content breadth and PWA installation, V2.2 adds optional accounts and
+cloud saves, and V2.3 proves thin iOS and Android development shells around the
+shared web/game codebase. Multiplayer has no committed milestone. Public
+app-store distribution can follow V2.3 when the product and developer
+memberships are ready; it does not wait for multiplayer.
+`docs/release-roadmap.md` owns those milestone boundaries.
 
 ## Users
 
@@ -39,6 +39,27 @@ fight → earn → upgrade → collect → unlock → fight again
 
 It must also prove that static rectangular art can feel energetic through image swaps, panel motion, zoom, shake, hit-stop, flashes, particles, and sound.
 
+## Long-term product direction
+
+LOFTWAH FIGHTER is also the first concrete proof for a possible AI-operable
+game product line. The long-term aim is to keep proven gameplay, accessibility,
+validation, migrations, and release quality improving centrally while distinct
+games vary their identity, characters, world, Story, artwork, audio, and other
+supported content.
+
+This is constrained generation inside known-good capabilities, not arbitrary
+prompt-to-game code generation. A high-level brief may eventually become a
+reviewable concept, research record, coherent product, web canary, supporting
+content library, and selectively promoted native release. Human approval
+remains available for rights, policy, spend, monetisation, merchandise, native,
+and publication decisions.
+
+The current repository has not yet proved a configurable product boundary or
+multiple independently releasable games. V2 remains the protected first product
+baseline. The evidence-gated direction and deliberately open decisions live in
+`docs/platform-direction.md`; only `docs/release-roadmap.md` may turn them into
+milestone scope.
+
 ## Positioning
 
 Unlike an exploration RPG, the game delivers story, stores, missions, choices, tournaments, rewards, and battles through authored nodes from `00` to `n`. Its reusable effect engine and kinetic rectangular presentation allow a large, visually varied roster without conventional animation or bespoke gameplay code for every action.
@@ -49,21 +70,30 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
   Mode are explicit game-session objects that the player starts or resumes. A
   skippable data-driven intro and visible wait state may run before the launcher
   without creating a game session.
-- Story Mode contains replayable, skippable authored nodes and a canonical main story, while independent stories can be added from content data.
-- Quick Fight exposes all characters and begins with a progression-neutral
-  Standard Build; explicitly labelled Custom rules can expose supported levels,
-  Moves, tiers, Modifications, and encounter overrides.
-- Tournament Mode runs a self-contained sequence in one sitting, with a locked tournament roster and persistent health/defeat state between rounds.
-- Every Tournament awards one illustrated Trophy on its first completed run.
-  Trophy ownership belongs to the selected Profile and is displayed in its
-  Trophy cabinet.
+- Story Mode contains replayable, skippable authored Levels and a canonical
+  main Story, while independent Stories can be added from content data. Each
+  Story has its own save, collection, economy, active six-Character Squad,
+  progression, local Tournament Trophy records, and completion award.
+- Quick Fight exposes all Characters and begins with the progression-neutral
+  Full Power sandbox build; explicitly labelled Custom rules can expose
+  supported levels, Moves, tiers, Modifications, and encounter overrides.
+- Tournament Mode offers presets and later locally authored custom definitions.
+  A run locks up to six configured Characters, deploys up to three at a time,
+  and persists player Roster plus current opponent Squad Health until every
+  required Squad is beaten, the complete player Roster is defeated, or the
+  player forfeits.
+- Every Tournament owns one mandatory illustrated Trophy. Global ownership is
+  de-duplicated by Tournament identity; Story wins also record the Trophy in
+  that Story Save.
 - A Story completes only after all of its declared Missions and Tournament
   Trophies are complete. The existing Quick Fight mode becomes the unrestricted
   post-Story sandbox.
 - Store and Missions are Story Mode surfaces and never appear in the global
   Main Menu.
-- Profile owns Player identity and progression selection. Settings separately
-  owns preferences, accessibility, audio, and local-data controls.
+- Profile owns global Player identity, records, custom Tournaments, Story Save
+  selection, Tournament Trophies, and Story completion awards. Characters and
+  progression belong to individual Story Saves. Settings separately owns
+  preferences, accessibility, audio, and local-data controls.
 - Achievements are profile-specific and retroactively derived from durable
   progression facts.
 - Mobile portrait, mobile landscape, and the 16-inch MacBook Pro reference are
@@ -85,7 +115,8 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
   at scores two and three. A Character has at most two Traits and contributes at
   most one total Trait point.
 - Character cap 25; modifications unlock at level 5; action reordering and upgrades unlock at level 10; action tiers are stock, gold, and platinum.
-- Local-first settings and multiple local Player profiles, with progression separate from preferences.
+- Local-first settings and multiple local Player profiles, with Story-owned
+  progression separate from global records and preferences.
 - Easy, Normal, Hard, and Brutal difficulty; changing difficulty never blocks story progress.
 - Existing music under `music/` is the current soundtrack pool.
 - Dialogue and sound effects use silent placeholder files until a later ElevenLabs integration.
@@ -151,6 +182,8 @@ Unlike an exploration RPG, the game delivers story, stores, missions, choices, t
    and generalise before specialising.
 7. Give every fact one authoritative owner and every test, document, asset, and
    telemetry event a named beneficiary.
+8. Prove one concrete variation before extracting a reusable product boundary;
+   prove two active products before designing fleet uplift.
 
 ## Accessibility & Inclusion
 

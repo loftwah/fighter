@@ -1,6 +1,4 @@
-import type { BattleEvent, BattleState } from "../combat/types";
-
-// Tournament orchestration remains separate from the shared combat engine.
+import type { BattleState } from "../combat/types";
 import type {
   TournamentCaseBuild,
   TournamentRunData,
@@ -9,10 +7,22 @@ import {
   tournamentDefinition,
   type TournamentRoundDefinition,
 } from "./catalog";
+import {
+  TOURNAMENT_ROSTER_MAX,
+  captureTournamentOpponentHealth,
+  captureTournamentRosterHealth,
+  createTournamentRun,
+  exhaustTournamentAccessory,
+  exhaustTournamentAccessoriesFromEvents,
+  lockTournamentRoster,
+  normaliseTournamentRun,
+  recordTournamentBattleResult,
+  resolveTournamentInterlude,
+  selectTournamentDeployment,
+} from "./runner";
 
 export type CheapSeatsDrop = "front-print-repair" | "case-repair" | "hot-start";
-export const TOURNAMENT_ROSTER_MAX = 6;
-
+export { TOURNAMENT_ROSTER_MAX } from "./runner";
 export type CheapSeatsEncounter = TournamentRoundDefinition;
 
 export const cheapSeatsPlayerIds = [
@@ -24,9 +34,8 @@ export const cheapSeatsPlayerIds = [
   "character.grim-reaper",
 ] as const;
 
-export const cheapSeatsEncounters = tournamentDefinition(
-  "tournament.cheap-seats",
-).rounds;
+const cheapSeatsDefinition = tournamentDefinition("tournament.cheap-seats");
+export const cheapSeatsEncounters = cheapSeatsDefinition.rounds;
 
 export function createCheapSeatsRun(
   caseBuilds: TournamentCaseBuild[] = [],
@@ -40,93 +49,21 @@ export function createCheapSeatsRun(
       `A Tournament Roster accepts at most ${TOURNAMENT_ROSTER_MAX} Characters`,
     );
   }
-  return normaliseCheapSeatsRun({
-    tournamentId: "tournament.cheap-seats",
+  return createTournamentRun({
+    definition: cheapSeatsDefinition,
+    roster: caseBuilds,
     origin,
-    roundIndex: 0,
-    phase: "ready",
-    caseBuilds: structuredClone(caseBuilds),
-    deployedInstanceIds: [...deployedInstanceIds],
-    healthRatios: Object.fromEntries(
-      caseBuilds.map((build) => [build.instanceId, 1]),
-    ),
-    activeInstanceId: deployedInstanceIds[0] ?? null,
-    nextRoundChargeBonus: 0,
-    selectedDrop: null,
-    exhaustedAccessoryIds: [],
+    deployedInstanceIds,
+    allowEmptyRoster: true,
   });
 }
 
-export function exhaustTournamentAccessory(
-  sourceRun: TournamentRunData,
-  accessoryId: string,
-): TournamentRunData {
-  return {
-    ...sourceRun,
-    exhaustedAccessoryIds: [
-      ...new Set([...sourceRun.exhaustedAccessoryIds, accessoryId]),
-    ],
-  };
-}
-
-export function exhaustTournamentAccessoriesFromEvents(
-  sourceRun: TournamentRunData,
-  events: readonly BattleEvent[],
-): TournamentRunData {
-  return events.reduce(
-    (run, event) =>
-      event.type === "accessoryActivated" &&
-      event.side === "player" &&
-      event.message
-        ? exhaustTournamentAccessory(run, event.message)
-        : run,
-    sourceRun,
-  );
-}
+export { exhaustTournamentAccessory, exhaustTournamentAccessoriesFromEvents };
 
 export function normaliseCheapSeatsRun(
   sourceRun: TournamentRunData,
 ): TournamentRunData {
-  const run = structuredClone(sourceRun);
-  run.caseBuilds = Array.from(
-    new Map(
-      run.caseBuilds.map((build) => [build.instanceId, build] as const),
-    ).values(),
-  ).slice(0, TOURNAMENT_ROSTER_MAX);
-  if (run.caseBuilds.length === 0) {
-    return run;
-  }
-  const rosterIds = new Set(run.caseBuilds.map((build) => build.instanceId));
-  for (const instanceId of Object.keys(run.healthRatios)) {
-    if (!rosterIds.has(instanceId)) {
-      delete run.healthRatios[instanceId];
-    }
-  }
-  for (const build of run.caseBuilds) {
-    run.healthRatios[build.instanceId] ??= 1;
-  }
-  const livingIds = run.caseBuilds
-    .filter((build) => (run.healthRatios[build.instanceId] ?? 1) > 0)
-    .map((build) => build.instanceId);
-  const livingIdSet = new Set(livingIds);
-  run.deployedInstanceIds = Array.from(
-    new Set(
-      run.deployedInstanceIds.filter(
-        (instanceId) =>
-          rosterIds.has(instanceId) && livingIdSet.has(instanceId),
-      ),
-    ),
-  ).slice(0, 3);
-  if (run.deployedInstanceIds.length === 0) {
-    run.deployedInstanceIds = livingIds.slice(0, 3);
-  }
-  if (
-    !run.activeInstanceId ||
-    !run.deployedInstanceIds.includes(run.activeInstanceId)
-  ) {
-    run.activeInstanceId = run.deployedInstanceIds[0] ?? null;
-  }
-  return run;
+  return normaliseTournamentRun(sourceRun);
 }
 
 export function selectCheapSeatsDeployment(
@@ -134,30 +71,11 @@ export function selectCheapSeatsDeployment(
   deployedInstanceIds: string[],
   activeInstanceId: string | null,
 ): TournamentRunData {
-  if (sourceRun.phase !== "ready") {
-    return sourceRun;
-  }
-  const livingIds = new Set(
-    sourceRun.caseBuilds
-      .filter((build) => (sourceRun.healthRatios[build.instanceId] ?? 1) > 0)
-      .map((build) => build.instanceId),
+  return selectTournamentDeployment(
+    sourceRun,
+    deployedInstanceIds,
+    activeInstanceId,
   );
-  const deployment = Array.from(
-    new Set(
-      deployedInstanceIds.filter((instanceId) => livingIds.has(instanceId)),
-    ),
-  ).slice(0, 3);
-  if (deployment.length === 0) {
-    throw new Error("Deploy at least one living Tournament Character");
-  }
-  return {
-    ...sourceRun,
-    deployedInstanceIds: deployment,
-    activeInstanceId:
-      activeInstanceId && deployment.includes(activeInstanceId)
-        ? activeInstanceId
-        : deployment[0]!,
-  };
 }
 
 export function lockCheapSeatsCase(
@@ -165,53 +83,23 @@ export function lockCheapSeatsCase(
   caseBuilds: TournamentCaseBuild[],
 ): TournamentRunData {
   if (sourceRun.caseBuilds.length > 0) {
-    return normaliseCheapSeatsRun(sourceRun);
-  }
-  if (caseBuilds.length > TOURNAMENT_ROSTER_MAX) {
-    throw new Error(
-      `A Tournament Roster accepts at most ${TOURNAMENT_ROSTER_MAX} Characters`,
-    );
+    return normaliseTournamentRun(sourceRun);
   }
   const run = structuredClone(sourceRun);
-  run.caseBuilds = structuredClone(caseBuilds);
   for (const [index, build] of caseBuilds.entries()) {
     const legacyLoanerId = `loaner.${index}.${build.characterId}`;
-    const legacyRatio = run.healthRatios[legacyLoanerId];
     if (
       run.healthRatios[build.instanceId] === undefined &&
-      legacyRatio !== undefined
+      run.healthRatios[legacyLoanerId] !== undefined
     ) {
-      run.healthRatios[build.instanceId] = legacyRatio;
+      run.healthRatios[build.instanceId] = run.healthRatios[legacyLoanerId]!;
     }
     if (run.activeInstanceId === legacyLoanerId) {
       run.activeInstanceId = build.instanceId;
     }
-    if (legacyLoanerId !== build.instanceId) {
-      delete run.healthRatios[legacyLoanerId];
-    }
+    delete run.healthRatios[legacyLoanerId];
   }
-  const lockedInstanceIds = new Set(
-    run.caseBuilds.map((build) => build.instanceId),
-  );
-  for (const instanceId of Object.keys(run.healthRatios)) {
-    if (!lockedInstanceIds.has(instanceId)) {
-      delete run.healthRatios[instanceId];
-    }
-  }
-  const activeRatio = run.activeInstanceId
-    ? run.healthRatios[run.activeInstanceId]
-    : undefined;
-  if (
-    !run.activeInstanceId ||
-    !lockedInstanceIds.has(run.activeInstanceId) ||
-    activeRatio === 0
-  ) {
-    run.activeInstanceId =
-      run.caseBuilds.find(
-        (build) => (run.healthRatios[build.instanceId] ?? 1) > 0,
-      )?.instanceId ?? null;
-  }
-  return normaliseCheapSeatsRun(run);
+  return lockTournamentRoster(run, caseBuilds);
 }
 
 export function cheapSeatsEncounter(roundIndex: number): CheapSeatsEncounter {
@@ -221,14 +109,8 @@ export function cheapSeatsEncounter(roundIndex: number): CheapSeatsEncounter {
   );
 }
 
-export function captureCaseHealth(state: BattleState): Record<string, number> {
-  return Object.fromEntries(
-    state.player.squad.map((combatant) => [
-      combatant.instanceId,
-      Math.max(0, Math.min(1, combatant.currentHealth / combatant.maxHealth)),
-    ]),
-  );
-}
+export const captureCaseHealth = captureTournamentRosterHealth;
+export const captureOpponentHealth = captureTournamentOpponentHealth;
 
 export function restoreCaseHealth(
   sourceState: BattleState,
@@ -241,21 +123,22 @@ export function restoreCaseHealth(
       combatant.currentHealth = Math.round(combatant.maxHealth * ratio);
     }
   }
+  for (const combatant of state.enemy.squad) {
+    const ratio = run.opponentHealthRatios[combatant.instanceId];
+    if (ratio !== undefined) {
+      combatant.currentHealth = Math.round(combatant.maxHealth * ratio);
+    }
+  }
   const savedActive = state.player.squad.findIndex(
     (combatant) =>
       combatant.instanceId === run.activeInstanceId &&
       combatant.currentHealth > 0,
   );
-  if (savedActive >= 0) {
-    state.player.activeIndex = savedActive;
-  } else {
-    const firstLiving = state.player.squad.findIndex(
-      (combatant) => combatant.currentHealth > 0,
-    );
-    if (firstLiving >= 0) {
-      state.player.activeIndex = firstLiving;
-    }
-  }
+  const firstLiving = state.player.squad.findIndex(
+    (combatant) => combatant.currentHealth > 0,
+  );
+  if (savedActive >= 0) state.player.activeIndex = savedActive;
+  else if (firstLiving >= 0) state.player.activeIndex = firstLiving;
   return state;
 }
 
@@ -265,27 +148,22 @@ export function recordCheapSeatsVictory(
 ):
   | { complete: true; healthRatios: Record<string, number> }
   | { complete: false; run: TournamentRunData } {
-  const healthRatios = {
-    ...run.healthRatios,
-    ...captureCaseHealth(state),
-  };
-  const activeInstanceId =
-    state.player.squad[state.player.activeIndex]?.instanceId ?? null;
-  if (run.roundIndex >= cheapSeatsEncounters.length - 1) {
-    return { complete: true, healthRatios };
-  }
-  return {
-    complete: false,
-    run: normaliseCheapSeatsRun({
-      ...run,
-      roundIndex: (run.roundIndex + 1) as 1 | 2,
-      phase: "interlude",
-      healthRatios,
-      activeInstanceId,
-      nextRoundChargeBonus: 0,
-      selectedDrop: null,
-    }),
-  };
+  const currentFightId = `round-${run.roundIndex + 1}`;
+  const compatibleRun =
+    run.currentNodeId === currentFightId
+      ? run
+      : { ...run, currentNodeId: currentFightId };
+  const result = recordTournamentBattleResult(
+    cheapSeatsDefinition,
+    compatibleRun,
+    state,
+    true,
+  );
+  return result.status === "complete"
+    ? { complete: true, healthRatios: result.healthRatios }
+    : result.status === "continue"
+      ? { complete: false, run: result.run }
+      : { complete: true, healthRatios: { ...run.healthRatios } };
 }
 
 export function recordCheapSeatsResult(
@@ -294,52 +172,37 @@ export function recordCheapSeatsResult(
   won: boolean,
 ):
   | { status: "lost"; run: null }
+  | { status: "redeploy"; run: TournamentRunData }
   | { status: "complete"; healthRatios: Record<string, number> }
   | { status: "continue"; run: TournamentRunData } {
-  if (!won) {
+  const currentFightId = `round-${run.roundIndex + 1}`;
+  const compatibleRun =
+    run.currentNodeId === currentFightId
+      ? run
+      : { ...run, currentNodeId: currentFightId };
+  const result = recordTournamentBattleResult(
+    cheapSeatsDefinition,
+    compatibleRun,
+    state,
+    won,
+  );
+  if (result.status === "lost" || result.status === "forfeited") {
     return { status: "lost", run: null };
   }
-  const victory = recordCheapSeatsVictory(run, state);
-  return victory.complete
-    ? { status: "complete", healthRatios: victory.healthRatios }
-    : { status: "continue", run: victory.run };
+  if (result.status === "complete") {
+    return { status: "complete", healthRatios: result.healthRatios };
+  }
+  return result;
 }
 
 export function applyCheapSeatsDrop(
   run: TournamentRunData,
   drop: CheapSeatsDrop,
 ): TournamentRunData {
-  if (run.phase !== "interlude") {
-    return run;
-  }
-  const healthRatios = { ...run.healthRatios };
-  if (drop === "front-print-repair") {
-    const activeRatio = run.activeInstanceId
-      ? healthRatios[run.activeInstanceId]
-      : undefined;
-    if (run.activeInstanceId && activeRatio !== undefined && activeRatio > 0) {
-      healthRatios[run.activeInstanceId] = Math.min(1, activeRatio + 0.45);
-    }
-  }
-  if (drop === "case-repair") {
-    const defeated = Object.entries(healthRatios)
-      .filter(([, ratio]) => ratio <= 0)
-      .sort(([left], [right]) => left.localeCompare(right))[0];
-    const revivedInstanceId = defeated?.[0];
-    if (defeated) {
-      healthRatios[defeated[0]] = 0.35;
-    }
-    for (const [instanceId, ratio] of Object.entries(healthRatios)) {
-      if (ratio > 0 && instanceId !== revivedInstanceId) {
-        healthRatios[instanceId] = Math.min(1, ratio + 0.18);
-      }
-    }
-  }
-  return normaliseCheapSeatsRun({
-    ...run,
-    phase: "ready",
-    healthRatios,
-    nextRoundChargeBonus: drop === "hot-start" ? 18 : 0,
-    selectedDrop: drop,
-  });
+  const expectedInterludeId = `recovery-${Math.max(1, run.roundIndex)}`;
+  const compatibleRun =
+    run.phase === "interlude" && run.currentNodeId.startsWith("round-")
+      ? { ...run, currentNodeId: expectedInterludeId }
+      : run;
+  return resolveTournamentInterlude(cheapSeatsDefinition, compatibleRun, drop);
 }

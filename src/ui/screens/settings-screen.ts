@@ -1,5 +1,6 @@
 import type { Preferences } from "../../persistence/save";
 import type { DevExperimentSelections } from "../../dev/experiments";
+import { ICONS } from "../icons";
 
 export interface SettingsScreenModel {
   preferences: Preferences;
@@ -12,7 +13,7 @@ export function renderSettingsScreen(model: SettingsScreenModel): string {
   return `
     <section class="settings-sheet" aria-labelledby="settings-title">
       <div class="section-heading">
-        <button class="text-button" data-command="main-menu">← Main Menu</button>
+        <button class="text-button" data-command="main-menu">${ICONS.arrowLeft}<span>Main Menu</span></button>
         <h1 id="settings-title">Settings</h1>
         <p>
           These preferences apply to every game type and every Player

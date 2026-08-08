@@ -69,12 +69,12 @@ describe("battle result explanation", () => {
     );
 
     const explanation = explainBattleResult(report, combatContent);
-    expect(explanation.heading).toBe("Why you won");
+    expect(explanation.heading).toBe("How you won");
     expect(explanation.decisiveMoment).toContain("Berserker Oath");
     expect(explanation.evidence.join(" ")).toContain("Brawler");
     expect(explanation.evidence.join(" ")).toContain("1 critical hit");
     expect(renderBattleResultExplanation(report, combatContent)).toContain(
-      "Decision record: 1 Move and 0 switches.",
+      "You used 1 Move and switched 0 times.",
     );
   });
 
@@ -95,7 +95,7 @@ describe("battle result explanation", () => {
     report.outcome = "enemyWon";
 
     expect(explainBattleResult(report, combatContent).evidence).toContain(
-      "Luck check: no critical hits or dodges decided this fight.",
+      "No critical hits or dodges swung the fight.",
     );
   });
 
@@ -140,7 +140,7 @@ describe("battle result explanation", () => {
     );
 
     expect(explainBattleResult(report, combatContent).decisiveMoment).toBe(
-      "The result was decided by surviving Health when the clock expired.",
+      "The clock ran out. Remaining Health decided the winner.",
     );
   });
 
@@ -172,7 +172,7 @@ describe("battle result explanation", () => {
     );
 
     expect(explainBattleResult(report, combatContent).decisiveMoment).toBe(
-      "The report records the result without a single proven finishing hit.",
+      "No single blow decided the ending.",
     );
   });
 });

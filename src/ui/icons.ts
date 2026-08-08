@@ -1,22 +1,118 @@
-export const ICONS = {
-  story:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm3 0v13a3 3 0 0 0-3-3m6-6h5m-5 4h5"/></svg>',
-  collection:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 4v10l-8 4-8-4V7l8-4Zm0 0v18M4 7l8 4 8-4"/></svg>',
-  store:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16l-1-5H5L4 9Zm1 0v11h14V9M9 20v-6h6v6"/></svg>',
-  missions:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6V3Zm3 5 2 2 4-4m-6 9h6"/></svg>',
-  tournament:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v4m-4 3h8"/></svg>',
-  achievements:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0V4Zm0 2H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v4m-4 3h8m-5-7-2 5 3-1 1 3 2-5"/></svg>',
-  quick:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m13 2-8 11h6l-1 9 9-12h-6V2Z"/></svg>',
-  profile:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 9a7 7 0 0 1 14 0H5Z"/></svg>',
-  settings:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0-5v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/></svg>',
-  music:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l10-2v13M9 9l10-2M6 16c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Zm10-2c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Z"/></svg>',
-} as const;
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Boxes,
+  Check,
+  Circle,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  GripHorizontal,
+  House,
+  ListChecks,
+  LockKeyhole,
+  Medal,
+  Minus,
+  Music2,
+  Plus,
+  Search,
+  Settings,
+  Shuffle,
+  SlidersHorizontal,
+  Store,
+  Swords,
+  Trophy,
+  UserRound,
+  X,
+  Zap,
+  type IconNode,
+} from "lucide";
+
+export interface IconRenderOptions {
+  className?: string;
+  size?: number;
+  strokeWidth?: number;
+}
+
+const escapeAttribute = (value: string | number): string =>
+  String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+
+const renderAttributes = (
+  attributes: Readonly<Record<string, string | number | undefined>>,
+): string =>
+  Object.entries(attributes)
+    .filter(
+      (entry): entry is [string, string | number] => entry[1] !== undefined,
+    )
+    .map(([name, value]) => `${name}="${escapeAttribute(value)}"`)
+    .join(" ");
+
+/**
+ * Serialises an official Lucide icon definition for the string-rendered UI.
+ * Icons are decorative by default; icon-only controls must label the control.
+ */
+export const renderIcon = (
+  icon: IconNode,
+  options: IconRenderOptions = {},
+): string => {
+  const size = options.size ?? 24;
+  const children = icon
+    .map(([tag, attributes]) => `<${tag} ${renderAttributes(attributes)}/>`)
+    .join("");
+
+  return `<svg ${renderAttributes({
+    xmlns: "http://www.w3.org/2000/svg",
+    width: size,
+    height: size,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    "stroke-width": options.strokeWidth ?? 2,
+    "stroke-linecap": "round",
+    "stroke-linejoin": "round",
+    class: options.className,
+    "aria-hidden": "true",
+    focusable: "false",
+  })}>${children}</svg>`;
+};
+
+const ICON_NODES = {
+  arrowLeft: ArrowLeft,
+  arrowRight: ArrowRight,
+  chevronLeft: ChevronLeft,
+  chevronRight: ChevronRight,
+  drag: GripHorizontal,
+  remove: X,
+  check: Check,
+  circle: Circle,
+  plus: Plus,
+  minus: Minus,
+  search: Search,
+  shuffle: Shuffle,
+  clock: Clock,
+  lock: LockKeyhole,
+  bolt: Zap,
+  sliders: SlidersHorizontal,
+  story: BookOpen,
+  collection: Boxes,
+  store: Store,
+  missions: ListChecks,
+  tournament: Trophy,
+  achievements: Medal,
+  quick: Swords,
+  profile: UserRound,
+  settings: Settings,
+  home: House,
+  music: Music2,
+} as const satisfies Record<string, IconNode>;
+
+export type IconName = keyof typeof ICON_NODES;
+
+export const ICONS = Object.fromEntries(
+  Object.entries(ICON_NODES).map(([name, icon]) => [name, renderIcon(icon)]),
+) as Readonly<Record<IconName, string>>;

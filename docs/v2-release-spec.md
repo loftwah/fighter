@@ -165,9 +165,26 @@ to be the content-breadth release.
 Quick Fight is the primary repeatable V2 experience:
 
 - all six Characters are available;
-- both Lineups pass through the shared Fight Setup contract;
-- Standard Build is progression-neutral;
+- the Main Menu enters Character Select directly; there is no separate Quick
+  preset destination;
+- Full Power is the default registered preset, Hot Start is the alternate
+  registered preset, and Custom names the current manually edited values;
+- exact duplicate Characters and every V2-supported level/build customisation
+  are accepted by the Custom path;
+- the shared Fighter Select chooses both Lineups without native Character
+  dropdowns and owns one visual Accessory choice per Lineup;
+- Quick Fight Settings contains one compact preset dropdown which updates its
+  related visible rules and builds in place; all Quick drafts pass through this
+  stage before Review Fight;
+- both resolved Lineups pass through one read-only shared Fight Setup
+  confirmation before Battle;
+- sandbox builds are progression-neutral;
 - supported Custom rules are clearly labelled;
+- Full Power starts all fighters at Level 25 with the full V2 stat allocation
+  and Platinum Moves; Hot Start keeps those builds and raises opening Charge;
+- the effective Quick difficulty, clock, opening Charge, seed, team
+  Accessories, and each selected sandbox build are captured in one immutable
+  configuration which the Battle consumes without rereading Global Settings;
 - fights do not mutate Story or Tournament progression;
 - the selected Profile records Quick Fight fights, wins, losses, last seed,
   and the last two Lineups without granting progression rewards;
@@ -184,6 +201,12 @@ V2 contains one short, coherent, end-to-end Story proof:
 - at least one progression, Store, Mission, choice, or Tournament transition;
 - replay and forgiving recovery;
 - persisted progress.
+- one `story.first-run` Story Save owning its collection, builds, economy,
+  Missions, Store, active Squad, progress, and Story-local Trophy records rather
+  than placing those facts directly on the global Profile;
+- ordered Level steps capable of composing content, grants, ordinary fights,
+  the preset Tournament, and completion without a second combat engine;
+- one registered Story completion award projected into the global Profile;
 - a declared completion check requiring all three V2 Missions and the
   representative Tournament Trophy before the ending reward can be claimed;
 - transition into the existing unrestricted Quick Fight sandbox after Story
@@ -203,12 +226,14 @@ V2 contains one complete representative Tournament:
 - one-to-three deployed Characters per round;
 - carried Health and defeat state;
 - between-round decisions;
-- loss, restart, victory, and reward;
-- a lost fight ends the run and the next attempt starts at Round 1; battle
-  participation may still pay the authored partial XP;
+- repeat deployment against the same current opponent Squad while any locked
+  player Roster member remains alive, with Health/defeat state preserved on
+  both sides of that unfinished fight;
+- complete-Roster defeat, confirmed forfeit, restart, victory, and reward;
 - an activated Accessory is exhausted for the rest of that run;
-- a unique registered Trophy with approved opaque artwork, awarded once and
-  visible in the selected Profile's Trophy cabinet;
+- a unique registered Trophy with approved opaque artwork, de-duplicated in the
+  selected Profile's global cabinet and also recorded in the First Run Story
+  Save when won there;
 - no reward leakage into development or Quick Fight.
 
 This proves the Tournament system. V2.1 is the first substantial
@@ -221,12 +246,14 @@ V2 includes:
 - three local Player profiles;
 - versioned, migration-safe local saves;
 - autosave and corrupt-save recovery;
-- Character ownership, XP, levels, stat allocation, Move ordering, positions,
-  tiers, and Modifications to the extent already accepted in
-  `docs/game-design.md`;
+- a global Player/Profile boundary for identity, records, Story Save selection,
+  Trophies, and Story awards, with Character ownership, XP, levels, economy,
+  Store, Missions, stat allocation, Move ordering/positions/tiers, and
+  Modifications nested in `story.first-run`;
 - Stamps, rewards, a small Store, Missions, and Achievements sufficient to prove
   the complete loop;
-- durable Tournament Trophy ownership and a Profile Trophy cabinet;
+- durable source-aware Tournament Trophy ownership, a global Profile cabinet,
+  a Story-local cabinet, and one Story completion award;
 - profile and battle-report export;
 - explicit separation between preferences, Story progress, Quick Fight, and
   Tournament state.
@@ -320,7 +347,7 @@ any later release gate is complete.
   `ADAPT` row, uses mechanic-specific references where verified, and leaves
   missing proof visibly null;
 - roadmap scope remains six Characters in V2 and twenty in V2.1, with
-  multiplayer last at V2.4;
+  multiplayer outside the committed V2–V2.3 programme;
 - `v2.viking-acceptance` is the named fixed-seed Gate 1 benchmark;
 - no `UNKNOWN EXACT` source value has been promoted into an authoritative
   constant;
@@ -464,7 +491,7 @@ answer affects V2 without turning uncertain source values into invented facts.
 | --- | ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | 01  | `ADOPT`                   | Emotional target is “That was actually pretty fun”; section 2 owns the supporting proof.                                |
 | 02  | `DELEGATE`                | No artificial ranking; dependency-ordered gates determine sequence and quality applies to all four outcomes.            |
-| 03  | `ADOPT`                   | Existing V2–V2.4 exclusions and milestone boundaries are correct.                                                       |
+| 03  | `SUPERSEDED 2026-08-07`   | V2–V2.3 remain committed; multiplayer is preserved as optional research without a committed milestone.                  |
 | 04  | `ADOPT`                   | Polish one Quick Fight first, then Tournament, then Story; progression/rematch belongs to Story, not a lost Cup run.    |
 | 05  | `ADOPT`                   | Six Characters plus the existing V2 proof content; agents stop asking for another minimum-content answer.               |
 | 06  | `DELEGATE TO EVIDENCE`    | Fight duration is tuned through fixed-seed and real-reference observation; current V2 benchmark is recorded above.      |
@@ -488,9 +515,9 @@ answer affects V2 without turning uncertain source values into invented facts.
 | 24  | `ADOPT`                   | Story loss offers forgiving retry and a concrete hint to level, adjust the build, or change the Lineup.                 |
 | 25  | `ADAPT`                   | Story uses an injectible menu-driven level path for fights, Tournaments, and bosses without introducing map walking.    |
 | 26  | `DELEGATE`                | Agents author the shortest coherent V2 proof; substantial publishable Story length belongs to V2.1.                     |
-| 27  | `ADOPT`                   | Tournament loss resets the run to Round 1 while earned participation XP is retained.                                    |
+| 27  | `SUPERSEDED 2026-08-07`   | A lost deployment repeats the same fight while any Roster member lives; complete defeat or forfeit ends the run.        |
 | 28  | `ADOPT`                   | An activated Accessory is exhausted until the Tournament run ends or restarts.                                          |
-| 29  | `ADOPT`                   | Quick Fight exposes sandbox builds; Tournaments apply authored/custom roster rules; Story owns collection/progression.  |
+| 29  | `EXPANDED 2026-08-07`     | Quick/Tournament use configurable sandbox instances; each Story Save exclusively owns its collection and progression.   |
 | 30  | `ADAPT PENDING EVIDENCE`  | Retain deterministic local-first Store rotation; do not claim an unknown exact source schedule.                         |
 | 31  | `ADOPT`                   | Players can sell duplicates; the current full listed-value return is the safe no-regret baseline.                       |
 | 32  | `ADOPT`                   | V2 uses the known six Characters and V2.1 expands to twenty; no further roster brief is needed now.                     |

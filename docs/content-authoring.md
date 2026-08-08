@@ -150,25 +150,31 @@ distribution-review state, and an actionable note. `development-review` is not
 permission to ship; only an explicitly reviewed
 `approved-for-distribution` entry may enter a public production preset.
 
-## Story node contract
+## Story definition and Level-step contract
 
-Every node declares:
+Every Story definition declares:
 
-- stable ID and story ID;
-- node type;
-- title and authored payload;
-- explicit prerequisites;
-- explicit next-node IDs;
-- replay/skip behavior;
-- rewards or unlocks;
-- optional music and art.
+- a stable Story ID, title, completion-award ID, and ordered Levels;
+- at least one fight step and at least one preset-Tournament step across those
+  Levels;
+- its starting collection, economy state, active-Squad policy, and any loans;
+- explicit completion and replay policy.
 
-The story runner interprets the node. Do not add a scene class for a one-off node.
+Each Level declares a stable ID and an ordered step list. Reusable step kinds
+include content, grant, standard fight, preset Tournament, choice, Store hook,
+Mission hook, and completion. Content may appear before or after a fight, and a
+grant may intentionally precede Lineup so the new item is immediately usable.
+A boss is authored through an ordinary fight plus content/reward steps rather
+than a separate combat engine.
 
-Every Story also declares its ending requirements as stable Mission IDs and
-Tournament Trophy IDs. Reaching its final node does not bypass those
-requirements. When a Story is complete, any post-game destination references
-an existing mode such as Quick Fight rather than defining a bespoke renderer.
+The Story runner interprets the steps. Do not add a scene class or domain branch
+for a one-off Level.
+
+A Story Tournament step references an existing preset Tournament ID. Story
+content cannot embed a private duplicate Tournament definition. Reaching the
+final step does not bypass declared completion requirements. When a Story is
+complete, any post-game destination references an existing mode such as Quick
+Fight rather than defining a bespoke renderer.
 
 ## Tournament and Trophy contract
 
@@ -176,7 +182,16 @@ Every Tournament definition declares:
 
 - a stable Tournament ID and display name;
 - a registered presentation image asset ID and useful alternative text;
-- its authored rounds, Roster rules, interstitials, rewards, and replay policy;
+- whether it is a shipped preset or a player-owned local custom definition;
+- ordered nodes for fights, content, seeded chance, recovery/revival, reward,
+  next-fight effects, Store hooks, and completion;
+- at least one fight node;
+- named enemy Squads containing one to three configured instances;
+- one Tournament Match Settings default block containing the clock, opening
+  Charge, and both team Accessory defaults; an individual fight node may store
+  a partial override without copying the remaining defaults;
+- a player Roster maximum of six and deployment maximum of three;
+- its replay and deletion policy;
 - exactly one registered Trophy ID.
 
 Every Trophy definition declares:
@@ -186,10 +201,19 @@ Every Trophy definition declares:
 - logical opaque image asset ID and alternative text;
 - whether the artwork is a reusable generic custom-Tournament option.
 
-The first completed run adds the Trophy ID to the selected Profile
-idempotently. A replay can pay its declared repeat rewards but cannot add a
-duplicate Trophy. New custom Tournament content may reuse a generic Trophy
-image; it must not invent a filename outside the asset registry.
+A preset may reference a unique illustrated Trophy. A custom Tournament must
+select one of the registered generic Trophy designs and cannot exist without
+that reference. A standalone victory upserts global ownership by Tournament
+identity. A Story victory also records Story Save provenance and upserts the
+same global ownership; deleting that Story Save removes only its local record.
+Deleting a custom Tournament removes the global Trophy record dependent on that
+definition. Preset removal requires an explicit versioned migration because
+Story definitions may reference it.
+
+During a run, player Health/defeat persists across all nodes and current-enemy
+Health/defeat persists across repeated deployments. A non-victorious deployment
+returns to Lineup while any of the locked six-player Roster remains alive. All
+six defeated, or a confirmed whole-run forfeit, loses the Tournament.
 
 ## Mission requirement blocks
 

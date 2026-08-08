@@ -1,0 +1,585 @@
+/* The battle result is a full-screen fight poster laid over the frozen arena. */
+.battle-result {
+  place-items: stretch;
+  padding: 0;
+  overflow: hidden;
+  background: rgb(4 8 20 / 72%);
+}
+
+.battle-result-scene {
+  --result-spot: var(--yellow);
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  min-width: 0;
+  min-height: 100dvh;
+  grid-template-columns: minmax(21rem, 0.9fr) minmax(34rem, 1.1fr);
+  grid-template-rows: clamp(10rem, 24vh, 15rem) minmax(0, 1fr) auto;
+  overflow: hidden;
+  color: var(--chalk);
+}
+
+.battle-result-scene.is-loss {
+  --result-spot: var(--tomato);
+}
+
+.battle-result-scene::before {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgb(9 17 40 / 10%) 0 38%, rgb(9 17 40 / 92%) 67%),
+    linear-gradient(0deg, var(--indigo) 0 12%, transparent 50%);
+  content: "";
+}
+
+.battle-result-verdict {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-items: center;
+  border-block: 0.38rem solid var(--ink);
+  padding: 0.2rem clamp(1rem, 4vw, 4rem) 0;
+  overflow: hidden;
+  background: var(--result-spot);
+  color: var(--indigo);
+  transform-origin: top;
+  animation: battle-result-banner-in 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.is-loss .battle-result-verdict {
+  color: var(--chalk);
+}
+
+.battle-result-verdict::after {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 8% 30%,
+      rgb(20 21 26 / 22%) 0 1px,
+      transparent 2px
+    ),
+    radial-gradient(
+      circle at 74% 62%,
+      rgb(20 21 26 / 14%) 0 1px,
+      transparent 2px
+    );
+  background-size:
+    0.7rem 0.7rem,
+    0.95rem 0.95rem;
+  content: "";
+  mix-blend-mode: multiply;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.battle-result-verdict span {
+  display: block;
+  margin-top: -0.02em;
+  font-family: var(--display);
+  font-size: clamp(7rem, 19vw, 16rem);
+  line-height: 0.7;
+  text-transform: uppercase;
+  text-shadow: 0.035em 0.045em 0 var(--tomato);
+  white-space: nowrap;
+}
+
+.is-loss .battle-result-verdict span {
+  text-shadow: 0.035em 0.045em 0 var(--indigo);
+}
+
+.battle-result-fighter {
+  position: relative;
+  z-index: 4;
+  align-self: stretch;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  min-width: 0;
+  margin: clamp(6rem, 13vh, 9rem) 0 0;
+  overflow: hidden;
+  border-right: 0.32rem solid var(--ink);
+  background: var(--indigo-vault);
+  clip-path: polygon(0 0, 100% 3%, 92% 100%, 0 100%);
+  animation: battle-result-fighter-in 520ms 80ms cubic-bezier(0.16, 1, 0.3, 1)
+    both;
+}
+
+.battle-result-fighter::after {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(0deg, var(--indigo-vault) 0, transparent 36%),
+    linear-gradient(90deg, transparent 62%, rgb(9 17 40 / 72%));
+  content: "";
+  pointer-events: none;
+}
+
+.battle-result-fighter img {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  filter: saturate(1.08) contrast(1.04);
+}
+
+.battle-result-fighter figcaption {
+  position: absolute;
+  z-index: 1;
+  right: 10%;
+  bottom: clamp(1.2rem, 4vh, 3.4rem);
+  left: clamp(1rem, 4vw, 3.6rem);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-bottom: 0.24rem solid var(--result-spot);
+  padding-bottom: 0.4rem;
+}
+
+.battle-result-fighter figcaption strong {
+  font-family: var(--display);
+  font-size: clamp(3.1rem, 5vw, 5.6rem);
+  font-weight: 400;
+  line-height: 0.8;
+  text-transform: uppercase;
+}
+
+.battle-result-fighter figcaption span {
+  padding: 0.25rem 0.4rem;
+  background: var(--result-spot);
+  color: var(--indigo);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.battle-result-copy {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  align-content: center;
+  grid-column: 2;
+  grid-row: 2;
+  gap: clamp(0.65rem, 1.4vh, 1.15rem);
+  min-height: 0;
+  padding: clamp(1rem, 3vh, 2rem) clamp(1rem, 4vw, 4.5rem)
+    clamp(0.75rem, 2vh, 1.5rem) clamp(1rem, 2.6vw, 3rem);
+}
+
+.battle-result-copy > header {
+  max-width: 58rem;
+}
+
+.battle-result-copy h2 {
+  max-width: 17ch;
+  margin: 0;
+  color: var(--chalk);
+  font-family: var(--display);
+  font-size: clamp(3.2rem, 5.4vw, 6rem);
+  font-weight: 400;
+  line-height: 0.82;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.battle-result-copy > header p {
+  max-width: 68ch;
+  margin: 0.6rem 0 0;
+  color: var(--aged-paper);
+  font-size: clamp(0.86rem, 1.15vw, 1.08rem);
+  line-height: 1.35;
+}
+
+.battle-result-evidence {
+  position: relative;
+  max-width: 52rem;
+  border: 0.24rem solid var(--ink);
+  padding: clamp(0.7rem, 1.7vh, 1.1rem) clamp(0.75rem, 1.8vw, 1.25rem);
+  background: var(--chalk);
+  color: var(--ink);
+  clip-path: polygon(0.5rem 0, 100% 0, calc(100% - 0.7rem) 100%, 0 100%);
+}
+
+.battle-result-evidence h3 {
+  margin: 0;
+  border-bottom: 0.2rem solid var(--tomato);
+  padding-bottom: 0.25rem;
+  font-family: var(--display);
+  font-size: clamp(2rem, 2.7vw, 3rem);
+  font-weight: 400;
+  line-height: 0.86;
+  text-transform: uppercase;
+}
+
+.battle-result-evidence > p {
+  margin: 0.55rem 0 0;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.battle-result-evidence ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.28rem 1.1rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.battle-result-evidence li {
+  position: relative;
+  padding: 0.3rem 0 0.3rem 1rem;
+  border-top: 1px solid rgb(20 21 26 / 24%);
+  font-size: clamp(0.7rem, 0.83vw, 0.86rem);
+  line-height: 1.2;
+}
+
+.battle-result-evidence li::before {
+  position: absolute;
+  top: 0.52rem;
+  left: 0;
+  width: 0.48rem;
+  height: 0.48rem;
+  background: var(--tomato);
+  content: "";
+  transform: rotate(45deg);
+}
+
+.battle-result-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 52rem;
+  border-block: 0.16rem solid var(--chalk);
+}
+
+.battle-result-rewards > div {
+  display: flex;
+  flex: 1 1 10rem;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.42rem 0.72rem;
+  border-right: 1px dashed var(--chalk);
+}
+
+.battle-result-rewards span {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.battle-result-rewards strong {
+  color: var(--result-spot);
+  font-family: var(--display);
+  font-size: 1.8rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.battle-result-footer {
+  position: relative;
+  z-index: 7;
+  display: grid;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 0.65rem;
+  border-top: 0.3rem solid var(--ink);
+  padding: 0.7rem clamp(0.75rem, 2vw, 1.5rem)
+    max(0.7rem, env(safe-area-inset-bottom));
+  background: var(--indigo-vault);
+}
+
+.battle-result-actions {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.35fr) repeat(2, minmax(9rem, 1fr));
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.battle-result-actions button,
+.battle-result-export {
+  min-height: 3.45rem;
+  border: 0.2rem solid var(--chalk);
+  padding: 0.55rem 0.8rem;
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.battle-result-actions .primary-action {
+  border-color: var(--ink);
+  background: var(--result-spot);
+  color: var(--indigo);
+  font-family: var(--display);
+  font-size: 2rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.9;
+}
+
+.battle-result-export {
+  min-width: 9.5rem;
+  border-color: var(--aged-paper);
+  background: transparent;
+  color: var(--aged-paper);
+}
+
+@keyframes battle-result-banner-in {
+  from {
+    clip-path: inset(0 100% 0 0);
+    transform: translateX(-4%);
+  }
+
+  to {
+    clip-path: inset(0);
+    transform: translateX(0);
+  }
+}
+
+@keyframes battle-result-fighter-in {
+  from {
+    clip-path: polygon(0 0, 24% 3%, 16% 100%, 0 100%);
+    filter: saturate(0.35);
+    transform: translateX(-8%);
+  }
+
+  to {
+    clip-path: polygon(0 0, 100% 3%, 92% 100%, 0 100%);
+    filter: saturate(1);
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 720px) and (orientation: portrait) {
+  .battle-result-scene {
+    grid-template-columns: 1fr;
+    grid-template-rows: 7.6rem minmax(0, 1fr) auto;
+  }
+
+  .battle-result-scene::before {
+    background:
+      linear-gradient(0deg, rgb(9 17 40 / 98%) 0 57%, rgb(9 17 40 / 68%) 100%),
+      linear-gradient(90deg, transparent, rgb(9 17 40 / 82%));
+  }
+
+  .battle-result-verdict {
+    grid-column: 1;
+    height: 7.6rem;
+    padding-inline: 0.65rem;
+  }
+
+  .battle-result-verdict span {
+    font-size: clamp(6.8rem, 33vw, 8.4rem);
+  }
+
+  .battle-result-fighter {
+    position: absolute;
+    z-index: -1;
+    top: 6.8rem;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    grid-column: auto;
+    grid-row: auto;
+    margin: 0;
+    border: 0;
+    clip-path: none;
+    opacity: 0.42;
+  }
+
+  .battle-result-fighter::after {
+    background:
+      linear-gradient(0deg, var(--indigo-vault) 2%, transparent 58%),
+      linear-gradient(90deg, transparent 20%, var(--indigo-vault) 100%);
+  }
+
+  .battle-result-fighter figcaption {
+    right: 0.75rem;
+    bottom: 8rem;
+    left: 0.75rem;
+  }
+
+  .battle-result-fighter figcaption strong {
+    font-size: 3.2rem;
+  }
+
+  .battle-result-fighter figcaption span {
+    font-size: 0.58rem;
+  }
+
+  .battle-result-copy {
+    align-content: start;
+    grid-column: 1;
+    grid-row: 2;
+    gap: 0.55rem;
+    padding: 1rem 0.65rem 0.6rem;
+  }
+
+  .battle-result-copy h2 {
+    max-width: 11ch;
+    font-size: clamp(2.9rem, 13vw, 4.1rem);
+  }
+
+  .battle-result-copy > header p {
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    line-height: 1.25;
+  }
+
+  .battle-result-evidence {
+    padding: 0.55rem 0.65rem;
+    clip-path: polygon(0.35rem 0, 100% 0, calc(100% - 0.45rem) 100%, 0 100%);
+  }
+
+  .battle-result-evidence h3 {
+    font-size: 2.15rem;
+  }
+
+  .battle-result-evidence > p {
+    margin-top: 0.38rem;
+    font-size: 0.75rem;
+  }
+
+  .battle-result-evidence ul {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-top: 0.3rem;
+  }
+
+  .battle-result-evidence li {
+    padding-block: 0.22rem;
+    font-size: 0.66rem;
+  }
+
+  .battle-result-evidence li:nth-child(n + 4) {
+    display: none;
+  }
+
+  .battle-result-rewards {
+    flex-wrap: nowrap;
+  }
+
+  .battle-result-rewards > div {
+    display: grid;
+    flex-basis: 0;
+    gap: 0.1rem;
+    padding: 0.3rem 0.45rem;
+  }
+
+  .battle-result-rewards span {
+    font-size: 0.55rem;
+  }
+
+  .battle-result-rewards strong {
+    font-size: 1.45rem;
+  }
+
+  .battle-result-footer {
+    grid-column: 1;
+    grid-row: 3;
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+    padding: 0.5rem 0.65rem max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .battle-result-actions {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.35rem;
+  }
+
+  .battle-result-actions button {
+    min-height: 2.85rem;
+    padding: 0.38rem 0.45rem;
+    font-size: 0.67rem;
+  }
+
+  .battle-result-actions .primary-action {
+    grid-column: 1 / -1;
+    min-height: 3.25rem;
+    font-size: 1.8rem;
+  }
+
+  .battle-result-export {
+    min-width: 0;
+    min-height: 2.35rem;
+    padding: 0.25rem;
+    border-width: 0.12rem;
+    font-size: 0.6rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) {
+  .battle-result-scene {
+    grid-template-columns: minmax(15rem, 0.72fr) minmax(28rem, 1.28fr);
+    grid-template-rows: 5.3rem minmax(0, 1fr) auto;
+  }
+
+  .battle-result-verdict span {
+    font-size: clamp(5rem, 16vw, 8rem);
+  }
+
+  .battle-result-fighter {
+    margin-top: 3.8rem;
+  }
+
+  .battle-result-fighter figcaption {
+    bottom: 0.7rem;
+  }
+
+  .battle-result-fighter figcaption strong {
+    font-size: 2.5rem;
+  }
+
+  .battle-result-copy {
+    gap: 0.35rem;
+    padding: 0.45rem 1rem;
+  }
+
+  .battle-result-copy h2 {
+    font-size: 2.7rem;
+  }
+
+  .battle-result-copy > header p,
+  .battle-result-evidence li,
+  .battle-result-evidence > p {
+    font-size: 0.65rem;
+  }
+
+  .battle-result-evidence {
+    padding: 0.4rem 0.65rem;
+  }
+
+  .battle-result-evidence h3 {
+    font-size: 1.8rem;
+  }
+
+  .battle-result-footer {
+    padding-block: 0.35rem;
+  }
+
+  .battle-result-actions button,
+  .battle-result-export {
+    min-height: 2.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .battle-result-verdict,
+  .battle-result-fighter {
+    animation: none;
+  }
+}
+
+html[data-reduced-motion="true"] .battle-result-verdict,
+html[data-reduced-motion="true"] .battle-result-fighter {
+  animation: none;
+}

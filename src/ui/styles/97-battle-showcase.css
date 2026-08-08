@@ -493,13 +493,23 @@
 /* Move output and readiness stay legible before and after their thresholds. */
 .battle-stage[data-battle-layout="rail-first"] .charge-move {
   width: 8.2rem;
-  min-height: 7.35rem;
-  grid-template-rows: 4.55rem auto auto;
+  min-height: 8.55rem;
+  grid-template-areas:
+    "seal seal"
+    "role tier"
+    "name name"
+    "state state";
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 4.55rem auto auto auto;
+  align-items: stretch;
+  gap: 0.12rem 0.22rem;
+  justify-items: stretch;
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-seal {
   width: 4.35rem;
   height: 4.35rem;
+  justify-self: center;
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-seal strong {
@@ -553,7 +563,9 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-state {
+  width: 100%;
   min-height: 1.12rem;
+  justify-self: stretch;
   border: 0.1rem solid transparent;
   padding: 0.14rem 0.34rem 0.1rem;
   background: rgb(9 17 40 / 88%);
@@ -566,10 +578,12 @@
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-role,
 .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
+  position: static;
   z-index: 5;
-  top: 3.15rem;
   display: grid;
+  inset: auto;
   max-width: none;
+  min-width: 0;
   min-height: 1.28rem;
   align-content: center;
   gap: 0.02rem;
@@ -599,16 +613,15 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
-  left: 0;
-  min-width: 3.6rem;
+  grid-area: role;
   background: var(--move-category-colour, var(--chalk));
   clip-path: polygon(0 0, 100% 0, calc(100% - 0.3rem) 100%, 0 100%);
   color: var(--ink);
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-  right: 0;
-  min-width: 2.8rem;
+  grid-area: tier;
+  justify-self: end;
   background: var(--move-tier-colour);
   clip-path: polygon(0.3rem 0, 100% 0, 100% 100%, 0 100%);
   color: var(--ink);
@@ -847,7 +860,6 @@
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role,
   .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-    top: 2.45rem;
     min-height: 0.85rem;
     padding: 0.1rem 0.18rem 0.07rem;
     font-size: 0.5rem;
@@ -866,17 +878,22 @@
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
-    min-width: 2.55rem;
+    min-width: 0;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-    min-width: 2.15rem;
+    min-width: 0;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move {
     width: 5.3rem;
-    min-height: 6rem;
-    grid-template-rows: 3.55rem auto auto;
+    min-height: 7.15rem;
+    grid-template-rows: 3.45rem auto auto auto;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"] .charge-move-seal {
+    width: 3.35rem;
+    height: 3.35rem;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-seal strong {
@@ -1127,7 +1144,6 @@
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role,
   .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-    top: 1.7rem;
     min-height: 0.7rem;
     border-width: 0.08rem;
     padding: 0.06rem 0.14rem 0.04rem;
@@ -1148,17 +1164,23 @@
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
-    min-width: 2.35rem;
+    min-width: 0;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-    min-width: 1.85rem;
+    min-width: 0;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move {
     bottom: 1.05rem;
     width: 6.35rem;
-    min-height: 4.3rem;
+    min-height: 5.35rem;
+    grid-template-rows: 2.45rem auto auto auto;
+  }
+
+  .battle-stage[data-battle-layout="rail-first"] .charge-move-seal {
+    width: 2.35rem;
+    height: 2.35rem;
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-seal strong {
@@ -1265,9 +1287,8 @@
 
 /* Tactical role wins the first glance; upgrade tier stays secondary. */
 .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
-  top: 3.02rem;
   display: grid;
-  min-width: 5.2rem;
+  min-width: 0;
   min-height: 1.55rem;
   grid-template-columns: 1.32rem minmax(0, 1fr);
   align-items: stretch;
@@ -1311,8 +1332,7 @@
 }
 
 .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-  top: 1.95rem;
-  min-width: 2.25rem;
+  min-width: 0;
   min-height: 0.98rem;
   padding: 0.1rem 0.2rem 0.07rem;
   box-shadow: 0.06rem 0.08rem 0 var(--ink);
@@ -1358,8 +1378,7 @@
 
 @media (max-width: 620px) and (orientation: portrait) {
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
-    top: 2.34rem;
-    min-width: 3.55rem;
+    min-width: 0;
     min-height: 1.08rem;
     grid-template-columns: 0.86rem minmax(0, 1fr);
     gap: 0.12rem;
@@ -1386,8 +1405,7 @@
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-    top: 1.52rem;
-    min-width: 1.48rem;
+    min-width: 0;
     min-height: 0.72rem;
     padding: 0.06rem 0.12rem 0.04rem;
     font-size: 0.38rem;
@@ -1396,8 +1414,7 @@
 
 @media (orientation: landscape) and (max-height: 620px) {
   .battle-stage[data-battle-layout="rail-first"] .charge-move-role {
-    top: 1.56rem;
-    min-width: 3.45rem;
+    min-width: 0;
     min-height: 0.92rem;
     grid-template-columns: 0.78rem minmax(0, 1fr);
     gap: 0.1rem;
@@ -1424,10 +1441,264 @@
   }
 
   .battle-stage[data-battle-layout="rail-first"] .charge-move-tier {
-    top: 0.82rem;
-    min-width: 1.5rem;
+    min-width: 0;
     min-height: 0.64rem;
     padding: 0.05rem 0.1rem 0.03rem;
     font-size: 0.34rem;
+  }
+}
+
+/* Battle instruments use printed depth and registration marks, not flat fill. */
+.battle-stage[data-battle-layout="rail-first"] .health-meter {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(rgb(9 17 40 / 78%), rgb(9 17 40 / 78%)),
+    repeating-linear-gradient(
+      90deg,
+      var(--indigo-deep) 0 calc(10% - 0.1rem),
+      rgb(247 240 221 / 34%) calc(10% - 0.1rem) 10%
+    );
+  box-shadow:
+    0 0 0 0.08rem var(--ink),
+    0.14rem 0.18rem 0 0.08rem rgb(9 17 40 / 58%),
+    inset 0 0.12rem 0 rgb(247 240 221 / 24%);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .health-meter::before {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0 calc(20% - 0.1rem),
+    rgb(20 21 26 / 72%) calc(20% - 0.1rem) 20%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .health-meter::after {
+  position: absolute;
+  z-index: 4;
+  inset: 0.12rem;
+  border-block: 0.06rem solid rgb(247 240 221 / 18%);
+  content: "";
+  pointer-events: none;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .health-meter > span {
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(
+    to bottom,
+    #ff7a63 0 20%,
+    var(--tomato) 20% 70%,
+    var(--tomato-dark) 70% 100%
+  );
+  box-shadow:
+    inset -0.45rem 0 0 var(--tomato-dark),
+    inset 0 0.12rem 0 rgb(247 240 221 / 38%);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .health-meter > span::before {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle,
+    rgb(9 17 40 / 26%) 0 0.055rem,
+    transparent 0.065rem
+  );
+  background-size: 0.34rem 0.34rem;
+  content: "";
+  pointer-events: none;
+}
+
+.battle-stage[data-battle-layout="rail-first"] .health-meter > span::after {
+  position: absolute;
+  top: 0;
+  right: -0.42rem;
+  bottom: 0;
+  width: 0.5rem;
+  background: var(--tomato-dark);
+  clip-path: polygon(0 0, 100% 18%, 42% 50%, 100% 82%, 0 100%);
+  content: "";
+}
+
+.battle-stage[data-battle-layout="rail-first"] .bench-health {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--indigo-deep) 0 calc(25% - 0.06rem),
+    rgb(247 240 221 / 42%) calc(25% - 0.06rem) 25%
+  );
+  box-shadow: 0.08rem 0.1rem 0 rgb(9 17 40 / 64%);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .bench-health > span {
+  background: linear-gradient(
+    to bottom,
+    #ff7a63 0 24%,
+    var(--tomato) 24% 72%,
+    var(--tomato-dark) 72% 100%
+  );
+  box-shadow: inset -0.26rem 0 0 var(--tomato-dark);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.command-charge-meter, .enemy-charge-meter) {
+  box-shadow:
+    0 0 0 0.12rem var(--ink),
+    0.22rem 0.28rem 0 0.12rem rgb(9 17 40 / 68%),
+    inset 0 0.14rem 0 rgb(247 240 221 / 22%),
+    inset 0 -0.16rem 0 rgb(20 21 26 / 48%);
+}
+
+.battle-stage[data-battle-layout="rail-first"] .enemy-charge-meter > span {
+  position: relative;
+  overflow: visible;
+  background: linear-gradient(
+    to bottom,
+    #ff7a63 0 20%,
+    var(--tomato) 20% 70%,
+    var(--tomato-dark) 70% 100%
+  );
+  box-shadow:
+    inset 0.45rem 0 0 var(--tomato-dark),
+    inset 0 0.12rem 0 rgb(247 240 221 / 34%);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .enemy-charge-meter
+  > span::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -0.52rem;
+  width: 0.58rem;
+  background: var(--tomato);
+  clip-path: polygon(100% 0, 0 18%, 58% 50%, 0 82%, 100% 100%);
+  content: "";
+  filter: drop-shadow(-0.1rem 0 0 var(--ink));
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move-seal, .enemy-move-seal) {
+  --move-dial-face: var(--indigo-deep);
+
+  isolation: isolate;
+  background:
+    radial-gradient(
+      circle,
+      transparent 0 48%,
+      rgb(247 240 221 / 16%) 49% 52%,
+      transparent 53%
+    ),
+    conic-gradient(
+      from 22.5deg,
+      transparent 0 11%,
+      rgb(20 21 26 / 48%) 11% 13%,
+      transparent 13% 24%,
+      rgb(20 21 26 / 48%) 24% 26%,
+      transparent 26% 49%,
+      rgb(20 21 26 / 48%) 49% 51%,
+      transparent 51% 74%,
+      rgb(20 21 26 / 48%) 74% 76%,
+      transparent 76%
+    ),
+    var(--move-dial-face);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move-seal, .enemy-move-seal)::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0.34rem;
+  border: 0.12rem solid rgb(247 240 221 / 48%);
+  border-radius: 50%;
+  background:
+    linear-gradient(
+        var(--move-category-colour, var(--chalk)),
+        var(--move-category-colour, var(--chalk))
+      )
+      50% 0 / 0.12rem 0.34rem no-repeat,
+    linear-gradient(
+        var(--move-category-colour, var(--chalk)),
+        var(--move-category-colour, var(--chalk))
+      )
+      50% 100% / 0.12rem 0.34rem no-repeat,
+    linear-gradient(
+        var(--move-category-colour, var(--chalk)),
+        var(--move-category-colour, var(--chalk))
+      )
+      0 50% / 0.34rem 0.12rem no-repeat,
+    linear-gradient(
+        var(--move-category-colour, var(--chalk)),
+        var(--move-category-colour, var(--chalk))
+      )
+      100% 50% / 0.34rem 0.12rem no-repeat;
+  box-shadow: inset 0.08rem 0.1rem 0 rgb(9 17 40 / 44%);
+  content: "";
+  pointer-events: none;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(
+    .charge-move.is-available .charge-move-seal,
+    .enemy-charge-node.is-ready .enemy-move-seal
+  ) {
+  --move-dial-face: var(--tomato);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  .charge-move:is(.is-output-boosted, .is-output-reduced)
+  .charge-move-seal {
+  --move-dial-face: var(--indigo-deep);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(
+    .charge-move.is-available .charge-move-seal,
+    .enemy-charge-node.is-ready .enemy-move-seal
+  )::after {
+  border-color: var(--yellow);
+  box-shadow:
+    inset 0.08rem 0.1rem 0 rgb(9 17 40 / 44%),
+    0.1rem 0.12rem 0 var(--ink);
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move-glyph, .enemy-move-glyph) {
+  position: absolute;
+  z-index: 2;
+  right: 0.52rem;
+  bottom: 0.34rem;
+  border-top: 0.1rem solid currentcolor;
+  padding-top: 0.04rem;
+  color: var(--move-category-colour, var(--chalk));
+  font-family: var(--display);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 0.8;
+  opacity: 0.76;
+  pointer-events: none;
+}
+
+.battle-stage[data-battle-layout="rail-first"]
+  :is(.charge-move-seal, .enemy-move-seal)
+  > strong {
+  position: relative;
+  z-index: 3;
+  text-shadow: 0.08rem 0.1rem 0 rgb(9 17 40 / 54%);
+}
+
+@media (max-width: 620px) and (orientation: portrait),
+  (orientation: landscape) and (max-height: 620px) {
+  .battle-stage[data-battle-layout="rail-first"]
+    :is(.charge-move-glyph, .enemy-move-glyph) {
+    right: 0.34rem;
+    bottom: 0.22rem;
+    font-size: 0.5rem;
   }
 }

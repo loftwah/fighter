@@ -1,18 +1,20 @@
 # LOFTWAH FIGHTER multiplayer seam
 
-Status: **V2.4 DEFERRED ARCHITECTURE CONTRACT — DO NOT IMPLEMENT EARLY**
+Status: **OPTIONAL UNSCHEDULED ARCHITECTURE RESEARCH — DO NOT IMPLEMENT**
 
 This document records how multiplayer can be added without making V2–V2.3 pay
 its runtime, backend, product, security, or operational cost. The
 [release roadmap](release-roadmap.md) owns milestone scope and
 [technical design](technical-design.md) owns current architecture.
 
-## Decision
+## Current decision
 
-Multiplayer belongs to V2.4, the last currently planned feature milestone.
-Earlier releases keep the combat domain deterministic and transport-neutral,
-but do not add remote controllers, matchmaking, sockets, match rooms, online
-rewards, or speculative Cloudflare services.
+Multiplayer has no committed milestone. V2–V2.3 deliver the complete local solo
+product direction. Those releases keep the combat domain deterministic and
+transport-neutral, but do not add remote controllers, matchmaking, sockets,
+match rooms, online rewards, or speculative Cloudflare services. Reopening this
+document requires a new accepted design change; seam preservation is not a
+promise to ship it.
 
 This is deliberate. A network fight is not a second UI controller. It adds
 identity, session authority, protocol compatibility, server timing, reconnect,
@@ -39,7 +41,7 @@ The current code provides useful foundations:
 
 These seams reduce future rework. They do not make multiplayer small.
 
-## Boundary to add in V2.4
+## Boundary if multiplayer is ever approved
 
 ```mermaid
 flowchart LR
@@ -62,7 +64,7 @@ trusted result, damage value, elapsed time, reward, or replacement snapshot.
 
 ## Protocol envelope
 
-The exact schema is ratified in V2.4, but it must include:
+If the feature is approved, its exact schema must include:
 
 - protocol, engine, content, and match-rules versions;
 - match ID and authenticated seat;
@@ -86,7 +88,7 @@ application controller and freeze local simulation while Kinetic Panel Motion
 plays. Multiplayer cannot trust two clients to freeze and resume at the same
 moment.
 
-Before V2.4 implementation, choose and test one orchestration rule:
+Before any implementation, choose and test one orchestration rule:
 
 1. the authoritative match room owns shared deterministic decision/presentation
    gates whose durations are derived from semantic events; or
@@ -153,7 +155,7 @@ without changing combat rules.
 - match completion with reward persistence failure;
 - backend outage while local modes continue normally.
 
-## Decisions intentionally deferred to V2.4
+## Decisions intentionally left unscheduled
 
 - real-time versus asynchronous rules;
 - private-match and public-match launch order beyond the required ladder;
@@ -168,5 +170,5 @@ without changing combat rules.
 - seasonal balance policy;
 - cost ceiling and initial capacity.
 
-Until those decisions are accepted, V2 work must not introduce a `remote`
-controller kind or network-aware combat branch.
+Until a new design change and these decisions are accepted, work must not
+introduce a `remote` controller kind or network-aware combat branch.

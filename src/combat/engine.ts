@@ -45,6 +45,8 @@ export interface CreateBattleInput {
   enemyBuilds?: CombatantBuild[];
   playerStartingBar?: number;
   enemyStartingBar?: number;
+  /** The supplied bars already include the Lineup's Historic trait bonus. */
+  startingBarsIncludeTraitBonus?: boolean;
   playerAccessoryId?: string;
   enemyAccessoryId?: string;
   seed: number;
@@ -174,6 +176,7 @@ export function createBattle(
     builds: CombatantBuild[] | undefined,
     startingBar: number,
     accessoryId: string | undefined,
+    startingBarIncludesTraitBonus: boolean,
   ): TeamState => {
     if (builds && builds.length !== ids.length) {
       throw new Error(
@@ -192,7 +195,14 @@ export function createBattle(
 
     return {
       side,
-      bar: clamp(startingBar + historicOpeningCharge(synergy.bonuses), 0, 100),
+      bar: clamp(
+        startingBar +
+          (startingBarIncludesTraitBonus
+            ? 0
+            : historicOpeningCharge(synergy.bonuses)),
+        0,
+        100,
+      ),
       activeIndex: 0,
       squad: definitions.map((definition, index) =>
         createCombatant(
@@ -231,6 +241,7 @@ export function createBattle(
       input.playerBuilds,
       input.playerStartingBar ?? 0,
       input.playerAccessoryId,
+      input.startingBarsIncludeTraitBonus ?? false,
     ),
     enemy: buildTeam(
       "enemy",
@@ -238,6 +249,7 @@ export function createBattle(
       input.enemyBuilds,
       input.enemyStartingBar ?? 0,
       input.enemyAccessoryId,
+      input.startingBarsIncludeTraitBonus ?? false,
     ),
     pickups: [],
     pickupSequence: 0,

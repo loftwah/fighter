@@ -96,15 +96,16 @@ adapters and consumes semantic battle state/events.
 
 State has one owner:
 
-| State                                                  | Owner                     | Lifetime                                |
-| ------------------------------------------------------ | ------------------------- | --------------------------------------- |
-| Audio, difficulty, pause-key mode, reduced motion      | global Preferences        | all profiles                            |
-| Identity, collection, Story, missions, store, upgrades | selected SaveData profile | persisted profile                       |
-| Quick Fight setup                                      | Quick session             | until leaving/reconfiguring Quick Fight |
-| Quick Fight history                                    | selected SaveData profile | persisted profile                       |
-| Tournament Roster and carried health                   | tournament run            | persisted until the run resolves/resets |
-| Seeded combat and report                               | battle engine/session     | one match                               |
-| Pause, countdown, presentation lock, open overlays     | battle-session controller | one mounted battle                      |
+| State                                                                                                                                              | Owner                                                | Lifetime                                              |
+| -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- | ----------------------------------------------------- |
+| Audio, difficulty, pause-key mode, reduced motion                                                                                                  | global Preferences                                   | all profiles                                          |
+| Identity, Quick history, custom Tournaments, global Trophy/Story-award archives, Story Save index                                                  | selected Player Profile                              | persisted profile                                     |
+| Collection, duplicates, XP/levels/builds, currency, Modifications, Accessories, Store, Missions, active Story Squad, Story progress/local Trophies | one Story Save                                       | until that Story Save is explicitly restarted/deleted |
+| Quick Fight Character pool, prepared Lineups, sandbox builds, selected preset values, and fight-rule draft                                         | Quick session draft                                  | until leaving/reconfiguring Quick Fight               |
+| Tournament definition                                                                                                                              | preset content or Player custom-Tournament catalogue | preset version or until custom deletion               |
+| Tournament Roster, persistent player/opponent Health, current node, pending effects                                                                | Tournament run                                       | until victory, complete defeat, or forfeit            |
+| Seeded combat and report                                                                                                                           | battle engine/session                                | one match                                             |
+| Pause, countdown, presentation lock, open overlays                                                                                                 | battle-session controller                            | one mounted battle                                    |
 
 Victory and defeat are result states over the same battle route and shared
 report model, not separate combat implementations. Pause and the development
@@ -117,29 +118,123 @@ states.
 
 ## Session and match composition
 
-Story, Quick Fight, and Tournament are orchestration contexts around one combat
-engine, not separate battle implementations.
+Story, Quick Fight, Tournament, and Developer Lab are orchestration contexts
+around one combat engine, not separate battle implementations. Developer Lab
+is an isolated development adapter rather than a fourth player-facing mode.
 
 ```text
-Profile ──→ Mode Session ──→ Match Configuration ──→ Battle
-                                      │                  │
-                                      └─ rules/builds    └─ Battle Report
-                                                              │
-                                                              ▼
+Profile ──→ Mode Session ──→ Match Draft ──→ Validated Match Configuration
+                                                                  │
+Developer Lab ──→ Development Scenario Draft ────────────────┘
+                                                                  ▼
+                                                          Combat Engine
+                                                    Transition { state, events }
+                                                                  │
+                                                                  ▼
+                                                           Battle Report
+                                                                  │
+                                                                  ▼
                                                     mode-owned consequences
 ```
 
-A match configuration owns Lineups, Combatant Builds, one optional team
-Accessory per side, difficulty, deterministic seed, optional authored rules,
-and presentation identity. Global Settings supply accessibility/audio and a
-preferred difficulty; the mode may constrain the match without copying settings
-state.
+A resolved match configuration is an immutable snapshot and carries Lineups,
+Combatant Builds, one optional team Accessory per side, difficulty,
+deterministic seed, optional authored rules, and presentation identity. Carrying
+an Accessory in this final data structure does not make it a Fight Setting: its
+draft owner is the Lineup preparation stage. Global Settings supply
+accessibility/audio and a preferred difficulty; the mode may constrain the
+match without copying settings state.
 
-Each player-facing mode renders a `data-fight-setup` confirmation boundary
-before it constructs that configuration. Quick Fight owns editable sandbox
-Lineups, Story resolves owned and authored-loan builds, and Tournament resolves
-deployment and carried Health. This is one interaction contract rather than
-three battle engines.
+The current resolver records the effective clock, opening Charge, seed,
+difficulty, both ordered instance/Character pairs, their complete builds, and
+both team Accessories. `App.startBattle` consumes that snapshot through
+`battleInputForMatch`; it must not rebuild player-facing participants from App
+fields or reread Global Settings. Story encounter settings and Tournament
+defaults/per-fight overrides resolve through the same contract before Battle.
+
+Match launch is a process with separate draft editors and one final boundary:
+
+```text
+mode-owned eligible pool and build state
+  → Character Select and Lineup preparation
+  → Fight Settings when the mode permits edits
+  → read-only Review Fight confirmation
+  → validated match configuration
+```
+
+Character Select and Lineup preparation own participating instance IDs, order,
+starter, and the optional team Accessory. Fight Settings owns only permitted
+sandbox builds, difficulty, clock, opening Charge, deterministic seed, and
+other encounter-rule edits. The final `data-fight-setup` surface implements
+**Review Fight** and owns no editable combat configuration: it renders the
+resolved match and records the player's single confirmation. Quick Fight
+supplies temporary sandbox instances, Story resolves owned and authored-loan
+builds, and Tournament resolves deployment and carried Health. This is one
+interaction contract rather than three battle engines.
+
+There is no public “start a battle” route. A player-facing battle may be
+constructed only when all of the following are true:
+
+1. an explicit Story, Quick Fight, or Tournament session owns the request;
+2. the mode has produced a complete match draft according to its policy;
+3. the player has confirmed the shared Review Fight boundary; and
+4. the draft resolves to a validated match configuration before arena loading.
+
+A mode may lock or pre-fill choices, but it may not bypass confirmation or
+validation. Quick Fight always enters Character Select. Its preset is a compact
+control inside Quick Fight Settings; selecting it updates related draft values
+in place and never navigates to another screen. Story selects an authored node
+before Character Select offers eligible active Squad members. Tournament
+chooses a definition, registers or resumes its locked Roster, resolves global
+defaults and per-fight overrides, then offers living members for the round.
+Tournament interludes resolve before the same current or next fight returns to
+Lineup preparation and Review Fight.
+
+The accepted per-mode state machines, ownership matrix, and Parent/Main Menu
+behaviour are maintained in
+[`docs/match-launch-flows.md`](match-launch-flows.md). Implementations may model
+setup stages as typed substates of a coarse route, but each transition and exit
+must remain explicit and exhaustive.
+
+Every rendered non-Battle stage receives two navigation destinations from its
+owning workflow: `parent` and `mainMenu`. The screen must not infer Parent from
+browser history. The live battle session retains the owning workflow return
+target so Pause can offer both `Quit Fight to Parent` and `Quit to Main Menu`.
+Quit confirmation resolves any mode consequence before navigation; in
+particular, Tournament code must not restore a pre-fight Health snapshot or
+silently turn a quit into a free retry. Restart and Tournament forfeit remain
+separate commands.
+
+A Quick preset is a registered value patch, not a route or screen model. Applying
+one produces a new draft whose affected controls immediately reflect the
+result. A later edit to an affected value derives the `Custom` state without
+losing the draft. The player-facing **Full Power** default uses a dedicated
+max-sandbox build factory; deterministic Level 10 Standard Builds remain
+calibration fixtures for tests, authored encounters, or Developer Lab and must
+not leak into the default Quick launch copy. A preset may provide default
+Accessory IDs, but those values are applied to and subsequently edited through
+the corresponding Lineup draft.
+
+Developer Lab may deliberately bypass the player-facing Review Fight screen so
+named scenarios can start quickly, but it does not bypass the configuration
+resolver. Its adapter must produce the same validated gameplay input, classify
+the report as `dev`, disable progression/rewards/achievements, and expose any
+override provenance. A malformed scenario fails before Phaser or the combat
+engine is created.
+
+The framework-free combat engine currently accepts `CreateBattleInput` plus
+validated `CombatContent` and returns a `Transition` containing the next
+`BattleState` and semantic `BattleEvent` values. Later commands and ticks keep
+the same transition shape. The battle-session layer builds the versioned
+`BattleReport` from those transitions and gives the completed report to the
+owning mode. The engine never reads routes, profiles, browser storage, rewards,
+missions, Story progress, or Tournament persistence; mode consequence code
+never invents combat outcomes that are absent from the report.
+
+The typed `ResolvedBattleConfiguration` target and eligibility matrix are
+specified in `docs/v2-continuation-programme.md`. Until that resolver is fully
+extracted, `App.startBattle` is an implementation seam to remove, not permission
+to add another mode-specific battle branch.
 
 `src/ui/battle-guidance.ts` derives visible decision and presentation copy from
 current runtime state. It does not alter combat: the application supplies
@@ -194,10 +289,13 @@ interruption. Adding a refund, staged, or action-specific policy requires a new
 closed schema value, deterministic engine handling, UI copy, and tests in the
 same change.
 
-`src/combat/standard-build.ts` is the single Standard Build constructor for
-non-Story defaults. Quick Fight and standalone Tournament must call it instead
-of inferring builds from authored character levels or the active Story profile.
-Story encounters continue to use owned builds or explicit loan builds.
+`src/combat/standard-build.ts` is the single even-build calibration constructor.
+Authored encounters, tests, Developer Lab, and Tournament definitions may use
+it when they explicitly request Standard Builds. Player-facing Quick Fight uses
+a separate Full Power sandbox constructor for its default and never infers
+builds from authored Character levels or the active Story profile. Standalone
+Tournament builds come from the chosen definition or configured Roster; Story
+encounters continue to use owned builds or explicit loan builds.
 
 `src/combat/quick-fight-seed.ts` derives the stable seed from both Lineups and
 Accessories. The default Gate 1 configuration is
@@ -389,11 +487,48 @@ into rewards, missions, Story, or tournament persistence.
 
 ## Persistence
 
+Persisted `PlayerProfileData` schema v3 is the storage-agnostic Profile with
+nested Story Saves introduced by Foundation Packet F00. The current application
+still consumes a validated `SaveData` v2 compatibility view while its screens
+are migrated one at a time; new writes own the schema-v3 Profile rather than
+writing progression back into the flat legacy document. The persisted shape
+separates:
+
+```text
+PlayerProfileData
+├─ identity and global records
+├─ Quick Fight history
+├─ custom Tournament definitions
+├─ global Tournament Trophy records keyed by Tournament ID
+├─ global Story completion awards keyed by Story ID
+├─ standalone Tournament run
+└─ storySaves[storyId]
+   └─ StorySaveData
+      ├─ collection/builds/economy/Store/Missions
+      ├─ active Story Squad (maximum six)
+      ├─ Story progress and local Tournament Trophy records
+      └─ optional active Story Tournament run
+```
+
+The application uses the same profile contract for a guest stored in browser
+storage and a later authenticated/cloud-synchronised player. Authentication is
+an adapter and never becomes the owner of combat, Story, or Tournament rules.
+
+The v2-to-v3 migration preserves the current flat progression fields inside
+the `story.first-run` Story Save, retains Quick Fight history and the
+standalone run globally, and converts each old Trophy ID into a global record.
+Because the old schema did not retain Trophy provenance, a Trophy required by
+the migrated First Run completion state receives a conservative
+`legacy-imported` Story-local record so migration cannot revoke completion.
+The old snapshot remains available for rollback/recovery.
+
 - The original development namespace remains in storage keys solely to preserve
   existing local profiles. It is not product identity.
 - Preferences key: `riot-relics.preferences.v1`
 - Save index key: `riot-relics.save-index.v1`
+- Player Profile keys: `riot-relics.profile.v3.<slot>`
 - Slot keys: `riot-relics.save.v2.<slot>`
+- Pre-profile migration backup: `riot-relics.save.v2.<slot>.pre-profile-v3`
 - Legacy `riot-relics.save.v1.<slot>` snapshots migrate once into v2 and
   remain preserved for rollback.
 - Retired launch-roster IDs inside otherwise valid v2 snapshots migrate in
@@ -410,11 +545,12 @@ into rewards, missions, Story, or tournament persistence.
 - Owned Character entries persist level/XP, stat allocations, Move order,
   per-Move band positions, Move tiers, and one optional equipped Modification
   ID. Older v2 entries receive compatible defaults during validation.
-- Save slots persist the active Cheap Seats round, locked instance/build
-  snapshot, exact Tournament Roster health ratios, ending active instance, selected
-  interlude drop, pending opening-Charge bonus, Tournament Trophy IDs, and revealed
-  rivals. A loss clears the run snapshot so retry starts at Round 1. Older v2
-  entries receive empty compatible defaults.
+- Tournament runs persist their definition ID, current node, locked
+  instance/build snapshot, exact player Roster and current opponent Squad Health
+  and defeat state, deployed Lineup/starter, pending interstitial effects, and
+  used Accessories. A non-victory returns to Lineup while any player Roster
+  member lives; only complete defeat, victory, or confirmed forfeit closes the
+  run.
 - Tournament runs persist `exhaustedAccessoryIds`. A player-side Accessory
   activation adds its stable ID once; later rounds omit that Accessory. A fresh
   or restarted run begins with an empty exhaustion list.
@@ -611,8 +747,9 @@ The staged platform boundary is:
   physical-device proof unless a measured prototype justifies another
   thin-container approach; public store distribution follows when the product
   and developer memberships are ready;
-- V2.4: server-authoritative multiplayer through a versioned match adapter,
-  Worker gateway, and one Durable Object/WebSocket coordinator per match.
+- Deferred multiplayer, if separately approved: a server-authoritative,
+  versioned match adapter with a Worker gateway and one Durable
+  Object/WebSocket coordinator per match.
 
 This ordering is authoritative in `docs/release-roadmap.md`. Each stage still
 requires its own ADR for data ownership, privacy, retention, security,
@@ -625,8 +762,8 @@ artefacts, but it must not create separate gameplay or content implementations.
 V2–V2.3 preserve explicit seeds, serialisable side-agnostic commands,
 controller ownership outside the domain, versioned reports, and deterministic
 replay; they do not add a remote controller or speculative match service.
-`docs/multiplayer-seam.md` records the V2.4 protocol, timing, trust, delivery,
-and failure-test boundary.
+`docs/multiplayer-seam.md` preserves optional protocol, timing, trust, delivery,
+and failure-test research. It is not a committed milestone.
 
 GitHub Actions is the release-automation boundary: pull requests and main run
 the repository quality gate, reviewed static artefacts are promoted without an
@@ -640,3 +777,45 @@ payload because it contains the complete music and development/public asset
 trees. Static output size is not identical to initial transfer, but V2 must
 record actual route and battle transfers. V2.1 must use selective application
 shell and content-pack caching rather than pre-caching the complete library.
+
+## Product-line evolution boundary
+
+`docs/platform-direction.md` records a possible future in which the fighter is
+one maintained gameplay capability used by multiple products. That direction
+does not describe the current architecture. The current build still owns one
+public identity, one direct TypeScript content package, First Run-specific
+application and migration code, and one application release version.
+
+Future proofs must preserve these constraints:
+
+- Generation and research are offline authoring activities. A released game
+  cannot require an AI provider to boot or play.
+- Product-specific identity, content, policy, and provider adapters cannot enter
+  deterministic combat rules.
+- Stable logical IDs and explicit migrations remain mandatory. A re-theme may
+  not rewrite old saves or reuse another product's storage namespace casually.
+- Public product builds must not share mutable runtime state, content, assets,
+  or canonical metadata accidentally.
+- Rights, source, prompt, model, approval, and commercial-use metadata remain
+  outside pure combat definitions while still participating in release
+  validation.
+- Provider credentials and billable generation actions remain explicit,
+  protected authoring concerns.
+- A remote content path, if accepted later, requires versioning, integrity,
+  fallback, rollback, privacy, and offline behaviour before it can replace
+  bundled content.
+- A second gameplay capability must not be forced through fighter-shaped
+  abstractions. It should first be implemented for a concrete product and then
+  compared with the combat engine.
+
+The first radical re-theme must record a change inventory before extracting a
+product contract. The second independently releasable product must then prove
+the minimum boundary. Only after at least two active products consume central
+updates can the project define fleet compatibility, support windows, automated
+uplift, or repository topology from evidence.
+
+The current `2.0.0` application version is not yet a platform API guarantee.
+Any later semantic compatibility contract must identify the independently
+versioned concerns—such as runtime behaviour, content schema, save schema,
+product content, or platform shell—and provide tests and migrations for each
+claim.
