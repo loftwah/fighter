@@ -14,9 +14,16 @@ function quickResult(
     message: "Run it back or change the matchup.",
     featuredCharacterId: "character.viking",
     explanation: {
-      heading: "How you won",
-      decisiveMoment: "Axe First landed the final blow.",
-      evidence: ["Axe First led your side with 94 damage."],
+      heading: "How the fight turned",
+      decisiveMoment: "Axe First finished Grim Reaper with 94 damage.",
+      evidence: [
+        {
+          kind: "player-damage",
+          label: "Your top Move",
+          value: "Axe First · 94 damage",
+          detail: "Most damage for your Lineup.",
+        },
+      ],
     },
     actions: {
       retry: { command: "retry-battle", label: "Rematch" },
@@ -37,7 +44,9 @@ describe("battle result screen", () => {
 
     expect(markup).toContain("Victory");
     expect(markup).toContain("Your Lineup takes the fight.");
-    expect(markup).toContain("How you won");
+    expect(markup).toContain("How the fight turned");
+    expect(markup).toContain("Your top Move");
+    expect(markup).toContain("Axe First · 94 damage");
     expect(markup).toContain("Rematch");
     expect(markup).toContain("Review Fight");
     expect(markup).toContain("Main Menu");
@@ -50,14 +59,27 @@ describe("battle result screen", () => {
     const markup = renderBattleResultScreen(
       quickResult({
         explanation: {
-          heading: "How you won",
+          heading: "How the fight turned",
           decisiveMoment: "Axe First landed the final blow.",
           evidence: [
-            "Winning damage.",
-            "Losing damage.",
-            "Type edge.",
-            "Luck record.",
-            "You used 7 Moves: Axe First ×3 and Battle Boast ×3. You switched 0 times.",
+            {
+              kind: "player-damage",
+              label: "Your top Move",
+              value: "Winning damage.",
+            },
+            {
+              kind: "opponent-damage",
+              label: "Their top Move",
+              value: "Losing damage.",
+            },
+            { kind: "matchup", label: "Final matchup", value: "Type edge." },
+            { kind: "luck", label: "Luck on the night", value: "Luck record." },
+            {
+              kind: "choices",
+              label: "Your corner",
+              value: "7 Moves · No switches",
+              detail: "Axe First ×3 and Battle Boast ×3.",
+            },
           ],
         },
       }),
@@ -67,7 +89,8 @@ describe("battle result screen", () => {
     expect(markup).toContain("Losing damage.");
     expect(markup).toContain("Type edge.");
     expect(markup).toContain("Luck record.");
-    expect(markup).toContain("You used 7 Moves");
+    expect(markup).toContain("7 Moves · No switches");
+    expect(markup).toContain('data-evidence-kind="choices"');
   });
 
   it("omits the reward ledger when the mode does not own rewards", () => {

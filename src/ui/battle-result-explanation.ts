@@ -10,7 +10,14 @@ import { escapeHtml, formatLabel } from "./format";
 export interface BattleResultExplanation {
   heading: string;
   decisiveMoment: string;
-  evidence: string[];
+  evidence: BattleResultEvidence[];
+}
+
+export interface BattleResultEvidence {
+  kind: "player-damage" | "opponent-damage" | "matchup" | "luck" | "choices";
+  label: string;
+  value: string;
+  detail?: string;
 }
 
 function participantName(
@@ -81,17 +88,19 @@ function decisiveDamage(
   return null;
 }
 
-function luckEvidence(report: BattleReport): string {
+function luckEvidence(report: BattleReport): BattleResultEvidence {
   const criticals = report.events.filter(
     (event) => event.type === "criticalHit",
   ).length;
   const dodges = report.events.filter(
     (event) => event.type === "characterDodged",
   ).length;
-  if (criticals === 0 && dodges === 0) {
-    return "No critical hits or dodges swung the fight.";
-  }
-  return `The fight recorded ${criticals} critical hit${criticals === 1 ? "" : "s"} and ${dodges} dodge${dodges === 1 ? "" : "s"}.`;
+  return {
+    kind: "luck",
+    label: "Luck on the night",
+    value: `${criticals === 0 ? "No critical hits" : `${criticals} critical hit${criticals === 1 ? "" : "s"}`} · ${dodges === 0 ? "No dodges" : `${dodges} dodge${dodges === 1 ? "" : "s"}`}`,
+    detail: "Counted across both Lineups.",
+  };
 }
 
 function readableList(values: readonly string[]): string {
@@ -103,7 +112,7 @@ function readableList(values: readonly string[]): string {
 function playerChoiceEvidence(
   report: BattleReport,
   content: CombatContent,
-): string {
+): BattleResultEvidence {
   const moveCounts = new Map<string, number>();
   const switchDestinations = new Map<string, number>();
   for (const decision of report.decisions) {
@@ -139,13 +148,30 @@ function playerChoiceEvidence(
       (left, right) => right[1] - left[1] || left[0].localeCompare(right[0]),
     )
     .map(([name, count]) => `${name} ×${count}`);
-  const moveSentence = `You used ${moveCount} Move${moveCount === 1 ? "" : "s"}${namedMoves.length > 0 ? `: ${readableList(namedMoves)}` : ""}.`;
   const switchCount = [...switchDestinations.values()].reduce(
     (total, count) => total + count,
     0,
   );
-  const switchSentence = `You switched ${switchCount} time${switchCount === 1 ? "" : "s"}${namedSwitches.length > 0 ? `: ${readableList(namedSwitches)}` : ""}.`;
-  return `${moveSentence} ${switchSentence}`;
+  const moveSummary =
+    moveCount === 0
+      ? "No Moves"
+      : `${moveCount} Move${moveCount === 1 ? "" : "s"}`;
+  const switchSummary =
+    switchCount === 0
+      ? "No switches"
+      : `${switchCount} switch${switchCount === 1 ? "" : "es"}`;
+  const details = [
+    namedMoves.length > 0 ? `Moves: ${readableList(namedMoves)}.` : "",
+    namedSwitches.length > 0
+      ? `Switched to ${readableList(namedSwitches)}.`
+      : "",
+  ].filter(Boolean);
+  return {
+    kind: "choices",
+    label: "Your corner",
+    value: `${moveSummary} · ${switchSummary}`,
+    detail: details.join(" ") || "No player commands were recorded.",
+  };
 }
 
 export function explainBattleResult(
@@ -164,25 +190,35 @@ export function explainBattleResult(
     .reverse()
     .find((event) => event.type === "battleEnded");
   const decisiveMoment = finalAction
-    ? `${finalAction} delivered the final ${finalDamage?.amount ?? 0} damage to ${finalTarget}.`
+    ? `${finalAction} finished ${finalTarget} with ${finalDamage?.amount ?? 0} damage.`
     : battleEnd?.message?.endsWith("Forfeited")
       ? "The fight ended by forfeit."
       : report.elapsedMs >= report.initialState.timeLimitMs
-        ? "The clock ran out. Remaining Health decided the winner."
-        : "No single blow decided the ending.";
+        ? "The clock ran out; remaining Health settled it."
+        : "There was no single finishing blow.";
 
-  const evidence: string[] = [];
+  const evidence: BattleResultEvidence[] = [];
   const topWinningMove = winningDamage[0];
   const topLosingMove = losingDamage[0];
   if (topWinningMove) {
-    evidence.push(
-      `${content.actions[topWinningMove.actionId]?.name ?? topWinningMove.actionId} led ${playerWon ? "your Lineup" : "the opposing Lineup"} with ${topWinningMove.amount} total damage.`,
-    );
+    const winningMoveName =
+      content.actions[topWinningMove.actionId]?.name ?? topWinningMove.actionId;
+    evidence.push({
+      kind: playerWon ? "player-damage" : "opponent-damage",
+      label: playerWon ? "Your top Move" : "Their top Move",
+      value: `${winningMoveName} · ${topWinningMove.amount} damage`,
+      detail: `Most damage for ${playerWon ? "your" : "the opposing"} Lineup.`,
+    });
   }
   if (topLosingMove) {
-    evidence.push(
-      `${content.actions[topLosingMove.actionId]?.name ?? topLosingMove.actionId} was ${playerWon ? "the opponent's" : "your"} strongest answer at ${topLosingMove.amount} damage.`,
-    );
+    const losingMoveName =
+      content.actions[topLosingMove.actionId]?.name ?? topLosingMove.actionId;
+    evidence.push({
+      kind: playerWon ? "opponent-damage" : "player-damage",
+      label: playerWon ? "Their top Move" : "Your top Move",
+      value: `${losingMoveName} · ${topLosingMove.amount} damage`,
+      detail: `Most damage for ${playerWon ? "the opposing" : "your"} Lineup.`,
+    });
   }
 
   const player = report.participants.find(
@@ -200,13 +236,19 @@ export function explainBattleResult(
         enemyDefinition.typeId,
       );
       if (multiplier > 1) {
-        evidence.push(
-          `${playerDefinition.name}'s ${formatLabel(playerDefinition.typeId)} Type was strong against ${enemyDefinition.name}'s ${formatLabel(enemyDefinition.typeId)} Type.`,
-        );
+        evidence.push({
+          kind: "matchup",
+          label: "Final matchup",
+          value: `${formatLabel(playerDefinition.typeId)} was strong into ${formatLabel(enemyDefinition.typeId)}`,
+          detail: `${playerDefinition.name} had the Type edge over ${enemyDefinition.name} on the finish.`,
+        });
       } else if (multiplier < 1) {
-        evidence.push(
-          `${playerDefinition.name}'s ${formatLabel(playerDefinition.typeId)} Type was weak against ${enemyDefinition.name}'s ${formatLabel(enemyDefinition.typeId)} Type.`,
-        );
+        evidence.push({
+          kind: "matchup",
+          label: "Final matchup",
+          value: `${formatLabel(playerDefinition.typeId)} was weak into ${formatLabel(enemyDefinition.typeId)}`,
+          detail: `${playerDefinition.name} fought through a Type disadvantage against ${enemyDefinition.name} on the finish.`,
+        });
       }
     }
   }
@@ -215,7 +257,7 @@ export function explainBattleResult(
   evidence.push(playerChoiceEvidence(report, content));
 
   return {
-    heading: playerWon ? "How you won" : "What went wrong",
+    heading: "How the fight turned",
     decisiveMoment,
     evidence: evidence.slice(0, 5),
   };
@@ -231,7 +273,7 @@ export function renderBattleResultExplanation(
       <h3 id="result-explanation-title">${escapeHtml(explanation.heading)}</h3>
       <p>${escapeHtml(explanation.decisiveMoment)}</p>
       <ul>
-        ${explanation.evidence.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
+        ${explanation.evidence.map((item) => `<li><strong>${escapeHtml(item.label)}</strong><span>${escapeHtml(item.value)}</span>${item.detail ? `<small>${escapeHtml(item.detail)}</small>` : ""}</li>`).join("")}
       </ul>
     </section>
   `;

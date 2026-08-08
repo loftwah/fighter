@@ -2862,7 +2862,7 @@ export class App {
       `Level ${build.level ?? character.level}`,
       statFact,
       `Moves: ${movesFact}`,
-      `Modification: ${patch?.name ?? "None"}`,
+      ...(patch ? [`Modification: ${patch.name}`] : []),
     ];
   }
 

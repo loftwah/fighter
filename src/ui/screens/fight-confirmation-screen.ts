@@ -108,6 +108,28 @@ function renderMember(
   const statuses = member.statuses ?? [];
   const buildFacts = member.buildFacts ?? [];
 
+  const labelledBuildFacts = buildFacts.map((fact) => {
+    if (/^Level\s+/i.test(fact)) {
+      return { label: "Level", value: fact.replace(/^Level\s+/i, "") };
+    }
+    if (fact.startsWith("Moves: ")) {
+      return { label: "Move order", value: fact.slice("Moves: ".length) };
+    }
+    if (fact.startsWith("Modification: ")) {
+      return {
+        label: "Modification",
+        value: fact.slice("Modification: ".length),
+      };
+    }
+    if (/^(Vitality|Power|Evasion|Fortune|Tempo)\s[+−-]/.test(fact)) {
+      return { label: "Stat boosts", value: fact };
+    }
+    if (/^\d+ enhanced Move/.test(fact)) {
+      return { label: "Build", value: fact };
+    }
+    return { label: "Build note", value: fact };
+  });
+
   return `
     <article
       class="fight-confirmation-member ${isStarter ? "is-starter" : "is-bench"} ${member.defeated ? "is-defeated" : ""}"
@@ -147,9 +169,12 @@ function renderMember(
             : ""
         }
         ${
-          buildFacts.length > 0
-            ? `<ul class="fight-confirmation-build-facts" aria-label="${escapeHtml(character.name)} build changes">${buildFacts
-                .map((fact) => `<li>${escapeHtml(fact)}</li>`)
+          labelledBuildFacts.length > 0
+            ? `<ul class="fight-confirmation-build-facts" aria-label="${escapeHtml(character.name)} build changes">${labelledBuildFacts
+                .map(
+                  (fact) =>
+                    `<li><span class="fight-confirmation-build-label">${escapeHtml(fact.label)}</span><strong class="fight-confirmation-build-value">${escapeHtml(fact.value)}</strong></li>`,
+                )
                 .join("")}</ul>`
             : ""
         }
@@ -269,7 +294,8 @@ export function renderFightConfirmationScreen(
 
       <div class="fight-confirmation-duel">
         ${renderLineup(model.player, false)}
-        <div class="fight-confirmation-versus" aria-label="versus">VS</div>
+        <div class="fight-confirmation-duel-seam" aria-hidden="true"></div>
+        <div class="fight-confirmation-versus" aria-label="versus"><small>Face off</small><span>VS</span></div>
         ${renderLineup(model.opponent, true)}
       </div>
 

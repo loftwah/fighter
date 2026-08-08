@@ -137,6 +137,33 @@ describe("read-only Fight Setup confirmation", () => {
     expect(markup).toContain("Defeat the full opposing Lineup");
   });
 
+  it("turns build strings into labelled scan points instead of a text dump", () => {
+    const markup = renderFightConfirmationScreen({
+      ...baseModel,
+      player: {
+        ...baseModel.player,
+        members: [
+          {
+            ...baseModel.player.members[0]!,
+            buildFacts: [
+              "Level 25",
+              "Vitality +5 · Power +5",
+              "Moves: Battle Boast (Platinum) → Axe First (Platinum)",
+              "Modification: Second Wind",
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(markup).toContain('fight-confirmation-build-label">Level');
+    expect(markup).toContain('fight-confirmation-build-value">25');
+    expect(markup).toContain('fight-confirmation-build-label">Stat boosts');
+    expect(markup).toContain('fight-confirmation-build-label">Move order');
+    expect(markup).toContain('fight-confirmation-build-label">Modification');
+    expect(markup).toContain("fight-confirmation-duel-seam");
+  });
+
   it("rejects unresolved Lineups before rendering confirmation", () => {
     expect(() =>
       renderFightConfirmationScreen({

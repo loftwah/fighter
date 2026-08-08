@@ -69,14 +69,20 @@ describe("battle result explanation", () => {
     );
 
     const explanation = explainBattleResult(report, combatContent);
-    expect(explanation.heading).toBe("How you won");
+    expect(explanation.heading).toBe("How the fight turned");
     expect(explanation.decisiveMoment).toContain("Berserker Oath");
-    expect(explanation.evidence.join(" ")).toContain("Brawler");
-    expect(explanation.evidence).toContain(
-      "The fight recorded 1 critical hit and 0 dodges.",
+    expect(explanation.evidence.map((item) => item.value).join(" ")).toContain(
+      "Brawler",
+    );
+    expect(explanation.evidence).toContainEqual(
+      expect.objectContaining({
+        kind: "luck",
+        label: "Luck on the night",
+        value: "1 critical hit · No dodges",
+      }),
     );
     expect(renderBattleResultExplanation(report, combatContent)).toContain(
-      "You used 1 Move: Axe First ×1. You switched 0 times.",
+      "1 Move · No switches",
     );
   });
 
@@ -96,8 +102,11 @@ describe("battle result explanation", () => {
     });
     report.outcome = "enemyWon";
 
-    expect(explainBattleResult(report, combatContent).evidence).toContain(
-      "No critical hits or dodges swung the fight.",
+    expect(explainBattleResult(report, combatContent).evidence).toContainEqual(
+      expect.objectContaining({
+        kind: "luck",
+        value: "No critical hits · No dodges",
+      }),
     );
   });
 
@@ -129,7 +138,10 @@ describe("battle result explanation", () => {
     }
 
     expect(renderBattleResultExplanation(report, combatContent)).toContain(
-      "You used 0 Moves. You switched 3 times: Humpty Dumpty ×3.",
+      "No Moves · 3 switches",
+    );
+    expect(renderBattleResultExplanation(report, combatContent)).toContain(
+      "Switched to Humpty Dumpty ×3.",
     );
   });
 
@@ -174,7 +186,7 @@ describe("battle result explanation", () => {
     );
 
     expect(explainBattleResult(report, combatContent).decisiveMoment).toBe(
-      "The clock ran out. Remaining Health decided the winner.",
+      "The clock ran out; remaining Health settled it.",
     );
   });
 
@@ -206,7 +218,7 @@ describe("battle result explanation", () => {
     );
 
     expect(explainBattleResult(report, combatContent).decisiveMoment).toBe(
-      "No single blow decided the ending.",
+      "There was no single finishing blow.",
     );
   });
 });

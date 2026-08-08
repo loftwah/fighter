@@ -172,7 +172,7 @@
   position: relative;
   display: grid;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) clamp(2.4rem, 4vw, 4.2rem) minmax(
+  grid-template-columns: minmax(0, 1fr) clamp(3.6rem, 5.4vw, 5.8rem) minmax(
       0,
       1fr
     );
@@ -181,7 +181,7 @@
 }
 
 .fight-confirmation-lineup {
-  --fight-bill-point-safe: 3%;
+  --fight-bill-point-safe: 0%;
 
   position: relative;
   display: grid;
@@ -195,15 +195,59 @@
 }
 
 .fight-confirmation-lineup.is-player {
-  margin-right: -0.35rem;
   border-color: #769ee9;
-  clip-path: polygon(0 0, 97% 0, 100% 50%, 97% 100%, 0 100%);
 }
 
 .fight-confirmation-lineup.is-opponent {
-  margin-left: -0.35rem;
   border-color: #f47a68;
-  clip-path: polygon(3% 0, 100% 0, 100% 100%, 3% 100%, 0 50%);
+}
+
+.fight-confirmation-duel-seam {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: clamp(1.3rem, 2vw, 2rem);
+  background:
+    linear-gradient(
+        135deg,
+        transparent 0 42%,
+        rgb(247 240 221 / 34%) 43% 52%,
+        transparent 53%
+      )
+      0 0 / 100% 1.8rem,
+    linear-gradient(
+      90deg,
+      var(--indigo-soft) 0 48%,
+      var(--tomato-dark) 52% 100%
+    );
+  clip-path: polygon(
+    42% 0,
+    100% 0,
+    62% 9%,
+    98% 18%,
+    58% 28%,
+    100% 39%,
+    57% 50%,
+    96% 62%,
+    60% 73%,
+    100% 84%,
+    58% 92%,
+    88% 100%,
+    0 100%,
+    35% 91%,
+    0 81%,
+    39% 70%,
+    0 58%,
+    38% 48%,
+    0 36%,
+    40% 25%,
+    0 14%
+  );
+  content: "";
+  opacity: 0.82;
+  transform: translateX(-50%);
 }
 
 .fight-confirmation-lineup > header {
@@ -443,6 +487,29 @@
   line-height: 1.14;
 }
 
+.fight-confirmation-build-facts li {
+  display: grid;
+  grid-template-columns: minmax(3.7rem, auto) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.36rem;
+  border-top: 1px solid rgb(20 21 26 / 18%);
+  padding-top: 0.14rem;
+}
+
+.fight-confirmation-build-label {
+  color: var(--tomato-dark);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.fight-confirmation-build-value {
+  min-width: 0;
+  font-size: inherit;
+  font-weight: 750;
+}
+
 .fight-confirmation-statuses li {
   width: max-content;
   max-width: 100%;
@@ -541,16 +608,29 @@
   width: clamp(3.7rem, 5vw, 5.5rem);
   aspect-ratio: 0.82;
   justify-self: center;
-  place-items: center;
+  grid-template-rows: auto auto;
+  place-content: center;
   border: 0.2rem solid var(--chalk);
   background: var(--yellow);
   color: var(--ink);
   clip-path: polygon(8% 0, 92% 4%, 100% 46%, 91% 100%, 5% 96%, 0 53%);
   font-family: var(--display);
-  font-size: clamp(2.5rem, 4.8vw, 4.5rem);
   line-height: 1;
   transform: rotate(-3deg);
   box-shadow: 0 0.45rem 0.8rem rgb(0 0 0 / 44%);
+}
+
+.fight-confirmation-versus small {
+  font-family: var(--body);
+  font-size: clamp(0.48rem, 0.62vw, 0.68rem);
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.fight-confirmation-versus span {
+  font-size: clamp(2.5rem, 4.8vw, 4.5rem);
 }
 
 .fight-confirmation-facts {
@@ -733,6 +813,17 @@
     gap: 0;
   }
 
+  .fight-confirmation-duel-seam {
+    top: 50%;
+    right: 0;
+    bottom: auto;
+    left: 0;
+    width: 100%;
+    height: 1.1rem;
+    clip-path: none;
+    transform: translateY(-50%);
+  }
+
   .fight-confirmation-lineup,
   .fight-confirmation-lineup.is-player,
   .fight-confirmation-lineup.is-opponent {
@@ -742,6 +833,10 @@
     border-width: 0.11rem;
     clip-path: none;
     box-shadow: 0 0.2rem 0.45rem rgb(0 0 0 / 36%);
+  }
+
+  .fight-confirmation-versus small {
+    display: none;
   }
 
   .fight-confirmation-lineup > header,
@@ -947,6 +1042,96 @@
     gap: 0.25rem;
     padding-inline: 0.75rem;
     font-size: 1.55rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) and (min-width: 681px) {
+  .fight-setup-confirmation {
+    gap: 0.28rem;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .fight-confirmation-heading {
+    min-height: 4.9rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .fight-confirmation-title-lockup h1 {
+    font-size: 3.35rem;
+  }
+
+  .fight-confirmation-title-lockup > strong {
+    margin-top: 0.2rem;
+    font-size: 1.2rem;
+  }
+
+  .fight-confirmation-lineup > header {
+    min-height: 2.15rem;
+    padding-block: 0.12rem;
+  }
+
+  .fight-confirmation-lineup h2 {
+    font-size: 1.65rem;
+  }
+
+  .fight-confirmation-roster {
+    min-height: 4.8rem;
+  }
+
+  .fight-confirmation-member,
+  .fight-confirmation-member.is-starter,
+  .fight-confirmation-roster[data-lineup-size="1"] .fight-confirmation-member {
+    grid-template-columns: minmax(5.5rem, 0.82fr) minmax(0, 1.18fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .fight-confirmation-portrait,
+  .fight-confirmation-member.is-starter .fight-confirmation-portrait,
+  .fight-confirmation-roster[data-lineup-size="1"]
+    .fight-confirmation-portrait {
+    border-right: 0.13rem solid var(--ink);
+    border-bottom: 0;
+  }
+
+  .fight-confirmation-evidence {
+    min-height: 3.65rem;
+  }
+
+  .fight-confirmation-accessory {
+    grid-template-columns: 2.8rem minmax(0, 1fr);
+    padding: 0.2rem 0.3rem;
+  }
+
+  .fight-confirmation-accessory p {
+    display: none;
+  }
+
+  .fight-confirmation-traits {
+    padding: 0.2rem 0.3rem;
+  }
+
+  .fight-confirmation-traits li {
+    font-size: 0.58rem;
+  }
+
+  .fight-confirmation-member-copy {
+    padding: 0.2rem 0.3rem;
+  }
+
+  .fight-confirmation-build-facts li {
+    grid-template-columns: minmax(3.4rem, auto) minmax(0, 1fr);
+  }
+
+  .fight-confirmation-facts li {
+    padding-block: 0.18rem;
+  }
+
+  .fight-confirmation-actions {
+    padding-top: 0.28rem;
+  }
+
+  .fight-confirmation-action {
+    min-height: 2.8rem;
   }
 }
 

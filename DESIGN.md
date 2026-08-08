@@ -473,10 +473,15 @@ Settings` action return to the owning draft without constructing Battle.
 The implemented Review Fight composition is one split fight bill rather than
 two equal dashboard cards. `Review Fight` names the task and the real encounter
 identity sits beneath it; a Quick preset name or summary never becomes the
-screen title. Registered starter art dominates the blue and tomato halves,
-bench fighters remain visibly subordinate, and each Lineup's Accessory and
-Traits form an attached evidence rail. Match facts and the torn yellow `Start
-Fight` ticket make one shallow launch deck at the bottom of the viewport.
+screen title. Registered starter art dominates clean rectangular blue and
+tomato Lineup frames, joined by one deliberately torn centre seam and `VS`
+ticket; fighter borders do not terminate in ambiguous clipped points. Bench
+fighters remain visibly subordinate. Build evidence uses short labelled scan
+points, while each Lineup's Accessory and Traits form an attached evidence
+rail. Empty defaults such as no Modification do not compete with a real choice.
+Match facts and the torn yellow `Start Fight` ticket make one shallow launch
+deck at the bottom of the viewport. In short landscape, descriptive prose
+compresses before fighter identity or art.
 
 Fighter Select is a Mortal Kombat-style paginated portrait grid rather than a
 set of native dropdowns. Quick Fight selects both sandbox sides and permits
@@ -770,11 +775,14 @@ reaction chain into another long cinematic.
 
 The result is the final gameplay scene, not a modal card. A full-width verdict banner, the frozen arena, a compact reward ledger, and explicit replay/leave actions fill the viewport. Wins use acid yellow; losses use tomato with chalk text. The underlying battle surface is inert while the scene is open.
 
-Immediately after the verdict, a compact evidence block answers `Why you won`
-or `Why you lost` from the versioned Battle Report. It names the decisive Move,
-leading damage, Type edge, critical/dodge contribution, and recorded Move/switch
-count when present. It never invents a cause and stays readable before the
-report-export and rematch actions.
+Immediately after the verdict, a compact evidence block explains how the fight
+turned from the versioned Battle Report. The verdict banner remains an
+uninterrupted top layer; featured Character art begins below it rather than
+covering its wordmark. The explanation names the decisive Move, leading damage,
+final Type matchup, critical/dodge count, and recorded Move/switch choices when
+present. Each fact is a labelled fight receipt with one plain-language value
+and optional supporting detail, not a raw log sentence. It never invents a
+cause and stays readable before the report-export and rematch actions.
 
 ### Pause Sheet and Development Inspector
 

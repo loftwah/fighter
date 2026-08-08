@@ -44,7 +44,13 @@ function renderEvidence(explanation: BattleResultExplanation | undefined) {
       <p>${escapeHtml(explanation.decisiveMoment)}</p>
       <ul>
         ${explanation.evidence
-          .map((item) => `<li>${escapeHtml(item)}</li>`)
+          .map(
+            (item) => `<li data-evidence-kind="${item.kind}">
+              <span>${escapeHtml(item.label)}</span>
+              <strong>${escapeHtml(item.value)}</strong>
+              ${item.detail ? `<small>${escapeHtml(item.detail)}</small>` : ""}
+            </li>`,
+          )
           .join("")}
       </ul>
     </section>
