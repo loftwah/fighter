@@ -39,29 +39,33 @@ export const EndScene: React.FC = () => {
         <BrandMark />
       </Interactive.Div>
       <Interactive.Div
-        name="End line"
+        name="End domain"
         style={{
-          bottom: 112,
+          bottom: 126,
+          color: colours.acid,
+          fontFamily: "Atkinson Hyperlegible",
+          fontSize: 52,
+          fontWeight: 700,
+          letterSpacing: 1.8,
+          position: "absolute",
+        }}
+      >
+        fighter.loftwah.com
+      </Interactive.Div>
+      <Interactive.Div
+        style={{
+          bottom: 78,
           color: colours.chalk,
           fontFamily: "Atkinson Hyperlegible",
-          fontSize: 34,
+          fontSize: 25,
           fontWeight: 700,
-          letterSpacing: 2.8,
+          letterSpacing: 2.4,
           position: "absolute",
           textTransform: "uppercase",
         }}
       >
         Story · Quick Fight · Tournament · Work in progress
       </Interactive.Div>
-      <div
-        style={{
-          background: colours.acid,
-          bottom: 82,
-          height: 8,
-          position: "absolute",
-          width: 690,
-        }}
-      />
       <Grain />
     </AbsoluteFill>
   );

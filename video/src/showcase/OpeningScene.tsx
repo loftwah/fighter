@@ -62,6 +62,26 @@ export const OpeningScene: React.FC = () => {
       >
         Start a story. Build a ridiculous matchup. Or try to survive the cup.
       </Interactive.Div>
+      <Interactive.Div
+        name="Opening domain"
+        style={{
+          bottom: 96,
+          color: colours.chalk,
+          fontFamily: "Atkinson Hyperlegible",
+          fontSize: 32,
+          fontWeight: 700,
+          left: 110,
+          letterSpacing: 2.4,
+          opacity: interpolate(frame, [30, 42], [0, 1], {
+            easing: Easing.out(Easing.cubic),
+            extrapolateLeft: "clamp",
+            extrapolateRight: "clamp",
+          }),
+          position: "absolute",
+        }}
+      >
+        fighter.loftwah.com
+      </Interactive.Div>
       <div
         style={{
           background: colours.tomato,

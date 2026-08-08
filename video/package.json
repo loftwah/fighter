@@ -5,6 +5,7 @@
   "repository": {},
   "license": "UNLICENSED",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "5.2.6",
     "@fontsource/league-gothic": "5.2.6",

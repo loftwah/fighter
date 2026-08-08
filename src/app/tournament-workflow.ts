@@ -104,12 +104,13 @@ function tournamentBuild(
 }
 
 export function tournamentSandboxCatalogue(): readonly TournamentRosterCandidate[] {
+  const characterIds = Object.keys(combatContent.characters);
   return Object.freeze(
-    Object.keys(combatContent.characters).flatMap((characterId) =>
-      Array.from({ length: SANDBOX_COPIES_PER_CHARACTER }, (_, copyIndex) =>
+    Array.from({ length: SANDBOX_COPIES_PER_CHARACTER }, (_, copyIndex) =>
+      characterIds.map((characterId) =>
         tournamentBuild(characterId, copyIndex),
       ),
-    ),
+    ).flat(),
   );
 }
 

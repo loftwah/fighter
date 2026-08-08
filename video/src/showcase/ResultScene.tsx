@@ -1,5 +1,6 @@
 import { CleanFootage } from "./design";
+import { captureTimeline } from "./capture-timeline";
 
 export const ResultScene: React.FC = () => (
-  <CleanFootage durationInFrames={105} sourceStartFrame={1559} />
+  <CleanFootage {...captureTimeline.result} />
 );

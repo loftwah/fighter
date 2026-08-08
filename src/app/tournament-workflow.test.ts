@@ -20,6 +20,10 @@ describe("standalone Tournament workflow", () => {
       new Set(draft.catalogue.map((fighter) => fighter.characterId)).size,
     ).toBe(6);
     expect(draft.catalogue.length).toBe(36);
+    expect(
+      new Set(draft.catalogue.slice(0, 6).map((fighter) => fighter.characterId))
+        .size,
+    ).toBe(6);
     for (const fighter of draft.catalogue.slice(0, 6)) {
       draft = toggleTournamentRosterInstance(draft, fighter.instanceId);
     }

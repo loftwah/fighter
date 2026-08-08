@@ -23,8 +23,8 @@ const metadataPath = resolve(
   "loftwah-fighter-gameplay-1080p.json",
 );
 const demoUrl = process.env.FIGHTER_DEMO_URL ?? "http://127.0.0.1:4173/";
-const battleCaptureMs = Number(process.env.FIGHTER_DEMO_BATTLE_MS ?? 42_000);
-const minimumCaptureSeconds = 50.5;
+const battleCaptureMs = Number(process.env.FIGHTER_DEMO_BATTLE_MS ?? 65_000);
+const minimumCaptureSeconds = 60;
 const viewport = { width: 1920, height: 1080 };
 
 function log(message) {
@@ -216,10 +216,24 @@ async function playDemo(page, captureStartedAt) {
   await page.getByRole("button", { name: "Choose this Cup" }).click();
   await page.getByRole("heading", { name: "Tournament Roster" }).waitFor();
   recordChapter("tournamentRoster");
-  await page.waitForTimeout(2_000);
-  await page.getByRole("button", { name: /Copy 1 Tux/ }).click();
+  await page.waitForTimeout(1_800);
+  for (const characterName of ["Viking", "Ned Kelly", "Grim Reaper"]) {
+    await page
+      .getByRole("button", { name: new RegExp(`Copy 1 ${characterName}`) })
+      .click();
+  }
   recordChapter("tournamentBuild");
   await page.waitForTimeout(2_000);
+  await page.getByRole("button", { name: "Tournament Settings" }).click();
+  await page.getByRole("heading", { name: "Tournament Settings" }).waitFor();
+  recordChapter("tournamentSettings");
+  await page.waitForTimeout(2_200);
+  await page
+    .getByRole("button", { name: "Lock Roster & Prepare Lineup" })
+    .click();
+  await page.getByRole("heading", { name: "The Wrong Door Cup" }).waitFor();
+  recordChapter("tournamentDeployment");
+  await page.waitForTimeout(2_600);
   await page.getByRole("button", { name: "Main Menu", exact: true }).click();
   await page.getByRole("heading", { name: "Choose a game." }).waitFor();
   await page.waitForTimeout(1_200);
@@ -235,6 +249,7 @@ async function playDemo(page, captureStartedAt) {
   await page
     .getByRole("combobox", { name: /Quick Fight preset/ })
     .selectOption({ label: "Hot Start" });
+  await page.getByRole("button", { name: "Easy", exact: true }).click();
   await page.waitForTimeout(2_400);
 
   await page.getByRole("button", { name: "Review Fight" }).click();
@@ -302,6 +317,12 @@ async function playDemo(page, captureStartedAt) {
       }
     }
     await page.waitForTimeout(150);
+  }
+
+  if (resultSeenAt === null) {
+    throw new Error(
+      `The showcase fight did not reach a result within ${Math.round(battleCaptureMs / 1000)} seconds.`,
+    );
   }
 
   const battleOffsetSeconds = Math.max(

@@ -132,6 +132,7 @@
 
 .battle-stage[data-battle-layout="rail-first"] .command-deck .action-tray {
   z-index: 12;
+  pointer-events: none;
 }
 
 .battle-stage[data-battle-layout="rail-first"]

@@ -9,7 +9,8 @@ The task records the running application at `1920 × 1080`, follows real Story,
 Tournament, and Quick Fight flows, enables music intent in the browser, and
 plays the battle through semantic DOM controls. Capture metadata records the
 opening, Main Menu, Story, Tournament choice/Roster, fighter selection, Fight
-Settings, Review Fight, Battle, and result chapter offsets.
+Settings, Review Fight, Battle, and result chapter offsets. Tournament evidence
+also records its mixed Roster, Settings, and locked deployment states.
 
 Run it through the pinned toolchain:
 
@@ -23,7 +24,8 @@ JavaScript dependency sets, Playwright Chromium, and Remotion's Headless Chrome.
 
 The task starts a local Vite server when one is not already available. Set
 `FIGHTER_DEMO_URL` to reuse another local server, or set
-`FIGHTER_DEMO_BATTLE_MS` to change the default 42-second battle window.
+`FIGHTER_DEMO_BATTLE_MS` to change the default 65-second battle window. The
+capture fails rather than silently omitting the result when that window expires.
 
 Generated files are ignored working evidence under `output/video/`:
 
@@ -50,15 +52,22 @@ separate, editable Remotion trailer after a successful capture:
 mise run demo:trailer
 ```
 
-This stages the ignored capture and the soundtrack choices recorded in its
-metadata under `video/public/generated/`. The local project typefaces are
-compiled into the Remotion bundle through Fontsource. The current showcase uses
-hard-cut chapter cards, clean full-frame footage, and narrow protected caption
-bands. Large copy never sits over active controls, Move cut-ins, or the result.
-FFmpeg then normalises the rendered mix for social playback.
+This stages the ignored capture under `video/public/generated/` and selects two
+deliberate cues from the registered soundtrack: Pocket-Sized Chaos for the
+menu/Story/setup movement and Bar's Almost Full for battle. The opening title is
+silent and the two cues crossfade once rather than replaying every short route
+transition observed during capture. The local project typefaces are compiled
+into the Remotion bundle through Fontsource. The current showcase uses hard-cut
+chapter cards, clean full-frame footage, and narrow protected caption bands.
+Large copy never sits over active controls, Move cut-ins, or the result. Opening
+and closing cards name `fighter.loftwah.com`. FFmpeg then normalises the rendered
+mix for social playback.
 
-The task refuses captures shorter than 50 seconds so every authored trailer
-chapter has real source footage, including the final Victory hold.
+The capture keeps recording for at least 60 seconds and requires a real result.
+The render task derives its minimum source duration from the latest authored
+trim (currently about 59.1 seconds) and validates every chapter anchor against
+the capture metadata, so timing drift fails clearly instead of silently replacing
+the final Victory hold with combat or exhausted footage.
 
 The final delivery is
 `output/video/loftwah-fighter-showcase-1080p.mp4`. The editable source lives in

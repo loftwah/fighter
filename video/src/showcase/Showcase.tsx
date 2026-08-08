@@ -14,40 +14,28 @@ import { SetupCard, SetupScene } from "./SetupScene";
 import { StoryCard, StoryScene } from "./StoryScene";
 import { TournamentCard, TournamentScene } from "./TournamentScene";
 
-export const SHOWCASE_FRAMES = 1315;
+export const SHOWCASE_FRAMES = 1505;
 
 const ShowcaseSoundtrack: React.FC = () => (
   <>
-    <Sequence durationInFrames={100} name="Opening music">
-      <Audio
-        loop
-        src={staticFile("generated/intro.mp3")}
-        volume={(frame) =>
-          interpolate(frame, [0, 16, 78, 100], [0, 0.68, 0.68, 0], {
-            extrapolateLeft: "clamp",
-            extrapolateRight: "clamp",
-          })
-        }
-      />
-    </Sequence>
-    <Sequence from={75} durationInFrames={720} name="Menu and setup music">
+    <Sequence from={90} durationInFrames={815} name="Main theme">
       <Audio
         loop
         src={staticFile("generated/main.mp3")}
         volume={(frame) =>
-          interpolate(frame, [0, 18, 690, 720], [0, 0.7, 0.7, 0], {
+          interpolate(frame, [0, 18, 780, 815], [0, 0.7, 0.7, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
         }
       />
     </Sequence>
-    <Sequence from={745} durationInFrames={570} name="Battle music">
+    <Sequence from={870} durationInFrames={635} name="Battle music">
       <Audio
         loop
         src={staticFile("generated/battle.mp3")}
         volume={(frame) =>
-          interpolate(frame, [0, 18, 535, 570], [0, 0.8, 0.8, 0], {
+          interpolate(frame, [0, 35, 600, 635], [0, 0.8, 0.8, 0], {
             extrapolateLeft: "clamp",
             extrapolateRight: "clamp",
           })
@@ -59,43 +47,43 @@ const ShowcaseSoundtrack: React.FC = () => (
 
 export const Showcase: React.FC = () => (
   <AbsoluteFill style={{ background: colours.deep }}>
-    <Sequence durationInFrames={75} name="Opening">
+    <Sequence durationInFrames={90} name="Opening">
       <OpeningScene />
     </Sequence>
-    <Sequence from={75} durationInFrames={75} name="Choose a game">
+    <Sequence from={90} durationInFrames={75} name="Choose a game">
       <MenuScene />
     </Sequence>
-    <Sequence from={150} durationInFrames={35} name="Story chapter">
+    <Sequence from={165} durationInFrames={35} name="Story chapter">
       <StoryCard />
     </Sequence>
-    <Sequence from={185} durationInFrames={105} name="Story gameplay">
+    <Sequence from={200} durationInFrames={120} name="Story gameplay">
       <StoryScene />
     </Sequence>
-    <Sequence from={290} durationInFrames={35} name="Tournament chapter">
+    <Sequence from={320} durationInFrames={35} name="Tournament chapter">
       <TournamentCard />
     </Sequence>
-    <Sequence from={325} durationInFrames={165} name="Tournament gameplay">
+    <Sequence from={355} durationInFrames={300} name="Tournament gameplay">
       <TournamentScene />
     </Sequence>
-    <Sequence from={490} durationInFrames={35} name="Quick Fight chapter">
+    <Sequence from={655} durationInFrames={35} name="Quick Fight chapter">
       <SetupCard />
     </Sequence>
-    <Sequence from={525} durationInFrames={180} name="Quick Fight setup">
+    <Sequence from={690} durationInFrames={180} name="Quick Fight setup">
       <SetupScene />
     </Sequence>
-    <Sequence from={705} durationInFrames={35} name="Battle chapter">
+    <Sequence from={870} durationInFrames={35} name="Battle chapter">
       <BattleCard />
     </Sequence>
-    <Sequence from={740} durationInFrames={240} name="Opening battle">
+    <Sequence from={905} durationInFrames={240} name="Opening battle">
       <OpeningBattleScene />
     </Sequence>
-    <Sequence from={980} durationInFrames={150} name="Closing battle">
+    <Sequence from={1145} durationInFrames={150} name="Closing battle">
       <ClosingBattleScene />
     </Sequence>
-    <Sequence from={1130} durationInFrames={105} name="Result">
+    <Sequence from={1295} durationInFrames={105} name="Result">
       <ResultScene />
     </Sequence>
-    <Sequence from={1235} durationInFrames={80} name="End card">
+    <Sequence from={1400} durationInFrames={105} name="End card">
       <EndScene />
     </Sequence>
     <ShowcaseSoundtrack />

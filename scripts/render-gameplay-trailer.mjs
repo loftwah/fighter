@@ -1,8 +1,14 @@
 import { execFile } from "node:child_process";
-import { copyFile, mkdir, readFile, stat } from "node:fs/promises";
+import { copyFile, mkdir, readFile, rm, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { findMusic } from "../src/audio/registry.ts";
+import {
+  CAPTURE_FPS,
+  captureTimeline,
+  requiredCaptureFrames,
+} from "../video/src/showcase/capture-timeline.ts";
 
 const execFileAsync = promisify(execFile);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -57,32 +63,43 @@ async function existingFile(path, help) {
   throw new Error(`${help}\nMissing: ${path}`);
 }
 
-async function capturedSoundtrack() {
-  let metadata;
-  try {
-    metadata = JSON.parse(await readFile(metadataPath, "utf8"));
-  } catch (error) {
-    throw new Error(
-      `The capture metadata is missing or invalid. Run \`mise run demo:capture\` first. ${error.message}`,
-    );
+function registeredMusicPath(id) {
+  const track = findMusic(id);
+  if (track.id !== id) {
+    throw new Error(`The showcase soundtrack ID ${id} is not registered.`);
   }
-  const tracks = Array.isArray(metadata.music) ? metadata.music : [];
-  const mainTracks = tracks.filter(
-    (track) => track?.context === "main" && typeof track.path === "string",
-  );
-  const battle = tracks.find(
-    (track) => track?.context === "battle" && typeof track.path === "string",
-  );
-  if (mainTracks.length === 0 || !battle) {
-    throw new Error(
-      "The capture metadata does not contain observed menu and battle soundtrack selections.",
-    );
-  }
+  return resolve(repositoryRoot, "public", track.path.replace(/^\/+/, ""));
+}
+
+function showcaseSoundtrack() {
   return {
-    battle: battle.path,
-    intro: mainTracks[0].path,
-    main: mainTracks.at(-1).path,
+    battle: registeredMusicPath("music.battle-2"),
+    main: registeredMusicPath("music.main-theme"),
   };
+}
+
+async function validateCaptureContract(duration) {
+  const requiredDuration = requiredCaptureFrames / CAPTURE_FPS;
+  if (!Number.isFinite(duration) || duration < requiredDuration) {
+    throw new Error(
+      `The authentic capture is ${duration.toFixed(1)} seconds; the latest authored source trim requires at least ${requiredDuration.toFixed(1)} seconds.`,
+    );
+  }
+
+  const metadata = JSON.parse(await readFile(metadataPath, "utf8"));
+  for (const clip of Object.values(captureTimeline)) {
+    if (!("chapter" in clip)) continue;
+    const actualStart = metadata.chapters?.[clip.chapter];
+    const authoredStart = clip.sourceStartFrame / CAPTURE_FPS;
+    if (
+      !Number.isFinite(actualStart) ||
+      Math.abs(actualStart - authoredStart) > 0.4
+    ) {
+      throw new Error(
+        `Capture chapter ${clip.chapter} starts at ${String(actualStart)} seconds, but the authored clip expects ${authoredStart.toFixed(2)} seconds (±0.4). Recapture or retime the showcase before rendering.`,
+      );
+    }
+  }
 }
 
 async function videoDuration(path) {
@@ -108,43 +125,35 @@ async function stageAssets() {
     "Capture the authentic game footage first with `mise run demo:capture`.",
   );
   const duration = await videoDuration(gameplayPath);
-  if (!Number.isFinite(duration) || duration < 50) {
-    throw new Error(
-      `The authentic capture is ${duration.toFixed(1)} seconds; the trailer requires at least 50.0 seconds of source footage.`,
-    );
-  }
-  const soundtrack = await capturedSoundtrack();
+  await validateCaptureContract(duration);
+  const soundtrack = showcaseSoundtrack();
   const assets = [
     [gameplayPath, resolve(stagedDirectory, "gameplay.mp4")],
     [
       await existingFile(
-        soundtrack.intro,
-        "The captured intro soundtrack is unavailable.",
-      ),
-      resolve(stagedDirectory, "intro.mp3"),
-    ],
-    [
-      await existingFile(
         soundtrack.main,
-        "The captured menu soundtrack is unavailable.",
+        "The showcase main-theme soundtrack is unavailable.",
       ),
       resolve(stagedDirectory, "main.mp3"),
     ],
     [
       await existingFile(
         soundtrack.battle,
-        "The captured battle soundtrack is unavailable.",
+        "The deliberate battle soundtrack is unavailable.",
       ),
       resolve(stagedDirectory, "battle.mp3"),
     ],
   ];
 
   await mkdir(stagedDirectory, { recursive: true });
+  await rm(resolve(stagedDirectory, "intro.mp3"), { force: true });
   for (const [source, destination] of assets) {
     await existingFile(source, "A required trailer asset is unavailable.");
     await copyFile(source, destination);
   }
-  log(`Staged authentic capture and soundtrack from ${metadataPath}`);
+  log(
+    `Staged authentic capture plus deliberate main-theme and battle cues; source metadata remains at ${metadataPath}`,
+  );
 }
 
 async function renderTrailer() {
@@ -242,7 +251,7 @@ async function renderTrailer() {
       "-metadata",
       "title=LOFTWAH FIGHTER Gameplay Showcase",
       "-metadata",
-      "comment=Authentic gameplay edited with Remotion",
+      "comment=Authentic gameplay from fighter.loftwah.com edited with Remotion",
       finalOutputPath,
     ],
     { maxBuffer: 32 * 1024 * 1024 },

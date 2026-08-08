@@ -11,15 +11,19 @@ mise run demo:capture
 mise run demo:trailer
 ```
 
-The showcase task stages the latest ignored gameplay capture and its exact
-recorded soundtrack choices. League Gothic and Atkinson Hyperlegible are
-compiled into the composition through their local Fontsource packages. The task
-then renders and loudness-normalises a `1920 × 1080`, H.264/AAC MP4 at
+The showcase task stages the latest ignored gameplay capture plus two deliberate
+cues from the registered game soundtrack: the main theme after the silent title
+card and one battle track from the fight chapter onwards. League Gothic and
+Atkinson Hyperlegible are compiled into the composition through their local
+Fontsource packages. The task then renders and loudness-normalises a
+`1920 × 1080`, H.264/AAC MP4 at
 `output/video/loftwah-fighter-showcase-1080p.mp4`.
 
 `LoftwahFighterShowcase` is the current human-language edit. It uses dedicated
 chapter cards, clean full-frame gameplay, and protected caption bands rather
 than placing large promotional copy over active controls or Move presentation.
+Opening and closing cards name `fighter.loftwah.com`; the opening remains silent
+because the application does not play an intro sting.
 The earlier `LoftwahFighterTrailer` composition remains available as retained
 editing history.
 

@@ -1,5 +1,6 @@
 import { CleanFootage } from "./design";
+import { captureTimeline } from "./capture-timeline";
 
 export const MenuScene: React.FC = () => (
-  <CleanFootage durationInFrames={75} sourceStartFrame={90} />
+  <CleanFootage {...captureTimeline.menu} />
 );

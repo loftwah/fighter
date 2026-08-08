@@ -1,4 +1,5 @@
 import { CleanFootage, colours, ModeCard } from "./design";
+import { captureTimeline } from "./capture-timeline";
 
 export const StoryCard: React.FC = () => (
   <ModeCard
@@ -9,5 +10,5 @@ export const StoryCard: React.FC = () => (
 );
 
 export const StoryScene: React.FC = () => (
-  <CleanFootage durationInFrames={105} sourceStartFrame={184} />
+  <CleanFootage {...captureTimeline.story} />
 );

@@ -1,4 +1,5 @@
 import { CleanFootage, colours, ModeCard } from "./design";
+import { captureTimeline } from "./capture-timeline";
 
 export const BattleCard: React.FC = () => (
   <ModeCard
@@ -9,9 +10,9 @@ export const BattleCard: React.FC = () => (
 );
 
 export const OpeningBattleScene: React.FC = () => (
-  <CleanFootage durationInFrames={240} sourceStartFrame={943} />
+  <CleanFootage {...captureTimeline.openingBattle} />
 );
 
 export const ClosingBattleScene: React.FC = () => (
-  <CleanFootage durationInFrames={150} sourceStartFrame={1260} />
+  <CleanFootage {...captureTimeline.closingBattle} />
 );
