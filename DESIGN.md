@@ -602,7 +602,11 @@ label, health or state copy, a registration border, and a cut or notched edge.
 Battle-edge tickets never disappear: each keeps its portrait and the text
 `ACTIVE`, `READY`, or `OUT`. Benched and enemy tickets retain exact
 current/maximum Health and a small tomato Health track throughout attack
-presentation. The active player ticket instead extends one attached,
+presentation. Whole-Lineup damage stamps each affected ticket at its own
+impact beat with a compact `−N` receipt and a previous-to-current Health-track
+move; reduced motion keeps the same receipt and a static tomato outline. A
+team-hit summary keeps all affected names together in the two-entry Fight Feed.
+The active player ticket instead extends one attached,
 lower-console tomato Health readout and suppresses the duplicate value and
 track on its square face. Active player tickets shift right; active enemy
 tickets shift left. A touch-sized `Attacks` tab

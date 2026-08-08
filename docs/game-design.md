@@ -369,7 +369,8 @@ Uses the same combat engine with authored constraints such as forced Lineups, ti
   advance.
 
 Difficulty changes AI judgement and reaction opportunity without changing
-Story access or progression rewards:
+Story access, progression rewards, damage, Health, critical chance, Type
+modifiers, or any other combat number:
 
 - **Easy** — deliberately difficult to lose; the opponent leaves generous
   windows and avoids consistently optimal pressure.
@@ -428,6 +429,23 @@ Story access or progression rewards:
   its configured Low, Standard, or High offset when it moves to slot 1, 2, or 3. At level 10 the player can also select that offset independently within
   each occupied band.
 - Moving a Move earlier reduces its output; moving it later increases output.
+
+For a neutral, full-Health opponent with matched progression on Normal, the
+authored damage budget is measured against target maximum Health across the
+Move's complete expected output:
+
+| Damage band | Target maximum Health | Clean Moves to victory |
+| ----------- | --------------------: | ---------------------: |
+| Small       |                11–13% |                    8–9 |
+| Middle      |                20–25% |                    4–5 |
+| Big         |                30–35% |                about 3 |
+
+Multi-hit damage, damage-over-time and other ordered damage effects are one
+compound budget; authoring may not calibrate only the first event. Criticals,
+Type, Power, tiers, progression, defence and dodge can move a result outside
+the neutral band, but the event record must explain it. Full Power is stronger
+than Standard without making mirrored fights routinely end in one or two
+Moves. Hot Start changes opening Charge only and never changes damage.
 
 Initial position model:
 
@@ -534,6 +552,12 @@ validate → lock target → spend Charge → start/charge → resolve hits
   full-strength and readable throughout a Move presentation. The latest damage,
   healing, status, or defeat outcome remains as a compact visible receipt after
   the cut-in clears.
+- A whole-Lineup attack gives every affected edge ticket its own impact-beat
+  reaction, exact previous-to-current Health meter change and compact damage
+  receipt. Reduced motion retains a static impact outline and the same receipt.
+  A benched target never makes the active arena fighter recoil. The general
+  two-entry Fight Feed groups the complete team result into one entry so a
+  three-member result cannot be truncated.
 - Each active Character's Health and its team's Charge Strip form one combat
   console: opponent information is grouped across the upper field and player
   information is grouped across the lower Move-and-Charge field. The player
@@ -601,16 +625,35 @@ Initial damage model:
 ```text
 nominal = movePower × slotMultiplier
 growth = 1 + (level - 1) × 0.035
-power = 1 + allocatedPower × 0.035
+power = 1 + effectivePower × 0.035
 temporary = attackMultiplier × targetDefenceMultiplier
 type = 1.25 advantage | 0.80 disadvantage | 1 neutral
-tier = 1.00 stock | 1.16 gold | 1.34 platinum
+tierDamage = 1.00 stock | 1.05 gold | 1.08 platinum
 variance = seeded 0.94…1.06
 critical = 1.55 when triggered
-final = max(1, round(nominal × growth × power × temporary × type × tier × variance × critical))
+final = max(1, round(nominal × growth × power × temporary × type × tierDamage × variance × critical))
 ```
 
-Team-damage and team-healing Moves distribute their authored pool across living targets, preserving roughly the same total value as a stronger single-target Move.
+`effectivePower` is the combatant's base Power plus allocated stat growth and
+any applicable Team Trait contribution. Temporary Power statuses are applied
+separately through `attackMultiplier`.
+
+Numeric healing and utility retain the broader tier curve of `1.00` Stock,
+`1.16` Tier 1 and `1.34` Tier 2. Damage uses the deliberately shallower curve
+above so Full Power upgrades do not erase decision time or accidentally force
+healing and utility to be weakened with them.
+
+Team-damage and team-healing Moves select living targets and distribute their
+authored pool across them: one target receives the complete pool, two receive
+halves and three receive thirds. A multi-hit pool is split independently per
+hit. Each target then resolves dodge, critical, Type and defence independently;
+avoided damage is not redirected. Whole-number rounding occurs after each
+target's share is resolved. With dodge, critical, Type and defence held equal,
+aggregate output may differ from the equivalent unsplit result only by those
+per-hit rounding steps; independent target modifiers can widen that result.
+The Move preview shows the pre-target total pool and an approximate neutral
+share per living target. It does not promise the final aggregate because each
+target's dodge, critical, Type and defence resolution happens afterwards.
 
 Dodge normally prevents an entire hit. Multi-hit Moves roll dodge and critical independently per hit.
 

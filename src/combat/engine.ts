@@ -6,6 +6,7 @@ import {
   actionFormRequirementMet,
   actionPositionForCombatant,
   actionTierProperties,
+  DAMAGE_TIER_MULTIPLIERS,
   hasStatus,
   historicOpeningCharge,
   isAlive,
@@ -784,7 +785,7 @@ function damageOne(
     Math.round(
       power *
         position.multiplier *
-        TIER_MULTIPLIERS[tier] *
+        DAMAGE_TIER_MULTIPLIERS[tier] *
         levelGrowth *
         powerGrowth *
         attackModifier *
@@ -866,16 +867,21 @@ function periodicEffectMagnitude(
   source: CombatantState,
   action: ActionDefinition,
   power: number,
+  tierScale: "damage" | "utility",
   powerModifier = 1,
 ): number {
   const tier = source.actionTiers[action.id] ?? "stock";
+  const tierMultiplier =
+    tierScale === "damage"
+      ? DAMAGE_TIER_MULTIPLIERS[tier]
+      : TIER_MULTIPLIERS[tier];
   return Math.max(
     1,
     Math.round(
       power *
         powerModifier *
         POSITION_RULES[actionPositionForCombatant(source, action)].multiplier *
-        TIER_MULTIPLIERS[tier] *
+        tierMultiplier *
         (1 + source.level * 0.025),
     ),
   );
@@ -1088,6 +1094,7 @@ function resolveAction(
               source,
               action,
               distributesPool ? effect.power / targets.length : effect.power,
+              effect.kind === "damageOverTime" ? "damage" : "utility",
               effect.kind === "damageOverTime"
                 ? clamp(1 + statusMagnitude(source, "empower"), 1, 4)
                 : 1,
@@ -1183,6 +1190,7 @@ function resolveAction(
               source,
               action,
               distributesPool ? effect.power / targets.length : effect.power,
+              "damage",
             ),
             remainingMs: effect.durationMs,
             remainingTriggers: effect.uses ?? 1,
@@ -1317,6 +1325,7 @@ function resolveAction(
                   source,
                   action,
                   tierProperties.shieldEndHealPower,
+                  "utility",
                 )
               : undefined,
           });
@@ -2102,78 +2111,101 @@ export function chooseAiCommand(
   const actionScore = (
     action: ActionDefinition,
     combatant: CombatantState = active,
-  ) =>
-    actionEffectsForCombatant(combatant, action).reduce((total, effect) => {
-      if (effect.kind === "damage") {
-        return total + effect.power * (effect.hits ?? 1);
-      }
-      if (effect.kind === "damageOverTime") {
-        return (
-          total +
-          effect.power *
-            Math.max(1, Math.floor(effect.durationMs / effect.intervalMs))
-        );
-      }
-      if (effect.kind === "heal") {
-        return missingHealthFor(effect.target) > 0
-          ? total + effect.power * 0.65
-          : total;
-      }
-      if (effect.kind === "healOverTime") {
-        return missingHealthFor(effect.target) > 0
-          ? total +
-              effect.power *
-                Math.max(1, Math.floor(effect.durationMs / effect.intervalMs)) *
-                0.55
-          : total;
-      }
-      if (effect.kind === "stun") {
-        return total + effect.durationMs * effect.chance * 0.02;
-      }
-      if (effect.kind === "empowerNextMove") {
-        return statusMagnitude(combatant, "empower") > 0
-          ? total
-          : total + effect.magnitude * 60;
-      }
-      if (effect.kind === "healthCost") {
-        return total - effect.amount * 0.35;
-      }
-      if (effect.kind === "bar") {
-        const targetTeam = effect.target === "allies" ? team : opponent;
-        const usefulAmount =
-          effect.amount > 0
-            ? Math.min(effect.amount, 100 - targetTeam.bar)
-            : Math.min(Math.abs(effect.amount), targetTeam.bar);
-        return total + usefulAmount * 0.8;
-      }
-      if (effect.kind === "barPercent") {
-        return total + Math.abs(effect.ratio) * 50;
-      }
-      if (effect.kind === "blockMove") {
-        return total + (effect.slotIndex === "all" ? 18 : 8);
-      }
-      if (effect.kind === "transform") {
-        return combatant.statuses.some((status) => status.kind === "form")
-          ? total
-          : total +
-              (Math.abs(effect.attackMagnitude) +
-                Math.abs(effect.defenceMagnitude)) *
-                70;
-      }
-      if (effect.kind === "randomBoon") {
-        return combatant.statuses.some((status) => status.kind === "attack")
-          ? total
-          : total + 12;
-      }
-      if (effect.kind === "modifyAttack") {
-        return combatant.statuses.some(
-          (status) => status.kind === "attack" && status.magnitude > 0,
+  ) => {
+    const damagingMoveReady = combatant.actionIds.some((actionId) => {
+      const candidate = actionFor(content, actionId);
+      return (
+        actionCostForCombatant(combatant, candidate) <= team.bar &&
+        actionEffectsForCombatant(combatant, candidate).some(
+          (effect) =>
+            effect.kind === "damage" || effect.kind === "damageOverTime",
         )
-          ? total
-          : total + Math.abs(effect.magnitude) * 60;
-      }
-      return total + 3;
-    }, 0);
+      );
+    });
+    return actionEffectsForCombatant(combatant, action).reduce(
+      (total, effect) => {
+        if (effect.kind === "damage") {
+          return total + effect.power * (effect.hits ?? 1);
+        }
+        if (effect.kind === "damageOverTime") {
+          return (
+            total +
+            effect.power *
+              Math.max(1, Math.floor(effect.durationMs / effect.intervalMs))
+          );
+        }
+        if (effect.kind === "heal") {
+          return missingHealthFor(effect.target) > 0
+            ? total + effect.power * 0.65
+            : total;
+        }
+        if (effect.kind === "healOverTime") {
+          return missingHealthFor(effect.target) > 0
+            ? total +
+                effect.power *
+                  Math.max(
+                    1,
+                    Math.floor(effect.durationMs / effect.intervalMs),
+                  ) *
+                  0.55
+            : total;
+        }
+        if (effect.kind === "stun") {
+          return total + effect.durationMs * effect.chance * 0.02;
+        }
+        if (effect.kind === "empowerNextMove") {
+          return statusMagnitude(combatant, "empower") > 0
+            ? total
+            : total + effect.magnitude * 60;
+        }
+        if (effect.kind === "healthCost") {
+          const projectedHealth = combatant.currentHealth - effect.amount;
+          return (
+            total -
+            (damagingMoveReady || projectedHealth < combatant.maxHealth * 0.45
+              ? 100
+              : effect.amount * 0.35)
+          );
+        }
+        if (effect.kind === "bar") {
+          const targetTeam = effect.target === "allies" ? team : opponent;
+          const usefulAmount =
+            effect.amount > 0
+              ? Math.min(effect.amount, 100 - targetTeam.bar)
+              : Math.min(Math.abs(effect.amount), targetTeam.bar);
+          return total + usefulAmount * 0.8;
+        }
+        if (effect.kind === "barPercent") {
+          return total + Math.abs(effect.ratio) * 50;
+        }
+        if (effect.kind === "blockMove") {
+          return total + (effect.slotIndex === "all" ? 18 : 8);
+        }
+        if (effect.kind === "transform") {
+          return combatant.statuses.some((status) => status.kind === "form")
+            ? total
+            : total +
+                (Math.abs(effect.attackMagnitude) +
+                  Math.abs(effect.defenceMagnitude)) *
+                  70;
+        }
+        if (effect.kind === "randomBoon") {
+          return combatant.statuses.some((status) => status.kind === "attack")
+            ? total
+            : total + 12;
+        }
+        if (effect.kind === "modifyAttack") {
+          return combatant.statuses.some(
+            (status) => status.kind === "attack" && status.magnitude > 0,
+          )
+            ? total
+            : total + Math.abs(effect.magnitude) * 60;
+        }
+        return total + 3;
+      },
+      0,
+    );
+  };
   const affordableFor = (combatant: CombatantState) =>
     combatant.actionIds
       .map((id, slotIndex) => ({ action: actionFor(content, id), slotIndex }))
@@ -2287,6 +2319,72 @@ export function predictedBaseDamage(
   return predictedDamageWithAttackModifier(state, side, actionId, content, 1);
 }
 
+export function predictedTeamDamagePool(
+  state: BattleState,
+  side: Side,
+  actionId: string,
+  content: CombatContent,
+): number {
+  const source = activeCombatant(teamFor(state, side));
+  return predictedTeamDamagePoolWithAttackModifier(
+    state,
+    side,
+    actionId,
+    content,
+    clamp(
+      1 +
+        statusMagnitude(source, "attack") +
+        statusMagnitude(source, "form") +
+        statusMagnitude(source, "empower"),
+      0.25,
+      4,
+    ),
+  );
+}
+
+export function predictedBaseTeamDamagePool(
+  state: BattleState,
+  side: Side,
+  actionId: string,
+  content: CombatContent,
+): number {
+  return predictedTeamDamagePoolWithAttackModifier(
+    state,
+    side,
+    actionId,
+    content,
+    1,
+  );
+}
+
+function predictedTeamDamagePoolWithAttackModifier(
+  state: BattleState,
+  side: Side,
+  actionId: string,
+  content: CombatContent,
+  attackModifier: number,
+): number {
+  const source = activeCombatant(teamFor(state, side));
+  const action = actionFor(content, actionId);
+  const damage = actionEffectsForCombatant(source, action).find(
+    (effect) => effect.kind === "damage" && effect.target === "allEnemies",
+  );
+  if (!damage || damage.kind !== "damage") return 0;
+  const tier = source.actionTiers[action.id] ?? "stock";
+  return Math.max(
+    1,
+    Math.round(
+      damage.power *
+        (damage.hits ?? 1) *
+        POSITION_RULES[actionPositionForCombatant(source, action)].multiplier *
+        DAMAGE_TIER_MULTIPLIERS[tier] *
+        (1 + (source.level - 1) * 0.035) *
+        (1 + source.stats.power * 0.035) *
+        attackModifier,
+    ),
+  );
+}
+
 function predictedDamageWithAttackModifier(
   state: BattleState,
   side: Side,
@@ -2317,7 +2415,7 @@ function predictedDamageWithAttackModifier(
       distributedPower *
         (damage.hits ?? 1) *
         POSITION_RULES[actionPositionForCombatant(source, action)].multiplier *
-        TIER_MULTIPLIERS[tier] *
+        DAMAGE_TIER_MULTIPLIERS[tier] *
         (1 + (source.level - 1) * 0.035) *
         (1 + source.stats.power * 0.035) *
         attackModifier *

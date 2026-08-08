@@ -38,12 +38,7 @@ export function battlePresentationDuration(events: BattleEvent[]): number {
   }
   const hasStarted = types.has("actionStarted");
   const hasResolved = types.has("actionCharged");
-  const impactDelay =
-    hasStarted && hasResolved
-      ? INSTANT_MOVE_IMPACT_DELAY_MS
-      : hasResolved
-        ? CHARGED_MOVE_IMPACT_DELAY_MS
-        : REACTION_IMPACT_DELAY_MS;
+  const impactDelay = battlePresentationImpactDelay(presentationEvents);
   const damageCount = presentationEvents.filter(
     (event) => event.type === "damageApplied",
   ).length;
@@ -95,6 +90,19 @@ export function battlePresentationDuration(events: BattleEvent[]): number {
   return 0;
 }
 
+export function battlePresentationImpactDelay(
+  events: readonly BattleEvent[],
+): number {
+  const types = new Set(
+    events.filter((event) => !event.periodic).map((event) => event.type),
+  );
+  return types.has("actionStarted") && types.has("actionCharged")
+    ? INSTANT_MOVE_IMPACT_DELAY_MS
+    : types.has("actionCharged")
+      ? CHARGED_MOVE_IMPACT_DELAY_MS
+      : REACTION_IMPACT_DELAY_MS;
+}
+
 export function battlePresentationStateCommitDelay(
   events: BattleEvent[],
 ): number {
@@ -114,12 +122,7 @@ export function battlePresentationStateCommitDelay(
     return 0;
   }
 
-  const impactDelay =
-    types.has("actionStarted") && types.has("actionCharged")
-      ? INSTANT_MOVE_IMPACT_DELAY_MS
-      : types.has("actionCharged")
-        ? CHARGED_MOVE_IMPACT_DELAY_MS
-        : REACTION_IMPACT_DELAY_MS;
+  const impactDelay = battlePresentationImpactDelay(presentationEvents);
 
   return impactDelay + Math.max(0, damageCount - 1) * DAMAGE_STAGGER_MS;
 }

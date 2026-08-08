@@ -68,8 +68,10 @@ import {
   chooseAiCommand,
   createBattle,
   forfeitBattle,
-  predictedDamage,
   predictedBaseDamage,
+  predictedBaseTeamDamagePool,
+  predictedDamage,
+  predictedTeamDamagePool,
   requestAction,
   requestAccessory,
   requestPickup,
@@ -126,8 +128,10 @@ import type { BattleScene } from "../game/BattleScene";
 import {
   aiDecisionReady,
   BATTLE_COUNTDOWN,
+  battlePresentationImpactDelay,
   battlePresentationDuration,
   battlePresentationStateCommitDelay,
+  DAMAGE_STAGGER_MS,
   holdAiDecisionClock,
 } from "../game/presentation-timing";
 import { evaluateMissionProgress } from "../missions/evaluate";
@@ -286,6 +290,10 @@ import {
   moveSealOutput,
 } from "../ui/combat-output";
 import {
+  teamDamageReceipts,
+  type TeamDamageReceipt,
+} from "../ui/team-damage-receipts";
+import {
   enemyHudPresentation,
   isPointNearRect,
   shouldReleaseEnemyHudForceCompact,
@@ -396,6 +404,8 @@ export class App {
   #battlePaused = false;
   #battleCountdownTimer = 0;
   #battleStateCommitTimer = 0;
+  #benchReceiptTimers: number[] = [];
+  #teamDamageReceipts = new Map<string, TeamDamageReceipt>();
   #battlePresentationLockedUntil = 0;
   #battleViewDirty = false;
   #pauseMenuOpen = false;
@@ -491,6 +501,7 @@ export class App {
     cancelAnimationFrame(this.#animationFrame);
     window.clearTimeout(this.#battleCountdownTimer);
     window.clearTimeout(this.#battleStateCommitTimer);
+    this.clearTeamDamageReceipts();
     window.clearTimeout(this.#battleInspectionTimer);
     window.clearTimeout(this.#startupTimer);
     this.#phaserGame?.destroy(true);
@@ -4466,6 +4477,7 @@ export class App {
     this.#battleReportArchived = false;
     this.#battleReward = null;
     this.#eventLog = [];
+    this.clearTeamDamageReceipts();
     this.#battleHandled = false;
     this.#route = "battle";
     this.render();
@@ -5158,7 +5170,24 @@ export class App {
     const stateCommitDelay = battlePresentationStateCommitDelay(
       transition.events,
     );
+    const damageReceipts = teamDamageReceipts(
+      transition.events,
+      previousState,
+      transition.state,
+      combatContent,
+      {
+        firstImpactDelayMs: battlePresentationImpactDelay(transition.events),
+        damageStaggerMs: DAMAGE_STAGGER_MS,
+      },
+    );
     this.#battle = transition.state;
+    if (damageReceipts.length > 0) {
+      this.scheduleTeamDamageReceipts(damageReceipts);
+    } else if (
+      transition.events.some((event) => event.type === "actionStarted")
+    ) {
+      this.clearTeamDamageReceipts(true);
+    }
     if (stateCommitDelay > 0 && presentationMs > 0 && previousState) {
       this.scheduleBattleStateCommit(stateCommitDelay);
     } else if (
@@ -5200,7 +5229,7 @@ export class App {
         }
       }
     }
-    this.logEvents(transition.events);
+    this.logEvents(transition.events, damageReceipts);
   }
 
   private scheduleBattleStateCommit(delayMs: number): void {
@@ -5219,6 +5248,95 @@ export class App {
     this.updateTeamReadout("enemy");
     this.updateBench("player");
     this.updateBench("enemy");
+  }
+
+  private scheduleTeamDamageReceipts(
+    receipts: readonly TeamDamageReceipt[],
+  ): void {
+    this.clearTeamDamageReceipts();
+    for (const receipt of receipts) {
+      const timer = window.setTimeout(() => {
+        this.#teamDamageReceipts.set(receipt.targetId, receipt);
+        this.applyTeamDamageReceipt(receipt);
+      }, receipt.impactDelayMs);
+      this.#benchReceiptTimers.push(timer);
+    }
+    const expiry = window.setTimeout(
+      () => this.clearTeamDamageReceipts(true),
+      Math.max(...receipts.map((receipt) => receipt.impactDelayMs)) + 8_000,
+    );
+    this.#benchReceiptTimers.push(expiry);
+  }
+
+  private clearTeamDamageReceipts(refreshBench = false): void {
+    for (const timer of this.#benchReceiptTimers) window.clearTimeout(timer);
+    this.#benchReceiptTimers = [];
+    this.#teamDamageReceipts.clear();
+    if (refreshBench && this.#battle) {
+      this.updateBench("player");
+      this.updateBench("enemy");
+    }
+  }
+
+  private applyTeamDamageReceipt(receipt: TeamDamageReceipt): void {
+    const ticket = this.#root.querySelector<HTMLElement>(
+      `.bench-ticket[data-instance-id="${CSS.escape(receipt.targetId)}"]`,
+    );
+    if (!ticket) return;
+    const healthScale = Math.max(
+      0,
+      Math.min(1, receipt.currentHealth / receipt.maximumHealth),
+    );
+    ticket.classList.remove("is-team-hit");
+    void ticket.offsetWidth;
+    ticket.classList.add("is-team-hit", "has-team-damage-receipt");
+    const stateValue = ticket.querySelector<HTMLElement>(".bench-state small");
+    if (stateValue) {
+      stateValue.textContent = `${receipt.currentHealth}/${receipt.maximumHealth}`;
+    }
+    const copyValue = ticket.querySelector<HTMLElement>(".bench-copy small");
+    if (copyValue) {
+      copyValue.textContent = `${formatLabel(receipt.characterTypeId)} · ${receipt.currentHealth} HP`;
+    }
+    const meter = ticket.querySelector<HTMLElement>(".bench-health");
+    meter?.setAttribute("aria-valuenow", String(receipt.currentHealth));
+    meter
+      ?.querySelector<HTMLElement>("span")
+      ?.style.setProperty("--meter-scale", String(healthScale));
+    if (receipt.wasActiveBefore) {
+      const readout = this.#root.querySelector<HTMLElement>(
+        `[data-${receipt.side}-readout]`,
+      );
+      const readoutValue = readout?.querySelector<HTMLElement>(
+        ".meter-label strong",
+      );
+      if (readoutValue) {
+        readoutValue.textContent = `${receipt.currentHealth} / ${receipt.maximumHealth} · ${Math.round(healthScale * 100)}%`;
+      }
+      const readoutMeter = readout?.querySelector<HTMLElement>(".health-meter");
+      readoutMeter?.setAttribute(
+        "aria-valuenow",
+        String(receipt.currentHealth),
+      );
+      readoutMeter
+        ?.querySelector<HTMLElement>("span")
+        ?.style.setProperty("--meter-scale", String(healthScale));
+    }
+    let damage = ticket.querySelector<HTMLElement>(".bench-damage-receipt");
+    if (!damage) {
+      damage = document.createElement("span");
+      damage.className = "bench-damage-receipt";
+      damage.setAttribute("aria-hidden", "true");
+      ticket.append(damage);
+    }
+    damage.textContent = `−${receipt.amount}`;
+    ticket.setAttribute(
+      "aria-label",
+      `${receipt.characterName}, ${receipt.currentHealth} of ${receipt.maximumHealth} Health. Took ${receipt.amount} team damage.`,
+    );
+    this.announce(
+      `${receipt.characterName} took ${receipt.amount} damage, ${receipt.currentHealth} of ${receipt.maximumHealth} Health remaining.`,
+    );
   }
 
   private playerAction(side: Side, actionId: string): void {
@@ -5344,13 +5462,23 @@ export class App {
     }
   }
 
-  private logEvents(events: BattleEvent[]): void {
+  private logEvents(
+    events: BattleEvent[],
+    teamReceipts: readonly TeamDamageReceipt[] = [],
+  ): void {
+    const teamTargetIds = new Set(
+      teamReceipts.map((receipt) => receipt.targetId),
+    );
     for (const event of events) {
       let message = "";
       if (event.type === "commandRejected") {
         message = event.message ?? "That command is unavailable.";
       }
-      if (event.type === "damageApplied" && !event.reactionKind) {
+      if (
+        event.type === "damageApplied" &&
+        !event.reactionKind &&
+        !teamTargetIds.has(event.targetId ?? "")
+      ) {
         const target = this.characterNameFromInstance(event.targetId);
         message = `${target} took ${event.amount ?? 0} damage.`;
       }
@@ -5405,6 +5533,13 @@ export class App {
       if (message) {
         this.#eventLog.unshift(message);
       }
+    }
+    if (teamReceipts.length > 0) {
+      this.#eventLog.unshift(
+        `Team hit: ${teamReceipts
+          .map((receipt) => `${receipt.characterName} −${receipt.amount}`)
+          .join(" · ")}.`,
+      );
     }
     this.#eventLog = this.#eventLog.slice(0, 2);
   }
@@ -5650,6 +5785,9 @@ export class App {
           0,
           Math.min(1, combatant.currentHealth / combatant.maxHealth),
         );
+        const damageReceipt = this.#teamDamageReceipts.get(
+          combatant.instanceId,
+        );
         const body = `
           <span class="bench-art is-${character.typeId}">
             <img
@@ -5677,6 +5815,11 @@ export class App {
             aria-valuemax="${combatant.maxHealth}"
             aria-valuenow="${combatant.currentHealth}"
           ><span style="--meter-scale:${healthScale}"></span></span>
+          ${
+            damageReceipt
+              ? `<span class="bench-damage-receipt" aria-hidden="true">−${damageReceipt.amount}</span>`
+              : ""
+          }
         `;
         const moveDisclosure = renderBenchMoveDisclosure(combatant);
         if (side === "player") {
@@ -5687,7 +5830,8 @@ export class App {
           return `
             <article class="bench-slot">
               <button
-                class="bench-ticket ${active ? "is-active" : ""}"
+                class="bench-ticket ${active ? "is-active" : ""} ${damageReceipt ? "has-team-damage-receipt" : ""}"
+                data-instance-id="${escapeHtml(combatant.instanceId)}"
                 data-command="battle-switch"
                 data-side="${side}"
                 data-index="${index}"
@@ -5699,7 +5843,7 @@ export class App {
                     ? "disabled"
                     : ""
                 }
-                aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${active || !alive ? "" : ". Switch to this fighter"}"
+                aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${damageReceipt ? `. Took ${damageReceipt.amount} team damage` : ""}${active || !alive ? "" : ". Switch to this fighter"}"
               >${body}</button>
               ${moveDisclosure}
             </article>
@@ -5707,7 +5851,11 @@ export class App {
         }
         return `
           <article class="bench-slot">
-            <div class="bench-ticket ${active ? "is-active" : ""}">${body}</div>
+            <div
+              class="bench-ticket ${active ? "is-active" : ""} ${damageReceipt ? "has-team-damage-receipt" : ""}"
+              data-instance-id="${escapeHtml(combatant.instanceId)}"
+              aria-label="${character.name}, ${stateLabel}, ${combatant.currentHealth} of ${combatant.maxHealth} Health${damageReceipt ? `. Took ${damageReceipt.amount} team damage` : ""}"
+            >${body}</div>
             ${moveDisclosure}
           </article>
         `;
@@ -5887,6 +6035,29 @@ export class App {
         action.id,
         combatContent,
       );
+      const targetCount = previewAction.effects.some(
+        (effect) => effect.kind === "damage" && effect.target === "allEnemies",
+      )
+        ? this.#battle.enemy.squad.filter(isAlive).length
+        : 1;
+      const teamPoolEstimate =
+        targetCount > 1
+          ? predictedTeamDamagePool(
+              this.#battle,
+              "player",
+              action.id,
+              combatContent,
+            )
+          : undefined;
+      const baseTeamPoolEstimate =
+        targetCount > 1
+          ? predictedBaseTeamDamagePool(
+              this.#battle,
+              "player",
+              action.id,
+              combatContent,
+            )
+          : undefined;
       const remainingCharge = Math.max(
         0,
         Math.ceil(cost - this.#battle.player.bar),
@@ -5895,6 +6066,8 @@ export class App {
         previewAction,
         estimate,
         rule.multiplier * TIER_MULTIPLIERS[tier],
+        targetCount,
+        teamPoolEstimate,
       );
       const sealOutput = moveSealOutput(
         previewAction,
@@ -5902,6 +6075,9 @@ export class App {
         baseEstimate,
         cost,
         rule.multiplier * TIER_MULTIPLIERS[tier],
+        targetCount,
+        teamPoolEstimate,
+        baseTeamPoolEstimate,
       );
       const stateLabel = charging
         ? `Charging ${Math.max(0, pending.remainingMs / 1000).toFixed(1)}s`
@@ -6131,10 +6307,36 @@ export class App {
           action.id,
           combatContent,
         );
+        const targetCount = previewAction.effects.some(
+          (effect) =>
+            effect.kind === "damage" && effect.target === "allEnemies",
+        )
+          ? this.#battle!.player.squad.filter(isAlive).length
+          : 1;
+        const teamPoolEstimate =
+          targetCount > 1
+            ? predictedTeamDamagePool(
+                this.#battle!,
+                "enemy",
+                action.id,
+                combatContent,
+              )
+            : undefined;
+        const baseTeamPoolEstimate =
+          targetCount > 1
+            ? predictedBaseTeamDamagePool(
+                this.#battle!,
+                "enemy",
+                action.id,
+                combatContent,
+              )
+            : undefined;
         const outputSummary = actionOutputSummary(
           previewAction,
           estimate,
           effectMultiplier,
+          targetCount,
+          teamPoolEstimate,
         );
         const sealOutput = moveSealOutput(
           previewAction,
@@ -6142,6 +6344,9 @@ export class App {
           baseEstimate,
           cost,
           effectMultiplier,
+          targetCount,
+          teamPoolEstimate,
+          baseTeamPoolEstimate,
         );
         const blocked = team.statuses.some(
           (status) =>

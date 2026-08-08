@@ -64,10 +64,19 @@ export function actionOutputSummary(
   action: ActionDefinition,
   damageEstimate: number,
   effectMultiplier = 1,
+  targetCount = 1,
+  teamPoolEstimate?: number,
 ): string {
   const outputs = new Set<string>();
   if (damageEstimate > 0) {
-    outputs.add(`Attack · Hit ${damageEstimate}`);
+    const teamDamage = action.effects.some(
+      (effect) => effect.kind === "damage" && effect.target === "allEnemies",
+    );
+    outputs.add(
+      teamDamage && targetCount > 1
+        ? `Team pool ≈${teamPoolEstimate ?? damageEstimate * targetCount} · ≈${Math.round((teamPoolEstimate ?? damageEstimate * targetCount) / targetCount)} each across ${targetCount}`
+        : `Attack · Hit ${damageEstimate}`,
+    );
   }
 
   for (const effect of action.effects) {
@@ -199,8 +208,22 @@ export function moveSealOutput(
   baseDamageEstimate: number,
   chargeCost: number,
   effectMultiplier = 1,
+  targetCount = 1,
+  teamPoolEstimate?: number,
+  baseTeamPoolEstimate?: number,
 ): MoveSealOutput {
   if (damageEstimate > 0) {
+    const teamDamage = action.effects.some(
+      (effect) => effect.kind === "damage" && effect.target === "allEnemies",
+    );
+    const showsPool = teamDamage && targetCount > 1;
+    const displayDamage = showsPool
+      ? (teamPoolEstimate ?? damageEstimate * targetCount)
+      : damageEstimate;
+    const displayBase = showsPool
+      ? (baseTeamPoolEstimate ?? baseDamageEstimate * targetCount)
+      : baseDamageEstimate;
+    const perTargetDamage = Math.round(displayDamage / targetCount);
     const tone =
       damageEstimate > baseDamageEstimate
         ? "boosted"
@@ -208,14 +231,14 @@ export function moveSealOutput(
           ? "reduced"
           : "neutral";
     return {
-      value: String(damageEstimate),
-      label: `Hit${tone === "boosted" ? " ↑" : tone === "reduced" ? " ↓" : ""} · ${chargeCost}C`,
+      value: String(displayDamage),
+      label: `${showsPool ? `Pool · ≈${perTargetDamage} ea` : "Hit"}${tone === "boosted" ? " ↑" : tone === "reduced" ? " ↓" : ""} · ${chargeCost}C`,
       tone,
       delta:
         tone === "boosted"
-          ? `+${damageEstimate - baseDamageEstimate}`
+          ? `+${displayDamage - displayBase}`
           : tone === "reduced"
-            ? `−${baseDamageEstimate - damageEstimate}`
+            ? `−${displayBase - displayDamage}`
             : null,
     };
   }

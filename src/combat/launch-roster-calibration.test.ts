@@ -232,8 +232,8 @@ describe("launch roster calibration", () => {
 
     const expired = tickBattle(state, 250, combatContent);
 
-    expect(expired.state.player.squad[0]!.currentHealth).toBeGreaterThan(
-      beforeExpiry,
+    expect(expired.state.player.squad[0]!.currentHealth - beforeExpiry).toBe(
+      14,
     );
     expect(expired.events).toContainEqual(
       expect.objectContaining({
@@ -277,11 +277,12 @@ describe("launch roster calibration", () => {
 
   it("gives Ned team recovery and team acceleration", () => {
     const state = duel("character.ned-kelly", "character.viking", "platinum");
-    state.player.squad[0]!.currentHealth -= 25;
+    state.player.squad[0]!.currentHealth -= 100;
+    const healthBeforeHealing = state.player.squad[0]!.currentHealth;
     const healed = resolveMove(state, "player", "action.ned-kelly.iron-outlaw");
-    expect(healed.state.player.squad[0]!.currentHealth).toBeGreaterThan(
-      state.player.squad[0]!.currentHealth,
-    );
+    expect(
+      healed.state.player.squad[0]!.currentHealth - healthBeforeHealing,
+    ).toBe(43);
 
     healed.state.player.bar = 100;
     const accelerated = resolveMove(

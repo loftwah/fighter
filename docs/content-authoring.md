@@ -87,7 +87,16 @@ tierProperties: {
 ```
 
 Tier properties are cumulative, so Tier 2 retains the Tier 1 property. Numeric
-effects continue to use the normal tier multiplier.
+healing and utility use `1.00`/`1.16`/`1.34`; damage and periodic offensive
+effects use `1.00`/`1.05`/`1.08`. This split is intentional: do not route
+damage back through the utility tier curve or weaken healing to tune lethality.
+
+Damage authoring is checked as a maximum-Health ratio against a neutral,
+matched-progression target. The complete compound Move counts: multiply
+multi-hit power by hit count and include every expected periodic tick or later
+damage effect. Stock Small, Middle and Big bands target 11–13%, 20–25% and
+30–35% respectively before exceptional modifiers. Any deliberate exception
+must be named in the launch calibration register and covered by a seeded test.
 
 Timed reactions are effects too:
 

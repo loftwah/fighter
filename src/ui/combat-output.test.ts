@@ -40,6 +40,13 @@ const berserkerOath: ActionDefinition = {
   audioId: "sfx.action.finisher",
 };
 
+const teamAttack: ActionDefinition = {
+  ...berserkerOath,
+  id: "action.test.team",
+  category: "teamAttack",
+  effects: [{ kind: "damage", target: "allEnemies", power: 15 }],
+};
+
 function empower(id: string, magnitude: number): StatusState {
   return {
     id,
@@ -68,6 +75,18 @@ describe("player-readable combat output", () => {
     expect(actionOutputSummary(berserkerOath, 67, 1.5 * 1.16)).toBe(
       "Attack · Hit 67 + Stun 72% · 1.1s",
     );
+  });
+
+  it("previews a team attack as its total pool and approximate split", () => {
+    expect(actionOutputSummary(teamAttack, 18, 1, 3, 49)).toBe(
+      "Team pool ≈49 · ≈16 each across 3",
+    );
+    expect(moveSealOutput(teamAttack, 18, 18, 70, 1, 3, 49, 49)).toEqual({
+      value: "49",
+      label: "Pool · ≈16 ea · 70C",
+      tone: "neutral",
+      delta: null,
+    });
   });
 
   it("combines separately stored Power stacks into one readable total", () => {

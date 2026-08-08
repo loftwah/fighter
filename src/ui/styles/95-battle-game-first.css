@@ -1782,12 +1782,6 @@
     gap: 0.3rem;
   }
 
-  .battle-stage[data-battle-layout="rail-first"]
-    .enemy-bench
-    .bench-slot:has(.bench-ticket.is-active) {
-    display: none;
-  }
-
   .battle-stage[data-battle-layout="rail-first"] .enemy-bench .bench-slot {
     width: 2.75rem;
   }

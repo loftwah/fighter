@@ -195,4 +195,22 @@ describe("development battle scenarios", () => {
     expect(boosted.player.bar).toBeLessThan(40);
     expect(reduced.player.bar).toBeLessThan(70);
   });
+
+  it("provides a deterministic three-target team-damage presentation preset", () => {
+    expect(
+      devBattleScenarios.find(
+        (scenario) => scenario.id === "dev.team-damage-1v3",
+      ),
+    ).toMatchObject({
+      playerCharacterIds: ["character.tux"],
+      enemyCharacterIds: [
+        "character.viking",
+        "character.humpty",
+        "character.moses",
+      ],
+      playerStartingBar: 100,
+      startPaused: true,
+      controllers: { player: "human-local", enemy: "human-local" },
+    });
+  });
 });

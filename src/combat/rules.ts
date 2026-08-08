@@ -37,6 +37,12 @@ export const TIER_MULTIPLIERS: Record<ActionTier, number> = {
   platinum: 1.34,
 };
 
+export const DAMAGE_TIER_MULTIPLIERS: Record<ActionTier, number> = {
+  stock: 1,
+  gold: 1.05,
+  platinum: 1.08,
+};
+
 export function actionTierProperties(
   action: ActionDefinition,
   tier: ActionTier,

@@ -63,6 +63,21 @@ describe("combat AI", () => {
     });
   });
 
+  it("stops paying Health for Charge once Tux can pressure or is badly hurt", () => {
+    const state = standardDuel("character.tux", "character.humpty");
+    state.player.bar = 50;
+    expect(chooseAiCommand(state, combatContent, "player")).toEqual({
+      kind: "action",
+      actionId: "action.tux.root-access",
+    });
+
+    state.player.bar = 32;
+    state.player.squad[0]!.currentHealth = Math.floor(
+      state.player.squad[0]!.maxHealth * 0.4,
+    );
+    expect(chooseAiCommand(state, combatContent, "player")).toBeNull();
+  });
+
   it("uses Grim's form once, then banks for whole-Lineup pressure", () => {
     let state = standardDuel("character.viking", "character.grim-reaper");
     state.enemy.bar = 40;

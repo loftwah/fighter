@@ -35,6 +35,7 @@ export interface V2AcceptanceMetrics {
   estimatedPlayableDurationMs: number;
   firstPlayerDecisionMs: number | null;
   playerActionIds: string[];
+  playerDamageByAction: Record<string, number>;
   playerHealthRatio: number;
 }
 
@@ -211,6 +212,21 @@ export function runV2VikingAcceptanceFight(
       decision.side === "player" && decision.command.kind === "action"
         ? [decision.command.actionId]
         : [],
+    ),
+    playerDamageByAction: report.events.reduce<Record<string, number>>(
+      (totals, event) => {
+        if (
+          event.type === "damageApplied" &&
+          event.side === "player" &&
+          event.actionId &&
+          event.message !== "healthCost"
+        ) {
+          totals[event.actionId] =
+            (totals[event.actionId] ?? 0) + (event.amount ?? 0);
+        }
+        return totals;
+      },
+      {},
     ),
     playerHealthRatio: player.currentHealth / player.maxHealth,
   };

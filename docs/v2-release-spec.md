@@ -135,8 +135,10 @@ favourable through Viking's Brawler-versus-Beast Type edge. The reference
 script makes its first decision at 2.0 seconds, uses Battle Boast → Axe First →
 Battle Boast → Berserker Oath → Axe First → Battle Boast → Axe First, wins
 after 31.4 seconds of simulation and about 57.87 seconds including countdown
-and presentation holds, and finishes at about 49% Health. Between those Moves,
-the reference controller collects any
+and presentation holds, finishes at about 49% Health, and records 170 landed
+damage from Axe First. Berserker Oath is dodged in this seed, so its reauthored
+pool does not silently change the benchmark's duration or finishing Health.
+Between those Moves, the reference controller collects any
 available player Drop and activates Second Wind when fully charged. This is a
 regression benchmark, not a claim that one scripted sequence is the only good
 way to play. A second acceptance run waits 1.5 seconds after each player

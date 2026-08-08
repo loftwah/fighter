@@ -2,7 +2,7 @@
 
 Status: **V2 ACCEPTANCE REGISTER**
 
-Last reviewed: 2026-08-04
+Last reviewed: 2026-08-08
 
 This register turns the six launch Characters into deliberate functional
 benchmarks. It is subordinate to `docs/game-design.md` and
@@ -106,8 +106,25 @@ Before V2 freezes:
 5. the Viking first-time-player scenario remains deliberately forgiving;
 6. playtest notes record feel, clarity, and decision rhythm, not only win rate.
 
-Automated evidence currently covers all 36 ordered one-on-one Standard-build
-matchups. Every pairing completes, both Characters start at least one Move,
-the shared AI issues no rejected command, and repeating the same seed produces
-the same outcome and remaining Health. This is a broad usability regression
-net, not a substitute for owner feel and balance playtesting.
+The reusable seeded matrix now covers all eight damaging launch Moves under
+both Standard and Full Power builds, plus every one of the 36 ordered
+one-on-one matchups under three seeds. Standard neutral means are 12.1% Small,
+22.6–25.1% Middle and 33.7–33.8% Big, including Tux's three-hit total and Grim's
+direct-plus-periodic total. Full Power means are 13.6% Small, 25.7–28.8%
+Middle and 37.1–38.8% Big. Full Power therefore remains visibly stronger while
+retaining at least three clean damaging-Move decisions.
+
+The result spread is retained per matchup rather than hidden in one average.
+Humpty-versus-Humpty, Humpty-versus-Moses, Moses-versus-Humpty and
+Moses-versus-Moses are explicit support/controller timeouts because those kits
+prioritise shield, recovery, Charge control and Move denial often enough that
+their damaging Moves do not convert the matchup before 120 seconds;
+Humpty-versus-Ned can also time out when reflection and recovery prevent a
+finish. These are deliberate one-on-one kit composition outliers, not evidence
+that damaging Moves miss their budgets.
+At Full Power, two of the three Humpty-versus-Viking seeds and one seed in its
+ordered reverse also reach the limit when repeated shielding stalls Viking's
+damage. The matrix pins these timeout identities and reports them separately.
+Both Characters still start Moves, and damage-capable mirrored fights retain
+decision time. Tux's AI now stops paying Health for Charge once a damaging Move
+is affordable or the payment would leave it below 45% Health.

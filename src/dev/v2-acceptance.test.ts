@@ -31,6 +31,9 @@ describe("fixed-seed V2 Viking acceptance fight", () => {
       ],
     });
     expect(result.playerHealthRatio).toBeCloseTo(0.4933, 4);
+    expect(result.playerDamageByAction).toEqual({
+      "action.viking.axe-first": 170,
+    });
 
     const replay = replayBattleReport(result.report, combatContent);
     expect(replay.state.outcome).toBe(result.outcome);

@@ -31,7 +31,7 @@ export const launchActions = [
     chargeMs: 450,
     interruptionPolicy: "spend",
     effects: [
-      { kind: "damage", target: "activeEnemy", power: 18 },
+      { kind: "damage", target: "activeEnemy", power: 17 },
       {
         kind: "blockMove",
         target: "enemies",
@@ -68,7 +68,7 @@ export const launchActions = [
     chargeMs: 900,
     interruptionPolicy: "spend",
     effects: [
-      { kind: "damage", target: "allEnemies", power: 8, hits: 3 },
+      { kind: "damage", target: "allEnemies", power: 5, hits: 3 },
       {
         kind: "barPercent",
         target: "enemies",
@@ -221,7 +221,7 @@ export const launchActions = [
     position: "2",
     chargeMs: 500,
     interruptionPolicy: "spend",
-    effects: [{ kind: "damage", target: "activeEnemy", power: 21 }],
+    effects: [{ kind: "damage", target: "activeEnemy", power: 18 }],
     tierProperties: {
       gold: {
         additionalEffects: [
@@ -316,7 +316,7 @@ export const launchActions = [
       {
         kind: "damage",
         target: "activeEnemy",
-        power: 29,
+        power: 20,
       },
       {
         kind: "stun",
@@ -342,7 +342,7 @@ export const launchActions = [
       {
         kind: "damage",
         target: "activeEnemy",
-        power: 20,
+        power: 13,
         undodgeable: true,
       },
     ],
