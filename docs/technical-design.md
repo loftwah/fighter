@@ -737,6 +737,9 @@ that chain on load failure.
 - Roster-switch presentation regression advances through defeats, resizes the
   live Phaser arena after outgoing rich art becomes inactive, and rejects any
   texture or `FramedShot.applyFraming` error.
+- `mise run layout:audit` opens the production Main Menu at `390 × 844`,
+  `844 × 390`, and `1728 × 1117`, rejects document scrolling or off-viewport
+  mode actions, and keeps every launch action at least 44 CSS pixels high.
 - Every release slice receives bounded gameplay, UX, visual, performance,
   accessibility, and production-readiness passes. Fixed-seed scenarios and
   replayable reports are preferred evidence because defects remain inspectable,

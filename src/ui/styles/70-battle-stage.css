@@ -302,14 +302,14 @@
   }
 
   .mode-copy .primary-action {
-    min-height: 2.55rem;
+    min-height: 2.75rem;
     padding: 0.35rem 0.65rem;
     font-size: 1.35rem;
   }
 
   .mode-quick .mode-copy .secondary-action,
   .mode-tournament .mode-copy .secondary-action {
-    min-height: 2.55rem;
+    min-height: 2.75rem;
     padding: 0.35rem 0.65rem;
     font-size: 0.78rem;
   }
@@ -399,6 +399,94 @@
 
   .battle-drawer {
     grid-template-rows: auto minmax(16rem, 36vh) auto;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 620px) and (min-width: 621px) {
+  .main-menu {
+    height: calc(100dvh - 8.2rem);
+    min-height: 0;
+    padding: 0.45rem 0.65rem;
+  }
+
+  .main-menu-intro {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 0.4rem;
+  }
+
+  .main-menu-intro h1 {
+    max-width: none;
+    font-size: 2.4rem;
+    line-height: 0.82;
+  }
+
+  .main-menu-intro p {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .mode-launcher {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .mode-side-stack {
+    display: contents;
+  }
+
+  .mode-story,
+  .mode-tournament {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .mode-art-story,
+  .mode-tournament .mode-art-tournament {
+    display: none;
+  }
+
+  .mode-copy,
+  .mode-side-stack .mode-copy {
+    gap: 0.3rem;
+    align-content: start;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .mode-copy h2,
+  .mode-quick .mode-copy h2,
+  .mode-tournament .mode-copy h2 {
+    max-width: none;
+    font-size: 2.4rem;
+    line-height: 0.88;
+  }
+
+  .mode-copy p {
+    display: -webkit-box;
+    overflow: hidden;
+    font-size: 1rem;
+    line-height: 1.15;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .mode-copy dl,
+  .main-menu-profile {
+    display: none;
+  }
+
+  .mode-copy .primary-action,
+  .mode-copy .secondary-action {
+    min-height: 2.75rem;
+    margin-top: auto;
+    padding: 0.3rem 0.45rem;
+    font-size: 0.72rem;
+  }
+
+  .mode-copy .primary-action {
+    font-size: 1.2rem;
   }
 }
 

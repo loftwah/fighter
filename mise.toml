@@ -72,6 +72,10 @@ run = "pnpm video:check"
 description = "Build and measure the cold production mobile intro boundary"
 run = "pnpm performance:audit"
 
+[tasks."layout:audit"]
+description = "Build and verify Main Menu geometry at the Tier 1 references"
+run = "pnpm layout:audit"
+
 [tasks.check]
 description = "Run the complete local quality gate"
 depends = ["lint", "format", "typecheck", "test", "build", "content:validate", "video:check"]

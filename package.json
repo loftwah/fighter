@@ -25,7 +25,8 @@
     "demo:trailer": "node scripts/render-gameplay-trailer.mjs",
     "video:check": "pnpm --dir video lint",
     "preview": "vite preview",
-    "performance:audit": "pnpm build && node scripts/audit-initial-route.mjs"
+    "performance:audit": "pnpm build && node scripts/audit-initial-route.mjs",
+    "layout:audit": "pnpm build && node scripts/audit-main-menu-layout.mjs"
   },
   "dependencies": {
     "@fontsource/atkinson-hyperlegible": "^5.2.6",
