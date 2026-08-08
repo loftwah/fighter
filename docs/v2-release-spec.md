@@ -447,6 +447,13 @@ complete only when all gates pass together.
 
 Exact numeric transfer and frame-pacing budgets are set after the first
 instrumented device baseline; the absence of that baseline blocks V2 freeze.
+The 2026-08-08 local production-preview observation now records an initial
+`390 × 844` landing transfer of 2,591,025 encoded bytes with no Phaser request,
+followed by 5,912,216 encoded bytes for the default 1v1 battle, including the
+340,199-byte encoded lazy Phaser chunk and encounter-specific images. The
+production artefact verifier rejects source maps and an eager Phaser script.
+This is browser instrumentation, not the still-required physical-device
+baseline, frame-pacing evidence, decoded-memory observation, or final budget.
 
 ### Gate V2-07 — Accessibility and resilience
 

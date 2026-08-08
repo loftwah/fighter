@@ -772,11 +772,25 @@ Releases. Deployment, signing, and store credentials live only in protected
 milestone-owned environments. No native signing secret or multiplayer backend
 secret is required for V2.
 
-The current complete static output is much larger than an acceptable startup
-payload because it contains the complete music and development/public asset
-trees. Static output size is not identical to initial transfer, but V2 must
-record actual route and battle transfers. V2.1 must use selective application
-shell and content-pack caching rather than pre-caching the complete library.
+The complete static output contains the music and public asset trees, so its
+size is not an initial-transfer measurement. Production builds run
+`scripts/verify-production-build.mjs`, reject public source maps and an eager
+Phaser script, and print both total artefact bytes and the initial HTML's
+raw/gzip code measurements. A Rollup module-graph guard fails if Phaser or the
+battle renderer enters any static entry import, including when chunk filenames
+change or Rollup merges modules. The 2026-08-08 production build measured
+172,192,552 static bytes with zero source maps; its initial JS and CSS measured
+815,192 raw bytes and 183,985 gzip bytes.
+
+A local production-preview baseline at `390 × 844` measured 2,591,025 encoded
+bytes across nine landing resources. It did not request the lazy Phaser chunk.
+Starting the default Viking-versus-Grim-Reaper 1v1 requested a further
+5,912,216 encoded bytes across fourteen resources: the 340,199-byte encoded
+Phaser chunk and only that encounter's arena, Move, idle, and reaction images.
+These figures establish the first browser-driven transfer observation; they do not
+set the physical-device budget or prove frame pacing, decoded image memory, or
+thermal behaviour. V2.1 must use selective application-shell and content-pack
+caching rather than pre-caching the complete library.
 
 ## Product-line evolution boundary
 

@@ -19,7 +19,7 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
-    files: ["src/**/*.ts", "vite.config.ts"],
+    files: ["src/**/*.ts", "vite.config.ts", "vite-production-guard.ts"],
     languageOptions: {
       parserOptions: {
         projectService: true,

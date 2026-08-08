@@ -1,6 +1,8 @@
 import { defineConfig } from "vitest/config";
+import { productionBundleGuard } from "./vite-production-guard";
 
 export default defineConfig({
+  plugins: [productionBundleGuard()],
   server: {
     host: "127.0.0.1",
     port: 4173,
@@ -10,7 +12,7 @@ export default defineConfig({
     port: 4174,
   },
   build: {
-    sourcemap: true,
+    sourcemap: false,
   },
   test: {
     environment: "node",
